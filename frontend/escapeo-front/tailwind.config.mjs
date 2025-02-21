@@ -8,10 +8,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        darkBackground: "#0a0a0a",
+        darkForeground: "#ededed",
+        lightBackground: "#ffffff",
+        lightForeground: "#171717",
+      },
+      fontFamily: {
+        urbanist: ["Urbanist", "sans-serif"],
+        fira: ["Fira Sans", "sans-serif"],
+        karla: ["Karla", "sans-serif"],
+        robotoSlab: ["Roboto Slab", "serif"],
       },
     },
   },
+  darkMode: "media", // Automatically switch based on system preference
   plugins: [],
 };
