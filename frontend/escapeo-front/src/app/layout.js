@@ -24,9 +24,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-      >
-              <NavbarConnected />
+      <body>
+         <NavbarConnected />
         {children}
       </body>
     </html>
