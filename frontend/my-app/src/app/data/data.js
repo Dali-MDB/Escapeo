@@ -212,6 +212,4 @@ export const destPop = [
   { bgImg: "/istanbul.jpg", location: "Istanbul, Turkey" },
   { bgImg: "/baku.jpg", location: "Baku, Azerbaijan" },
   { bgImg: "/algiers.jpeg", location: "Algiers, Algeria" },
-  { bgImg: "/rome.jpg", location: "Rome, Italy" },
-  { bgImg: "/moscow.jpg", location: "Moscow, Russia" },
 ];

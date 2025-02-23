@@ -2,7 +2,7 @@ import { offers } from "../data/data";
 
 export default function SpecialOffers() {
   return (
-    <section className=" h-screen flex justify-center mt-[-45px] items-center w-full mx-auto">
+    <section className=" h-[80vh] flex justify-center mt-[-45px] items-center w-full mx-auto">
       <div className="w-[75%] mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>

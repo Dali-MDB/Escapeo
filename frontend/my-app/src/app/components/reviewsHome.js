@@ -63,7 +63,7 @@ const Reviewcard = (props) => {
 
 export default function Reviews() {
   return (
-    <section className="h-screen flex justify-center items-center w-full mx-auto">
+    <section className="h-[80vh] flex justify-center items-center w-full mx-auto">
       <div className="w-[75%] mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>
