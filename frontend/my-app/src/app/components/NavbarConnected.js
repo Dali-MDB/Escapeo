@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "/public/logoWhite.png";
@@ -9,60 +8,14 @@ import { useState, useEffect } from "react";
 import ProfileCard from "./ProfileCard";
 import img from "/public/photo.png";
 import heart from "/public/heartWhite.png";
+import {navLinks} from "../data/data"
 
 const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 
 export default function NavbarConnected() {
-  const [isClient, setIsClient] = useState(false);
   const [clicked, setClicked] = useState(false);
   const path = usePathname(); // Always call usePathname
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const navLinks = [
-    {
-      title: "Find Flights",
-      link: "Flights",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 512 512"
-          aria-label="Find Flights"
-        >
-          <path
-            fill="currentColor"
-            d="M407.72 208c-2.72 0-14.44.08-18.67.31l-57.77 1.52L198.06 48h-62.81l74.59 164.61l-97.31 1.44L68.25 160H16.14l20.61 94.18c.15.54.33 1.07.53 1.59a.26.26 0 0 1 0 .15a15 15 0 0 0-.53 1.58L15.86 352h51.78l45.45-55l96.77 2.17L135.24 464h63l133-161.75l57.77 1.54c4.29.23 16 .31 18.66.31c24.35 0 44.27-3.34 59.21-9.94C492.22 283 496 265.46 496 256c0-30.06-33-48-88.28-48m-71.29 87.9"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Find Stays",
-      link: "/Hotels",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 512 512"
-          aria-label="Find Stays"
-        >
-          <path
-            fill="currentColor"
-            d="M432 230.7a79.4 79.4 0 0 0-32-6.7H112a79.5 79.5 0 0 0-32 6.69A80.09 80.09 0 0 0 32 304v112a16 16 0 0 0 32 0v-8a8.1 8.1 0 0 1 8-8h368a8.1 8.1 0 0 1 8 8v8a16 16 0 0 0 32 0V304a80.09 80.09 0 0 0-48-73.3M376 80H136a56 56 0 0 0-56 56v72a4 4 0 0 0 5.11 3.84A95.5 95.5 0 0 1 112 208h4.23a4 4 0 0 0 4-3.55A32 32 0 0 1 152 176h56a32 32 0 0 1 31.8 28.45a4 4 0 0 0 4 3.55h24.46a4 4 0 0 0 4-3.55A32 32 0 0 1 304 176h56a32 32 0 0 1 31.8 28.45a4 4 0 0 0 4 3.55h4.2a95.5 95.5 0 0 1 26.89 3.85A4 4 0 0 0 432 208v-72a56 56 0 0 0-56-56"
-          />
-        </svg>
-      ),
-    },
-  ];
-
-  if (!isClient) {
-    return null; // Render nothing on the server
-  }
+  
 
   return (
     <div className="text-[#ffffff] absolute top-16 z-30 shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)] w-[85%] font-urbanist text-sm md:text-lg sm:font-semibold rounded-full left-[7.5%] flex flex-row justify-evenly items-center py-0 sm:py-1 h-14 sm:h-28 px-8 sm:px-20 bg-[#4B6382] gap-5">
@@ -72,14 +25,15 @@ export default function NavbarConnected() {
           {navLinks.map(({ title, link, icon }, index) => (
             <div
               key={index}
-              className={`flex flex-col justify-center h-full items-center relative ${
-                path === link ? "shadow-[inset_0_-4px_0_#4B6382]" : ""
+              className={`z-30 flex flex-col justify-center h-full items-center relative ${
+                path=== link ? "shadow-[0_0_-4px_0_#4B6382]" : ""
               }`}
             >
               <Link href={link} className="flex items-center gap-2 cursor-pointer">
                 <span>{icon}</span>
                 <span className="hidden lg:flex">{title}</span>
               </Link>
+              {console.log(path+link)}
             </div>
           ))}
         </div>
@@ -138,7 +92,7 @@ export default function NavbarConnected() {
 
             <span className="hidden 2xl:flex xl:text-lg">John D.</span>
 
-            {isClient && clicked && <ProfileCard />}
+            {clicked && <ProfileCard />}
           </div>
         </div>
       </div>

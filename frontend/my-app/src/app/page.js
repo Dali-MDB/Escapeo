@@ -2,6 +2,8 @@ import Hero from "./components/Hero";
 import PopularDest from "./components/PopularDestination";
 import SpecialOffers from "./components/SpecialOffers";
 import Packages from "./components/Packages";
+import Foryou from "./components/ForYou";
+import Reviews from "./components/reviewsHome";
 export default function Home() {
 
 
@@ -11,6 +13,8 @@ export default function Home() {
       <PopularDest />
       <SpecialOffers />
       <Packages />
+      <Foryou />
+      <Reviews />
     </div>
   );
 }
