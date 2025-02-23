@@ -21,14 +21,14 @@ const PackageCard = (props) => {
       {/* Card Details */}
       <div className="relative z-10 flex flex-col justify-evenly gap-10 items-center p-6 w-full">
         {/* Title */}
-        <div className="flex justify-center items-end w-auto px-8">
+        <div className="flex justify-center items-end w-full px-8">
           <p className="text-xl font-semibold text-center">{props.title}</p>
         </div>
 
         {/* Description and Price */}
         <div className="flex justify-between items-center w-full gap-2">
           <p className="w-full">{props.description}</p>
-          <div className="flex flex-col items-end justify-center w-1/4">
+          <div className="flex flex-col items-end justify-center w-1/3">
             <span className="text-lg opacity-50 line-through">{`$ ${props.oldPrice}`}</span>
             <span className="text-xl text-white">{`$ ${props.newPrice}`}</span>
           </div>

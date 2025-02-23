@@ -1,19 +1,13 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Urbanist } from "next/font/google"; // Import Urbanist
 import NavbarConnected from "./components/NavbarConnected";
 
 import "./globals.css";
 
-import Navbar from "./components/NavbarConnected";
-
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Configure Urbanist
+const urbanist = Urbanist({
+  variable: "--font-urbanist", // Define a CSS variable for Urbanist
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "400", // Specify the font weight
 });
 
 export const metadata = {
@@ -23,9 +17,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-         <NavbarConnected />
+    <html lang="en" className={urbanist.variable}>
+      <body style={{
+        fontFamily:'urbanist'
+      }}>
+        <NavbarConnected />
         {children}
       </body>
     </html>

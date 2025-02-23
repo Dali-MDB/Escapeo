@@ -22,7 +22,7 @@ export default function SpecialOffers() {
             {offers.map((offer, index) => (
               <div
                 key={index}
-                className="relative h-[450px] w-80 rounded-2xl shadow-lg flex flex-col justify-end items-center p-6 text-white shrink-0 snap-start"
+                className="relative h-[450px] w-80 rounded-2xl shadow-lg flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4 p-6 text-white shrink-0 snap-start"
                 style={{
                   backgroundImage: `url(${offer.bgImg})`,
                   backgroundSize: "cover",

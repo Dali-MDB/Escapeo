@@ -8,39 +8,37 @@ import { useState, useEffect } from "react";
 import ProfileCard from "./ProfileCard";
 import img from "/public/photo.png";
 import heart from "/public/heartWhite.png";
-import {navLinks} from "../data/data"
+import { navLinks } from "../data/data";
 
 const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 
 export default function NavbarConnected() {
   const [clicked, setClicked] = useState(false);
   const path = usePathname(); // Always call usePathname
-  
 
   return (
-    <div className="text-[#ffffff] absolute top-16 z-30 shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)] w-[85%] font-urbanist text-sm md:text-lg sm:font-semibold rounded-full left-[7.5%] flex flex-row justify-evenly items-center py-0 sm:py-1 h-14 sm:h-28 px-8 sm:px-20 bg-[#4B6382] gap-5">
-      {/* Left Section */}
-      <div className="flex text-sm w-full h-full items-center justify-start">
-        <div className="flex w-1/4 sm:w-auto flex-row justify-evenly sm:justify-between gap-5 sm:gap-10 items-center">
+    <div className="w-[85%] font- h-20 absolute left-[7.5%] top-[5%]  bg-[#4B6382] flex px-10 flex-row z-50 rounded-full justify-between items-center shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]">
+      <div className="w-full h-full flex justify-start items-center">
+        <div className="w-1/2 h-full flex flex-row justify-evenly gap-2 items-center">
           {navLinks.map(({ title, link, icon }, index) => (
-            <div
-              key={index}
-              className={`z-30 flex flex-col justify-center h-full items-center relative ${
-                path=== link ? "shadow-[0_0_-4px_0_#4B6382]" : ""
-              }`}
-            >
-              <Link href={link} className="flex items-center gap-2 cursor-pointer">
-                <span>{icon}</span>
-                <span className="hidden lg:flex">{title}</span>
-              </Link>
-              {console.log(path+link)}
-            </div>
-          ))}
+          <div
+          key={index}
+          className={`z-30 flex flex-col justify-center h-full items-center relative ${
+            path === link ? "shadow-[inset_0_-5px_white]" : ""
+          }`}
+        >
+          <Link
+            href={link}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <span>{icon}</span>
+            <span className="hidden lg:flex">{title}</span>
+          </Link>
+        </div>
+      ))}
         </div>
       </div>
-
-      {/* Center Section */}
-      <div className="flex justify-center items-center w-full">
+      <div className="w-full flex justify-evenly items-center">
         <div className="flex justify-center items-center w-fit">
           <Link href="/" aria-label="Home">
             <Image
@@ -54,19 +52,16 @@ export default function NavbarConnected() {
           </Link>
         </div>
       </div>
-
-      {/* Right Section */}
-      <div className="flex justify-end items-center w-full">
-        <div className="w-full sm:w-1/2 flex justify-around sm:justify-between items-center">
-          <div className="flex w-full items-center justify-between sm:gap-8">
+      <div className="w-full  flex justify-end items-center">
+        <div className="w-1/2 flex flex-row  items-center">
+          <div className="flex w-full items-center justify-end gap-3 ">
             <span className="flex justify-between gap-x-2 items-center">
               <Image src={heart} alt="Favorites" height={30} width={30} />
               <span className="hidden 2xl:flex">Favorites</span>
             </span>
             <span className="hidden 2xl:flex">|</span>
           </div>
-
-          <div className="flex w-full cursor-pointer items-center justify-evenly sm:justify-evenly xl:justify-between md:pr-2 md:pl-3 gap-2 md:gap-3">
+          <div className="flex w-full cursor-pointer items-center justify-end gap-3">
             <span className="flex justify-around items-center relative">
               <Image src={img} alt="Profile" height={40} width={40} />
               <div
@@ -90,7 +85,7 @@ export default function NavbarConnected() {
               </div>
             </span>
 
-            <span className="hidden 2xl:flex xl:text-lg">John D.</span>
+            <span className="hidden 2xl:flex xl:text-lg ">John D.</span>
 
             {clicked && <ProfileCard />}
           </div>

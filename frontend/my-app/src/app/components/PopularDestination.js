@@ -23,7 +23,7 @@ export default function PopularDest() {
             {destPop.map((dest, index) => (
               <div
                 key={index}
-                className="relative h-[320px] w-[350px] rounded-2xl shadow-lg flex items-end p-4 text-white shrink-0 snap-start"
+                className="relative h-[320px] w-[350px] rounded-2xl shadow-lg flex items-end p-4 text-white shrink-0 snap-start transition-transform duration-300 ease-out hover:-translate-y-4"
                 style={{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.01)), url(${dest.bgImg})`,
                   backgroundSize: "cover",
@@ -39,6 +39,8 @@ export default function PopularDest() {
                     Flights · Hotels · Resorts
                   </p>
                 </div>
+                <div className="absolute inset-0 border-2 border-transparent rounded-[50px] transition-all duration-300 ease-out group-hover:border-[#008bf8] group-hover:shadow-[0_4px_18px_0_rgba(0,0,0,0.25)]"></div>
+  
               </div>
             ))}
           </div>

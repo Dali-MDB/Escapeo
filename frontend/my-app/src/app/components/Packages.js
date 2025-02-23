@@ -21,7 +21,7 @@ export default function Packages() {
           </div>
   
           {/* Scrolling Container */}
-          <div className="relative w-full text-white overflow-x-auto no-scrollbar py-6 mt-9">
+          <div className="relative overflow-y-hidden w-full text-white overflow-x-auto no-scrollbar py-6 mt-9">
             <div className="flex space-x-10 w-[calc(4.5*300px)] snap-x scroll-smooth">
               {packs.map((pack, index) => ( <PackageCard key={index} backgroundImage={pack.bgImg} link={pack.link} title={pack.title} description={pack.description} oldPrice={pack.prevPrice} newPrice={pack.newPrice} />
                 ))}

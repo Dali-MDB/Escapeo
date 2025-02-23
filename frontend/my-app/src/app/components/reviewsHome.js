@@ -24,7 +24,7 @@ const Reviewcard = (props) => {
       <div className="w-full">
         <h1 className="w-full text-2xl font-bold text-black">{props.title}</h1>
       </div>
-      <div className="w-full text-[#112211] opacity-50">
+      <div className="w-full text-[#112211] opacity-100">
         <p>
           {props.details1} {!clicked ? "..." : props.details2}
         </p>
