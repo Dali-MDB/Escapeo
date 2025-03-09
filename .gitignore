@@ -1,0 +1,21 @@
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.log
+
+# Ignore virtual environment
+travel/
+
+# Ignore environment variables
+.env
+
+# Ignore database migrations cache
+db.sqlite3  # This is for SQLite; you're using Postgres, so it's fine to ignore
+
+# Ignore PostgreSQL dumps (if you export data)
+*.sql
+*.dump
+
+# Ignore Django cache
+*.log
