@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Customer
+from .models import Trip
 
 User = get_user_model()
 
@@ -101,3 +102,35 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class AdminSerializer(serializers.Serializer):
     pass
+
+class TripSerializer(serializers.Serializer):
+    created_by = serializers.StringRelatedField()
+    guide = serializers.StringRelatedField(allow_null = True)
+    hotel = serializers.StringRelatedField(allow_null = True)
+    
+    class Meta:
+        model = Trip
+        fields = [
+            'id', 'title', 'description', 'capacity', 'sold_tickets', 
+            'hotel', 'created_by', 'guide', 'trip_type', 'experience', 
+            'price_category', 'destination_type', 'transport', 'price', 
+            'country', 'city', 'discount', 'departure_date', 'return_date', 'is_one_way'
+        ]
+        extra_kwargs = {
+            'sold_tickets': {'read_only': True},  
+            'created_by': {'read_only': True}, 
+        }
+    def validate(self, data):
+        departure_data = data.get('departure_date')
+        return_date = data.get('retrun_date')
+        trip_type = data.get('trip_type')
+        guide = data.get('guide')
+
+        if return_date and departure_data >= return_date:
+            raise serializers.ValidationError("Return date must be after departure date.")
+        
+        if trip_type == 'group' and not guide :
+            raise serializers.ValidationError("A guide must be assigned for group trips.")
+        
+        return data
+        
