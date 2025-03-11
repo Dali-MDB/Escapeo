@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics , permissions
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import CustomerSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
-
-
+from .serializers import TripSerializer
+from .permissions import IsAdminOrReadOnly
+from django.shortcuts import get_object_or_404
+from .models import Trip, Customer
 
 User = get_user_model()
 
@@ -94,3 +96,90 @@ def get_refresh(request):
         return Response({'access':access})
     except:
         return Response({'error':'the given token has been blacklisted'})
+
+
+
+"""
+TRIP RELATED VIEWS : CREATE, PATCH, GET, DELETE AND LIST ALL
+"""
+
+#ADMIN RELATED VIEWS
+
+@api_view(['DELETE','GET','PATCH'])
+@permission_classes([IsAdminOrReadOnly])
+def trip_get_delete_patch(request,pk):
+    
+    trip = get_object_or_404(Trip, pk=pk)
+
+    if request.method == 'DELETE':
+        trip.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    elif request.method == 'PATCH':
+        serializer = TripSerializer(trip, data=request.data , partial=True)
+
+        if serializer.is_valid():
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'GET':
+        serializer = TripSerializer(trip)
+
+        return Response(serializer.data)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrReadOnly])
+def trip_create(request):
+    request.data['created_by'] = request.user.id
+    serializer = TripSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#for listing all the available trips 
+class ListTrip(generics.ListAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+# for customers to list all their purcahsed trips and favorite trips  
+class ListPurchasedTrips(generics.ListAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.purchased_trips.all()
+    
+class PurchasedTripDetailView(generics.RetrieveAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+
+        user = self.request.user
+        customer = get_object_or_404(Customer, user=user)
+
+        return customer.purchased_trips.filter( id=self.kwargs.get('id'))
+
+class ListFavoriteTrips(generics.ListAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.favorite_trips.all()
+    
+class FavoriteTripDetailView(generics.RetrieveAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+
+        user = self.request.user
+        customer = get_object_or_404(Customer, user=user)
+
+        return customer.favorite_trips.filter(id=self.kwargs.get('id'))

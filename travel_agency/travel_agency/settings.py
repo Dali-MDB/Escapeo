@@ -24,8 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(BASE_DIR, ".env"))
-
+#load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -91,7 +91,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'travel_db',
         'USER': 'postgres',
-        'PASSWORD':  os.getenv('DB_PASSWORD'),
+        'PASSWORD':  'neil071005',
         'HOST': 'localhost',
         'PORT': '5432'
     }
