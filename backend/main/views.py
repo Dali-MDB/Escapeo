@@ -3,10 +3,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer
+from .serializers import CustomerSerializer,TripSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
 
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from .models import Trip
+from .permission import TripPermission,CreateTripPermission
 
 
 User = get_user_model()
@@ -94,3 +98,67 @@ def get_refresh(request):
         return Response({'access':access})
     except:
         return Response({'error':'the given token has been blacklisted'})
+
+
+
+
+
+
+
+
+#----------------------- Trips -------------------------------
+@api_view(['POST'])
+@permission_classes([IsAuthenticated,CreateTripPermission])
+def addTrip(request):
+    validated_data = request.data
+    validated_data['created_by'] = request.user.admin.id
+    trip_ser = TripSerializer(data=validated_data)
+    if trip_ser.is_valid():
+        trip_ser.save()
+        return Response({'success : a new trip has been added successfully'},status=status.HTTP_201_CREATED)
+    return Response(trip_ser.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def allTrips(request):
+
+    all_trips = Trip.objects.all()
+    trips_ser = TripSerializer(all_trips,many=True)
+    return Response(trips_ser.data)
+
+
+#@api_view(['GET','PUT','DELETE'])
+
+class tripDetails(APIView):
+    permission_classes = [TripPermission]
+    def get_trip(self,pk):
+        return get_object_or_404(Trip,id=pk)
+    
+    def get(self,request,pk):
+        trip = self.get_trip(pk)
+        trip_ser = TripSerializer(trip)
+        return Response(trip_ser.data,status=status.HTTP_200_OK)
+    
+    def put(self, request, pk):
+        trip = self.get_trip(pk)
+        if not hasattr(request.user, "admin") or request.user.admin != trip.created_by:
+            return Response({'error': 'You do not have permission to update this trip'}, status=status.HTTP_403_FORBIDDEN)
+
+        trip_ser = TripSerializer(trip, data=request.data,partial = True)  
+        if trip_ser.is_valid():
+            trip_ser.save()
+            return Response(trip_ser.data, status=status.HTTP_200_OK)
+        
+        return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def delete(self, request, pk):
+        trip = self.get_trip(pk)
+        if hasattr(request.user, 'admin') and request.user.admin == trip.created_by:
+            trip.delete()
+            return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'error': 'You do not have permission to delete this trip'}, status=status.HTTP_403_FORBIDDEN)
+    
+    
+

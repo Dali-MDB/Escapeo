@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer
+from .models import Customer,Trip,TripImage
+from .trip_categories import TripTypeChoices
+from rest_framework.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -101,3 +103,79 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class AdminSerializer(serializers.Serializer):
     pass
+
+
+class TripImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripImage
+        fields = ['id','image']
+
+
+class TripSerializer(serializers.ModelSerializer):
+    sold_tickets = serializers.IntegerField(write_only=True)
+
+    images = TripImageSerializer(many=True, read_only=True)  #GET
+    uploaded_images = serializers.ListField( #POST
+        child=serializers.ImageField(), write_only=True, required=False
+    )  
+
+    deleted_images = serializers.ListField(  # For deleting images during update
+        child=serializers.IntegerField(), write_only=True, required=False
+    )
+    class Meta:
+        model = Trip
+        fields = [
+            'title', 'description', 'capacity', 'sold_tickets',
+            'guide', 'trip_type', 'experience', 'price_category',
+            'destination_type', 'transport', 'price',
+            'country', 'city', 'discount', 'created_by',  # Fixed: Added comma here
+            'departure_date', 'return_date', 'is_one_way',
+            'images','uploaded_images','deleted_images'
+        ]
+
+    def validate(self, validated_data):
+        trip_type = validated_data.get('trip_type', None)
+        guide = validated_data.get('guide', None)
+
+
+        if trip_type == 'group' and not guide:
+            raise ValidationError('ERROR: group trips must have a guide')
+        elif not trip_type =='group' and guide:
+            raise ValidationError('ERROR: only group trips can have a guide')
+
+        departure_date = validated_data.get('departure_date', None)
+        return_date = validated_data.get('return_date', None)
+
+        if departure_date and return_date and departure_date > return_date:
+            raise ValidationError('ERROR: return date cannot be before departure date')
+
+        return validated_data
+    
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images",[])
+        trip = Trip.objects.create(**validated_data)
+
+        for image in uploaded_images:
+            TripImage.objects.create(trip=trip,image=image)
+
+        return trip
+        
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        deleted_images = validated_data.pop('deleted_images', [])
+
+
+        instance = super().update(instance, validated_data)
+
+
+        for image in uploaded_images:
+            TripImage.objects.create(trip=instance, image=image)
+    
+            
+
+        # Delete specified images
+        TripImage.objects.filter(id__in=deleted_images, trip=instance).delete()
+
+        return instance
+    
