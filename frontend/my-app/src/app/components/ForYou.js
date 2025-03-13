@@ -7,7 +7,7 @@ const  flightsImage  = '/flightsImage.jpg'
 const  hotelsImage  = '/hotelsImage.jpg'
   return (
     <section className=" h-screen flex justify-center mt-6 items-center w-full mx-auto">
-      <div className="w-[75%] mx-auto">
+      <div className="w-[80%] mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div className="w-1/2">
             <h2 className="text-5xl font-bold py-4">For You</h2>
@@ -33,7 +33,7 @@ const  hotelsImage  = '/hotelsImage.jpg'
             <p className="text-4xl w-full font-semibold">Flights</p>
               <p className="text-sm text-gray-300">
               Find the best deals on flights to your dream destinations. Fast, easy, and affordable
-              </p>              <button className="w-1/2 bg-[#4B6382] rounded-md flex items-center justify-center p-2 text-white">
+              </p>              <button className="w-1/2 bg-[#F38B1E] rounded-md flex items-center justify-center p-2 text-white">
                           {planePaper}
                           <span> show Flights</span>
                 </button>
@@ -52,7 +52,7 @@ const  hotelsImage  = '/hotelsImage.jpg'
               <p className="text-4xl w-full font-semibold">Hotels</p>
               <p className="text-sm text-gray-300">Stay in comfort with top-rated hotels at the best prices. Book your perfect stay now
               </p>
-              <button className="w-1/2 bg-[#4B6382] rounded-md flex items-center justify-center p-2 text-white">
+              <button className="w-1/2 bg-[#F38B1E] rounded-md flex items-center justify-center p-2 text-white">
                           {planePaper}
                           <span> show Stays</span>
                 </button>

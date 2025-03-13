@@ -76,10 +76,10 @@ export default function FlightSearch() {
           </div>
         </fieldset>
       </div>
-      <div className="flex gap-4 h-full mb-4 w-full justify-end py-2 px-1">
-        <div className="w-[30%] flex flex-row items-center justify-around gap-12 h-full">
+      <div className="flex gap-4 h-full mb-4 w-full justify-end py-2 px-2">
+        <div className="w-[28%] flex flex-row items-center justify-around gap-12 h-full">
           <div className="w-full">+ Add promo code</div>
-          <button className="w-full bg-[#4B6382] rounded-md flex items-center justify-around p-2 text-white">
+          <button className="w-[80%] bg-[#F38B1E] rounded-md flex items-center justify-around p-2 text-black">
             {planePaper}
             <span>Show {choice}</span>
           </button>

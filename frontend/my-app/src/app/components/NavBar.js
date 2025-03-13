@@ -16,7 +16,7 @@ const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 // Left Section Component
 const LeftSection = ({ path }) => {
   return (
-    <div className="w-full h-full flex justify-start items-center">
+    <div className="w-full text-white h-full flex justify-start items-center">
       <div className="w-1/2 h-full flex flex-row justify-evenly gap-2 items-center">
         {navLinks.map(({ title, link, icon }, index) => (
           <div
@@ -62,17 +62,17 @@ const CenterSection = () => {
 // Right Section Component
 const RightSectionCon = ({ clicked, setClicked }) => {
   return (
-    <div className="w-full flex justify-end items-center">
+    <div className="w-full flex  text-white justify-end items-center">
       <div className="w-1/2 flex flex-row items-center">
         <div className="flex w-full items-center justify-end gap-3">
-          <span className="flex justify-between gap-x-2 items-center">
+          <Link href='/Setting/Favourite' className="flex justify-between gap-x-2 items-center">
             <Image src={heart} alt="Favorites" height={30} width={30} />
             <span className="hidden 2xl:flex">Favorites</span>
-          </span>
+          </Link>
           <span className="hidden 2xl:flex">|</span>
         </div>
         <div className="flex w-full cursor-pointer items-center justify-end gap-3">
-          <span className="flex justify-around items-center relative">
+          <Link href={"/Setting/Account"} className="flex justify-around items-center relative">
             <Image src={img} alt="Profile" height={40} width={40} />
             <div
               className={`w-[15px] h-[15px] rounded-full object-contain flex justify-center items-center absolute right-0 bottom-0 ${
@@ -93,7 +93,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
                 />
               </svg>
             </div>
-          </span>
+          </Link>
 
           <span className="hidden 2xl:flex xl:text-lg">John D.</span>
 
@@ -125,7 +125,7 @@ export default function NavBar() {
   const path = usePathname(); // Always call usePathname
 
   return (
-    <div className={`w-[85%] font- h-24 absolute left-[7.5%] top-[5%]  ${authenticated ? "bg-[#4B6382]" : "bg-transparent"} flex px-10 flex-row z-50 rounded-full justify-between items-center ${authenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
+    <div className={`w-[90%]  h-24 sticky left-[5%] top-[5%]  ${authenticated ? "bg-[#235784]" : "bg-transparent"} flex px-10 flex-row z-50 rounded-full justify-between items-center ${authenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
       <LeftSection path={path} />
       <CenterSection />
    { authenticated ?  <RightSectionCon clicked={clicked} setClicked={setClicked} /> : <RightSectionUnCon />

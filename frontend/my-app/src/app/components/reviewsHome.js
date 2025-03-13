@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 import { useState } from "react";
-import { reviews,staryellow, starblack } from "../data/data";
+import { reviews, staryellow, starblack } from "../data/data";
+import Image from "next/image";
+
 
 const Reviewcard = (props) => {
   const renderStars = (count) => {
@@ -20,7 +21,9 @@ const Reviewcard = (props) => {
 
   const [clicked, setClicked] = useState(false);
   return (
-    <div className="w-full gap-4 p-8 opacity-85 rounded-3xl bg-[#A4B5C4] flex flex-col justify-center items-center shadow-[25px_20px_2px_-5px_#071739]">
+    <div
+      className={`w-full gap-4 p-8 opacity-85 rounded-3xl bg-transparent flex flex-col justify-center items-center hover:border-[1px] hover:border-black transition-all duration-200 ease-in shadow-2xl hover:shadow-none`}
+    >
       <div className="w-full">
         <h1 className="w-full text-2xl font-bold text-black">{props.title}</h1>
       </div>
@@ -45,15 +48,15 @@ const Reviewcard = (props) => {
         </div>
       </div>
       <div className="w-full flex flex-col items-start">
-        <p className="text-lg text-black">{props.Source}</p>
+        <p className="text-lg font-bold text-black">{props.Source}</p>
         <p className="text-[#112211] opacity-50">{props.workAt}</p>
       </div>
       <div className="w-full rounded-lg">
         <Image
+        width={1000}
+        height={1000}
           src={props.img}
           alt=""
-          width={250}
-          height={250}
           className="w-full rounded-lg"
         />
       </div>
@@ -61,23 +64,34 @@ const Reviewcard = (props) => {
   );
 };
 
-export default function Reviews() {
+export default function Reviews(props) {
+  const bg = "/bg.png"; // Ensure this path is correct and the image exists in the public folder
+  
   return (
-    <section className="h-[80vh] flex justify-center items-center w-full mx-auto">
-      <div className="w-[75%] mx-auto">
+    <section
+      className="h-[125vh] relative pt-10 flex justify-center items-center w-full mx-auto"
+      style={{backgroundImage: `url(${bg})`,
+      backgroundSize: "cover", // Ensures the image covers the entire section
+      backgroundPosition: "center", // Centers the image
+      backgroundRepeat: "no-repeat", // Prevents the image from repeating
+    
+    }
+ 
+    }>
+      <div className="w-[80%] z-10 mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>
             <h2 className="text-5xl font-bold py-4">Reviews</h2>
             <p className="text-xl">What people says about Escapeo facilities</p>
           </div>
-          <button className="text-xl border-2 border-[rgba(0,0,0,0.2)] rounded-lg py-3 px-3">
+          <button className="text-xl border-2 border-[rgba(0,0,0,0.2)] rounded-lg py-3 px-3 hover:bg-black hover:text-white transition-colors duration-300">
             See All
           </button>
         </div>
 
         {/* Scrolling Container */}
-        <div className="relative w-full text-white overflow-x-auto no-scrollbar py-6 mt-9">
-          <div className="flex space-x-10 w-[calc(4.5*300px)] snap-x scroll-smooth">
+        <div className="relative h-auto w-full text-white py-6 mt-9 mb-10">
+          <div className="flex space-x-10">
             {reviews.map((review, index) => (
               <Reviewcard
                 key={index}

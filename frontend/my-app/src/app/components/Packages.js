@@ -5,10 +5,17 @@ import {packs} from "../data/data";
 
 export default function Packages() {
 
-    
+    const bg = '/bg.png'
     return (
-      <section className=" h-[80vh] flex justify-center  items-center w-full mx-auto">
-        <div className="w-[75%] mx-auto">
+      <section className=" h-[120vh] flex justify-center  items-center w-full mx-auto"
+      style={{
+        backgroundImage: `url(${bg})`,
+        backgroundSize: "cover", // Ensures the image covers the entire section
+        backgroundPosition: "center", // Centers the image
+        backgroundRepeat: "no-repeat", // Prevents the image from repeating
+      }}
+      >
+        <div className="w-[80%] mx-auto">
           <div className="text-black flex w-full justify-between items-center">
             <div>
               <h2 className="text-5xl font-bold py-4">Packages</h2>

@@ -1,6 +1,9 @@
+
+
+
 import { Urbanist } from "next/font/google"; // Import Urbanist
 import NavbarConnected from "./components/NavBar";
-import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
+import { AuthProvider, useAuth } from './context/AuthContext'; // Import AuthProvider
 import "./globals.css";
 
 // Configure Urbanist
@@ -17,12 +20,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   
+
   return (
     <html lang="en" className={urbanist.variable}>
       <body style={{ fontFamily: 'urbanist' }}>
         {/* Wrap the entire application with AuthProvider */}
         <AuthProvider>
-          <NavbarConnected />
           {children}
         </AuthProvider>
       </body>

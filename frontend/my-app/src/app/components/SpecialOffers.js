@@ -1,9 +1,9 @@
-import { offers } from "../data/data";
+import { BigOffers, offers } from "../data/data";
 
 export default function SpecialOffers() {
   return (
     <section className=" h-[80vh] flex justify-center mt-[-45px] items-center w-full mx-auto">
-      <div className="w-[75%] mx-auto">
+      <div className="w-[80%] mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>
             <h2 className="text-5xl font-bold py-4">Special Offer</h2>
@@ -19,7 +19,7 @@ export default function SpecialOffers() {
         {/* Scrolling Container */}
         <div className="relative w-full overflow-x-auto no-scrollbar py-6 mt-9">
           <div className="flex space-x-10 w-[calc(4.5*300px)] snap-x scroll-smooth">
-            {offers.map((offer, index) => (
+            {BigOffers.slice(0,5).map((offer, index) => (
               <div
                 key={index}
                 className="relative h-[450px] w-80 rounded-2xl shadow-lg flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4 p-6 text-white shrink-0 snap-start"
@@ -42,7 +42,7 @@ export default function SpecialOffers() {
                     <span className="text-xl text-white">{`$ ${offer.newPrice}`}</span>
                   </div>
                 </div>
-                <button className="block w-full bg-[#A4B5C4] px-4 py-3 rounded-xl text-black">Book flight</button>
+                <button className="block w-full bg-[#F38B1E] px-4 py-3 rounded-xl text-black">Book flight</button>
               </div>
             ))}
           </div>

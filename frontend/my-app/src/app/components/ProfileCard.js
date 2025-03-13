@@ -10,13 +10,13 @@ import logout from "/public/logout.png";
 
 export default function ProfileCard() {
   const menuItems = [
-    { title: "My account", link: "/account", icon: vector },
-    { title: "Payments", link: "/payments", icon: card },
-    { title: "Settings", link: "/settings", icon: settings },
+    { title: "My account", link: "/Setting/Account", icon: vector },
+    { title: "History", link: "/Setting/History", icon: card },
+    { title: "Settings", link: "/Setting/Account", icon: settings },
   ];
 
   const secondaryItems = [
-    { title: "Support", link: "/support", icon: support },
+    { title: "Support", link: "/Setting/Help", icon: support },
     { title: "Logout", link: "/logout", icon: logout },
   ];
 
@@ -35,7 +35,7 @@ export default function ProfileCard() {
       <div className="bg-[#4B6382] rounded-md py-5 flex flex-col items-center">
         {/* Profile Section */}
         <div className="w-[80%] flex gap-4 items-center pb-6 border-b border-gray-300">
-          <div className="flex gap-2">
+          <Link href={"/Setting/Account"} className="flex gap-2">
             <div className="rounded-full flex justify-center items-center">
               <Image src={img} height={50} width={50} alt="Profile Image" priority />
             </div>
@@ -43,7 +43,7 @@ export default function ProfileCard() {
               <h1 className="font-bold text-lg text-white">John Doe</h1>
               <h5 className="text-sm text-gray-200">Online</h5>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Menu Items */}

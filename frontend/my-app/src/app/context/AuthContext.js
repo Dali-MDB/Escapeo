@@ -1,28 +1,32 @@
-// context/AuthContext.js
-'use client';
+"use client";
 
-import { createContext,useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Initialize state from localStorage or default to false
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(true);
+  const [user, setUser] = useState(null);
+  const [authToken, setAuthToken] = useState(null);
 
-  // Update localStorage whenever authenticated changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('authenticated', authenticated);
-    }
-  }, [authenticated]);
+  /**
+   * 
+
+   */
+
+  const contextData = {
+    authenticated,
+    setAuthenticated,
+  };
 
   return (
-    <AuthContext.Provider value={{ authenticated, setAuthenticated }}>
+    <AuthContext.Provider value={contextData}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Custom hook for using AuthContext
 export const useAuth = () => {
   return useContext(AuthContext);
 };

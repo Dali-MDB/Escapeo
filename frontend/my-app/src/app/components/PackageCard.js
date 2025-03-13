@@ -36,8 +36,8 @@ const PackageCard = (props) => {
       </div>
 
       {/* Button */}
-      <button className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-[60%] rounded-xl bg-[#008bf8] text-white font-medium py-2 px-4 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
-        <Link href={props.link}>More info</Link>
+      <button className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-1/3 font-bold rounded-full bg-[#F38B1E] text-black  py-2 px-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
+        <Link href={props.link}>See more</Link>
       </button>
 
       {/* Hover Effects */}
