@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Trip
-from .permission import TripPermission,CreateTripPermission
+from .permissions import TripPermission,CreateTripPermission
 
 
 User = get_user_model()
@@ -141,8 +141,7 @@ class tripDetails(APIView):
     
     def put(self, request, pk):
         trip = self.get_trip(pk)
-        if not hasattr(request.user, "admin") or request.user.admin != trip.created_by:
-            return Response({'error': 'You do not have permission to update this trip'}, status=status.HTTP_403_FORBIDDEN)
+        
 
         trip_ser = TripSerializer(trip, data=request.data,partial = True)  
         if trip_ser.is_valid():
@@ -154,11 +153,11 @@ class tripDetails(APIView):
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
-        if hasattr(request.user, 'admin') and request.user.admin == trip.created_by:
-            trip.delete()
-            return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'error': 'You do not have permission to delete this trip'}, status=status.HTTP_403_FORBIDDEN)
+        trip.delete()
+        return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
+
+        
     
     
 
