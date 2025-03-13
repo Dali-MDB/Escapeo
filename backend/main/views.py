@@ -3,14 +3,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer,TripSerializer
+from .serializers import CustomerSerializer,TripSerializer,AdminSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Trip
-from .permissions import TripPermission,CreateTripPermission
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission
 
 
 User = get_user_model()
@@ -103,7 +103,22 @@ def get_refresh(request):
 
 
 
+@api_view(['POST'])
+@permission_classes([addAdminPermission])
+def addAdmin(request):
+    admin_ser = AdminSerializer(data=request.data)
+    if admin_ser.is_valid():
+        
+        admin = admin_ser.save()
+        admin.user.is_admin = True
+        admin.user.save()
 
+        context = {
+            'success' : 'a new admin has been added successfully',
+            'details' : admin_ser.data
+        }
+        return  Response(context, status=status.HTTP_201_CREATED)
+    return Response(admin_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 #----------------------- Trips -------------------------------

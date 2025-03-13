@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Trip,TripImage
+from .models import Customer,Admin,Trip,TripImage
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -101,10 +101,48 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 
-class AdminSerializer(serializers.Serializer):
-    pass
+class AdminSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
+    class Meta:
+        model = Admin
+        fields = [
+            'user', 'first_name', 'last_name', 'country', 'city', 'years_of_experience',
+            'profile_picture', 'gender', 'join_date', 'department'
+        ]
 
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user_ser = UserSerializer(data=user_data)
+
+        if user_ser.is_valid():
+            user = user_ser.save()
+            setattr(user, 'is_admin', True)
+            admin = Admin.objects.create(user=user, **validated_data)
+            return admin
+        else:
+            raise serializers.ValidationError(user_ser.errors)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+        user = instance.user
+
+        # Update the User instance
+        if user_data:
+            user_ser = UserSerializer(user, data=user_data, partial=True)
+            if user_ser.is_valid():
+                user_ser.save()
+            else:
+                raise serializers.ValidationError(user_ser.errors)
+
+        # Update the Admin instance
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+    
+    
 class TripImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TripImage

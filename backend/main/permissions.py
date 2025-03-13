@@ -45,3 +45,22 @@ class TripPermission(BasePermission):
 
         logger.warning(f"User {request.user.id} does not have permission to modify trip {obj.id}")
         return False 
+    
+
+
+class addAdminPermission(BasePermission):
+    def has_permission(self, request, view):
+        # Check if the user is authenticated
+        if not request.user.is_authenticated:
+            raise PermissionDenied("You must be logged in to perform this action.")
+
+        # Check if the user has the 'is_admin' attribute
+        if not hasattr(request.user,'admin') :
+            raise PermissionDenied("Only admin users are allowed to perform this action.")
+        
+
+        # Check if the user is an admin and belongs to the 'owner' department
+        if request.user.admin.department != 'owner':
+            raise PermissionDenied("Only admins in the 'owner' department are allowed to perform this action.")
+
+        return True
