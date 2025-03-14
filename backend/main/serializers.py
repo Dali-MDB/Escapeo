@@ -142,7 +142,7 @@ class AdminSerializer(serializers.ModelSerializer):
 
         return instance
     
-    
+
 class TripImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TripImage
@@ -217,3 +217,5 @@ class TripSerializer(serializers.ModelSerializer):
 
         return instance
     
+
+

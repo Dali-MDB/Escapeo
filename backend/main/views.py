@@ -175,4 +175,79 @@ class tripDetails(APIView):
         
     
     
+#---------------------Profiles-----------------------------------
+class MyProfile(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_my_account(self,user):
+        if hasattr(user,'admin'):
+            profile = user.admin
+            profile_ser = AdminSerializer(profile)
+        else:  #hasattr(user,'customer')
+            profile = user.customer
+            profile_ser = CustomerSerializer(profile)
+
+        profile_data = profile_ser.data
+        profile_data.pop('user')
+        return profile_data
+            
+    def get(self,request):
+        profile_data =  self.get_my_account(request.user)
+        profile_data['username'] = request.user.username
+        return Response(profile_data)
+
+   
+    def put(self, request):
+        profile_data = request.data
+        profile_data.pop('user',None)
+        
+        if hasattr(request.user, 'admin'):
+            profile_ser = AdminSerializer(request.user.admin, data=profile_data, partial=True)
+        else:
+            profile_ser = CustomerSerializer(request.user.customer, data=profile_data, partial=True)
+
+
+        if profile_ser.is_valid():
+            profile_ser.save()  
+
+        
+            response_data = profile_ser.data
+            response_data.pop('user', None)   #hide user from data
+
+            context = {
+                'success': 'Your profile has been updated successfully',
+                'profile': response_data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            return Response(profile_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['GET'])
+def viewProfile(request,id):
+    user = get_object_or_404(User,id=id)
+    if hasattr(user,'admin'):
+        profile = user.admin
+        profile_ser = AdminSerializer(profile)
+    else:  #hasattr(user,'customer')
+        profile = user.customer
+        profile_ser = CustomerSerializer(profile)
+
+    profile_data = profile_ser.data
+    profile_data.pop('user')
+    profile_data['username'] = request.user.username
+    return Response(profile_data)
+
+
+
+
+
+
+
+
+
+
+
+
 
