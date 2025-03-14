@@ -17,6 +17,6 @@ urlpatterns = [
     path('add_admin/',view=views.addAdmin,name='add-admin'),
     path('my_profile/',view=views.MyProfile.as_view(),name='my-profile'),
 
-    path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile')
+    path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
     
 ]
