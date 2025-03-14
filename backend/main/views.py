@@ -246,6 +246,15 @@ def viewProfile(request,id):
 
 
 
+@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+def path_not_found(request, path=None):
+    return Response(
+        {"error": "The page you are looking for does not exist", "path": request.path}, 
+        status=status.HTTP_404_NOT_FOUND
+    )
+
+
+
 
 
 
