@@ -31,3 +31,6 @@ __pycache__/
 .venv/
 .env/
 db.sqlite3
+.projet2cp/
+.venv/*
+.projet2cp/*
