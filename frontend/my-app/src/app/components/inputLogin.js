@@ -3,8 +3,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 
-const InputLogin = ({ type, name }) => {
-  const [filled, setFilled] = useState(false);
+const InputLogin = ({ type, name, value, onChange, placeholder }) => {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
   const togglePasswordVisibility = () => {
@@ -14,27 +13,33 @@ const InputLogin = ({ type, name }) => {
   return (
     <StyledWrapper className="w-full">
       <div className="input-container">
-        {type === "text-area"?
-        <textarea 
-         id={name}
-        className={`input ${filled ? "filled" : ""} focus:border-none active:border-none focus:outline-none active:outline-none bg-transparent`}
-        onChange={(e) => setFilled(e.target.value !== "")}
-        onBlur={(e) => setFilled(e.target.value !== "")}
-        required
-        rows={5}
-
-       />
-        :
-        <input
-          type={type === "password" && !showPassword ? "password" : "text"} // Toggle input type
-          id={name}
-          className={`input ${filled ? "filled" : ""}`}
-          onChange={(e) => setFilled(e.target.value !== "")}
-          onBlur={(e) => setFilled(e.target.value !== "")}
-          required
-        />
-        }<label htmlFor={name} className={`label ${type === "text-area" ? "top-5" : "top-[50%]" }`}>
-          {name}
+        {type === "text-area" ? (
+          <textarea
+            id={name}
+            className={`input bg-transparent`}
+            onChange={(e) => {
+              onChange(e); // Pass the event to the parent
+            }}
+            required
+            rows={5}
+            value={value}
+            name={name} // Ensure the name attribute is set
+          />
+        ) : (
+          <input
+            type={type === "password" && !showPassword ? "password" : "text"} // Toggle input type
+            id={name}
+            className={`input`}
+            onChange={(e) => {
+              onChange(e); // Pass the event to the parent
+            }}
+            required
+            value={value}
+            name={name} // Ensure the name attribute is set
+          />
+        )}
+        <label htmlFor={name} className={`label ${type === "text-area" ? "top-5" : "top-[50%]"}`}>
+          {placeholder}
         </label>
         {type === "password" && ( // Show toggle button only for password fields
           <button
@@ -81,10 +86,6 @@ const StyledWrapper = styled.div`
   .textarea:focus, .input:focus {
     border-color: #ed881f;
   }
-  , textarea:active{
-  border:none;
-  outline-none;
-   }
   .input:focus ~ .label,
   .input.filled ~ .label {
     top: 0;

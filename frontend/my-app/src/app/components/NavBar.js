@@ -109,8 +109,8 @@ const RightSectionUnCon = () =>{
   <div className="w-full flex justify-end items-center">
 
     <div className="w-1/2 font-bold flex flex-row justify-evenly text-center items-center">
-    <Link href={'/Login'}    className="w-full h-full rounded-md p-2">Login</Link>
-    <Link href={'/Sign_up'}  className="w-full h-full rounded-md p-2 text-black bg-white">Sign up</Link>
+    <Link href={'/Log/Login'}    className="w-full h-full rounded-md p-2">Login</Link>
+    <Link href={'/Sign/Sign_up'}  className="w-full h-full rounded-md p-2 text-black bg-white">Sign up</Link>
     
     </div>
   </div>

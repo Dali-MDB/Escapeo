@@ -3,7 +3,7 @@ import Navbar from '../components/NavBar'; // Assuming you have a Navbar compone
 import Sidebar from './components/Sidebar';
 export default function Layout({ children }) {
   return (
-    <div style={{ display: 'flex', backgroundColor:'#EEDAC4',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
+    <div style={{ display: 'flex', backgroundColor:'#EEDAC4',color:'black',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
       {/* Navbar at the top */}
       <Navbar />
 

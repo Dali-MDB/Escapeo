@@ -2,8 +2,8 @@
 export const arrowBack = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={29}
-    height={29}
+    width={25}
+    height={23}
     viewBox="0 0 1024 1024"
   >
     <path
