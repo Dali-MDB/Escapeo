@@ -19,6 +19,7 @@ db.sqlite3  # This is for SQLite; you're using Postgres, so it's fine to ignore
 
 # Ignore Django cache
 *.log
+<<<<<<< HEAD
 .env
 projet2cp/Lib/
 projet2cp/Scripts/
@@ -34,3 +35,6 @@ db.sqlite3
 .projet2cp/
 .venv/*
 .projet2cp/*
+=======
+
+>>>>>>> a96ed28500fa535f1beee2238946d918d24d3f9c

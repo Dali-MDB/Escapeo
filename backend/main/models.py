@@ -1,3 +1,6 @@
+import os
+import shutil
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core import validators
@@ -28,7 +31,7 @@ class User(AbstractUser):
     
 class Customer(models.Model):
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='customer')
    
     first_name = models.CharField(max_length=50,default=" ",null=True,blank=True)
     last_name = models.CharField(max_length=50,default=" ",null=True,blank=True)
@@ -72,7 +75,7 @@ class Customer(models.Model):
 
 # ------------------------- ADMIN MODEL -------------------------
 class Admin(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='admin')
     first_name = models.CharField(max_length=50,default=" ",null=True,blank=True)
     last_name = models.CharField(max_length=50,default=" ",null=True,blank=True)
 
@@ -180,12 +183,12 @@ class Trip(models.Model):
     title = models.CharField(max_length=200,unique=True)
     description = models.TextField(null=True,blank=True)
     capacity = models.IntegerField(
-        validators=[validators.MinValueValidator(1)],
+        validators=[validators.MinValueValidator(1.0)],
         help_text="Number of people this trip can accommodate."
     )  # how many ppl it can take
     sold_tickets = models.IntegerField(default=0)
 
-    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
+   # hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
 
     created_by = models.ForeignKey(Admin, on_delete=models.CASCADE,related_name='managed_trips')  # Trip organizer(s) (necssary for permissions)
     guide = models.ForeignKey(Admin, related_name='guiding', on_delete=models.SET_NULL, null=True, blank=True)  # only for group travels
@@ -235,6 +238,19 @@ class Trip(models.Model):
             raise ValidationError("Return date cannot be before the departure date.")
         if self.trip_type == 'group' and not self.guide:  # if it's a group trip there must be a guide
             raise ValidationError("A guide must be assigned for group trips.")
+
+    
+    def delete(self, *args, **kwargs):
+        # Construct folder path based on the first image's path (if exists)
+        trip_folder = os.path.join(settings.MEDIA_ROOT, "trips_images", self.title)
+
+        # Delete the folder and its contents if it exists
+        if os.path.exists(trip_folder):
+            shutil.rmtree(trip_folder)
+
+        # Call parent delete method
+        super().delete(*args, **kwargs)
+
 
 def upload_to_trip_images(instance, filename):
     return f'trips_images/{instance.trip.title}/{filename}'
