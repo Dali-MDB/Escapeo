@@ -1,4 +1,3 @@
-// app/sign/layout.js
 "use client";
 import { useRef, useEffect } from "react";
 import { FormProvider } from "../../context/FormContext"; // Import the FormProvider
