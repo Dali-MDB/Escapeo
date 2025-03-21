@@ -18,6 +18,7 @@ urlpatterns = [
     path('my_profile/',view=views.MyProfile.as_view(),name='my-profile'),
 
     path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
+    path('purchased_trips/',view=views.ListPurchasedTrips.as_view(),name='purchased-trips'),
     
     
 ]
