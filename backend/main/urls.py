@@ -13,6 +13,9 @@ urlpatterns = [
     path('add_trip/',view=views.addTrip,name='add-trip'),
     path('all_trips/',view=views.allTrips,name='all-trips'), 
     path('trip_details/<int:pk>',view=views.tripDetails.as_view(),name='trip-details'),
+
+    path('search_trips/',view=views.TripsFiltering,name='search-trips'),
+    path('recommended_trips/',view=views.recommendedTrips,name='recommended-trips'),
     
     path('add_admin/',view=views.addAdmin,name='add-admin'),
     path('my_profile/',view=views.MyProfile.as_view(),name='my-profile'),

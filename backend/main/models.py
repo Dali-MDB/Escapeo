@@ -186,11 +186,12 @@ class Trip(models.Model):
         validators=[validators.MinValueValidator(1.0)],
         help_text="Number of people this trip can accommodate."
     )  # how many ppl it can take
-    sold_tickets = models.IntegerField(default=0)
+    sold_tickets = models.IntegerField(default=0,db_default=0)
 
    # hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
 
     created_by = models.ForeignKey(Admin, on_delete=models.CASCADE,related_name='managed_trips')  # Trip organizer(s) (necssary for permissions)
+    
     guide = models.ForeignKey(Admin, related_name='guiding', on_delete=models.SET_NULL, null=True, blank=True)  # only for group travels
     trip_type = models.CharField(max_length=50, choices=TripTypeChoices.CHOICES, null=True, blank=True)  # package type
     experience = models.CharField(max_length=50, choices=ExperienceTypeChoices.CHOICES)  # adventure/cultural/honeymoon ..ect
@@ -198,8 +199,8 @@ class Trip(models.Model):
     destination_type = models.CharField(max_length=50, choices=DestinationTypeChoices.CHOICES, null=True, blank=True)
     transport = models.CharField(max_length=50, choices=TransportTypeChoices.CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
-    # activities (to be added later)
     
+    departure_city = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
     city = models.CharField(max_length=50)
     
@@ -212,12 +213,21 @@ class Trip(models.Model):
         ],
         blank=True, null=True
     )
+    stars_rating = models.FloatField(
+        validators=[
+            validators.MinValueValidator(1), validators.MaxValueValidator(5)
+        ],
+        help_text="Rating from 1 to 5 stars",
+        db_default=3,
+    )  # Star rating (1-5 stars)
+    
     
     departure_date = models.DateTimeField()
 
     return_date = models.DateTimeField(blank=True, null=True)  # for one way trips
     
     is_one_way = models.BooleanField(default=False)
+    
 
     def __str__(self):
         return f"{self.title} ({self.trip_type}, {self.departure_date})"
@@ -238,6 +248,8 @@ class Trip(models.Model):
             raise ValidationError("Return date cannot be before the departure date.")
         if self.trip_type == 'group' and not self.guide:  # if it's a group trip there must be a guide
             raise ValidationError("A guide must be assigned for group trips.")
+        if self.is_one_way and self.return_date:
+            raise ValidationError("A one way trip can't have a return date")
 
     
     def delete(self, *args, **kwargs):

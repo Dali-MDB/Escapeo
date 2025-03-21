@@ -64,3 +64,9 @@ class addAdminPermission(BasePermission):
             raise PermissionDenied("Only admins in the 'owner' department are allowed to perform this action.")
 
         return True
+    
+
+
+class CustomerPermissions(BasePermission):
+    def has_permission(self, request, view):
+        return hasattr(request.user,'customer')

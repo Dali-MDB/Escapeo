@@ -163,11 +163,11 @@ class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
         fields = [
-            'title', 'description', 'capacity', 'sold_tickets',
+            'id','title', 'description', 'capacity', 'sold_tickets',
             'guide', 'trip_type', 'experience', 'price_category',
             'destination_type', 'transport', 'price',
-            'country', 'city', 'discount', 'created_by',  # Fixed: Added comma here
-            'departure_date', 'return_date', 'is_one_way',
+            'country', 'city', 'discount', 'created_by', 'stars_rating',
+            'departure_city','departure_date', 'return_date', 'is_one_way',
             'images','uploaded_images','deleted_images'
         ]
 
@@ -181,8 +181,15 @@ class TripSerializer(serializers.ModelSerializer):
         elif not trip_type =='group' and guide:
             raise ValidationError('ERROR: only group trips can have a guide')
 
+
         departure_date = validated_data.get('departure_date', None)
         return_date = validated_data.get('return_date', None)
+        is_one_way = validated_data.get('is_one_way',False)
+
+        if is_one_way and return_date:
+            raise ValidationError('ERROR: a one way trip can not have a return date')
+        elif not is_one_way and return_date is None:
+            raise ValidationError('ERROR: the return date is missing')
 
         if departure_date and return_date and departure_date > return_date:
             raise ValidationError('ERROR: return date cannot be before departure date')

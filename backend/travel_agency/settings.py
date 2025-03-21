@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
+
+    'corsheaders',   #to link the front
 ]
 
 MIDDLEWARE = [
@@ -60,7 +62,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Next.js frontend URL
+]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'travel_agency.urls'
 
