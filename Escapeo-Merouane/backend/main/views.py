@@ -43,32 +43,33 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import authenticate
-
-@csrf_exempt  # Temporarily disable CSRF for testing
+@api_view(['POST'])
 def login(request):
-    if request.method == "POST":
+    username_or_email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not username_or_email or not password:
+        return Response({"error": "Email/Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+    user = authenticate(email=username_or_email, password=password)
+
+    if not user:
+        # Try authenticating by email
         try:
-            data = json.loads(request.body)  # Parse JSON payload
-            username = data.get("username")  # Ensure this matches frontend
-            password = data.get("password")
+            email = User.objects.get(username=username_or_email).email
+            user = authenticate(email=email, password=password)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    if user:
+        refresh = RefreshToken.for_user(user)
+        tokens = {
+            'refresh' : str(refresh),
+            'access' : str(refresh.access_token)
+        }
+        return Response(tokens, status=status.HTTP_200_OK)
 
-            if not username or not password:
-                return JsonResponse({"error": "Email/Username and password are required"}, status=400)
+    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-            user = authenticate(username=username, password=password)
-            if user:
-                refresh = RefreshToken.for_user(user)
-                return JsonResponse({
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh)
-                })
-            else:
-                return JsonResponse({"error": "Invalid credentials"}, status=401)
-
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON format"}, status=400)
-
-    return JsonResponse({"error": "Method Not Allowed"}, status=405)
 
 
 @api_view(['GET'])

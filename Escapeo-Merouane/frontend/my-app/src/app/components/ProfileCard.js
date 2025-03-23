@@ -6,7 +6,8 @@ import card from "/public/card.png";
 import settings from "/public/settings.png";
 import arrow from "/public/arrow.png";
 import support from "/public/Support.png";
-import logout from "/public/logout.png";
+import Logout from "/public/logout.png";
+import { logout } from "../utils/auth";
 
 export default function ProfileCard() {
   const menuItems = [
@@ -17,8 +18,9 @@ export default function ProfileCard() {
 
   const secondaryItems = [
     { title: "Support", link: "/Setting/Help", icon: support },
-    { title: "Logout", link: "/logout", icon: logout },
   ];
+
+  
 
   return (
     <div
@@ -77,11 +79,22 @@ export default function ProfileCard() {
                 <Image src={item.icon} width={20} height={20} alt={item.title} />
                 {item.title}
               </span>
-              {item.title === "Support" && (
                 <Image src={arrow} className="h-2" height={2} width={5} alt="arrow" />
-              )}
             </Link>
           ))}
+        </div>       
+         <div className="w-3/4 pt-6 flex flex-col gap-4">
+            <button
+              onClick={logout}
+              className="flex justify-between items-center w-full "
+              aria-label="Logout"
+            >
+              <span className="flex items-center gap-3">
+                <Image src={Logout} width={20} height={20} alt={"Logout"} />
+                Logout
+              </span>
+             </button>
+          
         </div>
       </div>
     </div>

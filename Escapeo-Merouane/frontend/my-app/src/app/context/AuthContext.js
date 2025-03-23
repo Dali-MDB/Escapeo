@@ -1,5 +1,4 @@
-"use client"
-
+"use client";
 
 import { createContext, useState, useEffect, useContext } from "react";
 import { refreshAccessToken, logout } from "../utils/auth";
@@ -12,6 +11,12 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+
+/**
+ * 
+ * 
+ */
+
 // AuthProvider component
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -20,25 +25,31 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("accessToken");
+
       if (token) {
-        setIsAuthenticated(true);
+        setIsAuthenticated(true); // User is authenticated
       } else {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          logout();
+        try {
+          const newToken = await refreshAccessToken(); // Try to refresh the token
+          if (newToken) {
+            setIsAuthenticated(true); // Token refreshed successfully
+          } else {
+            setIsAuthenticated(false); // No valid token, log out
+          }
+        } catch (error) {
+          console.error("Error refreshing token:", error);
+          setIsAuthenticated(false); // Handle error by logging out
         }
       }
-      setIsLoading(false);
+
+      setIsLoading(false); // Stop loading
     };
 
     checkAuth();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

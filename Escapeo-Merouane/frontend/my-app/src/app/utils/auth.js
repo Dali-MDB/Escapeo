@@ -1,20 +1,29 @@
-const API_URL = 'http://127.0.0.1:8000/';
-
-export async function login(username, password) {
+const API_URL = 'http://127.0.0.1:8000';
+export async function login(email, password) {
   const res = await fetch(`${API_URL}/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
   });
 
   const data = await res.json();
+  console.log("Login response:", data); // 🛠 Debugging
 
   if (!res.ok) {
     throw new Error(data.error || "Login failed");
   }
 
+  console.log("User data before saving:", data.user); // 🛠 Debugging
+
+  if (!data.user) {
+    console.error("❌ User info is missing in response!");
+    return;
+  }
+
   localStorage.setItem("accessToken", data.access);
   localStorage.setItem("refreshToken", data.refresh);
+  localStorage.setItem("userInfo", JSON.stringify(data.user)); // ✅ Make sure this exists
+
   return data;
 }
 
@@ -42,38 +51,49 @@ export async function signUp(formData) {
   });
 
   const data = await res.json();
+  console.log("Signup response:", data); // 🛠 Debugging
 
   if (!res.ok) {
     throw new Error(data.error || "Sign-up failed");
   }
 
+  console.log("User data before saving:", data.user); // 🛠 Debugging
+
+
+  localStorage.setItem("userInfo", formDataToSend); // ✅ Make sure this exists
   return data;
 }
 
 export async function refreshAccessToken() {
   const refreshToken = localStorage.getItem("refreshToken");
 
-  if (!refreshToken) return null;
-
-  const res = await fetch(`${API_URL}/get_refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: refreshToken }),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    logout();
-    return null;
+  if (!refreshToken) {
+    return null; // No refresh token available
   }
 
-  localStorage.setItem("accessToken", data.access);
-  return data.access;
-}
+  try {
+    const response = await fetch(`${API_URL}/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: refreshToken }),
+    });
 
+    if (!response.ok) {
+      throw new Error("Failed to refresh token");
+    }
+
+    const data = await response.json();
+    localStorage.setItem("accessToken", data.access); // Update access token
+    return data.access; // Return the new access token
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return null; // Return null if refresh fails
+  }
+}
 export function logout() {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
-  window.location.href = "/log/login";
+  localStorage.removeItem("userInfo");
+  // Optionally, you can redirect the user to the login page
+  window.location.href = "/";
 }
