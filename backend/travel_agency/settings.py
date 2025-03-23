@@ -65,6 +65,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'travel_agency.urls'
+ASGI_APPLICATION = "travel_agency.routing.application"
+
 
 TEMPLATES = [
     {
