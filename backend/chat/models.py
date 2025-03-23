@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from ..main.models import *
+from main.models import Customer, Admin
 from .broadcastmsg import broadcast_msg_to_chat
 
 class ThreadManager(models.Manager):
@@ -38,8 +38,8 @@ class ThreadManager(models.Manager):
 
 
 class Thread(models.Model):
-    customer        = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='chat_threads')
-    staff           = models.ForeignKey('Admin', on_delete=models.CASCADE, related_name='chat_threads')
+    customer        = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='chat_threads')
+    staff           = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='chat_threads')
     updated         = models.DateTimeField(auto_now=True)
     timestamp       = models.DateTimeField(auto_now_add=True)
     
@@ -62,79 +62,66 @@ class Thread(models.Model):
     
 
 # CONVERSATION MODELS
-class ConversationDM(models.Model):
-    staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
-    cust = models.ForeignKey(Customer, on_delete=models.PROTECT)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # updated with each sent message
-    last_message = models.ForeignKey('MessageDM', on_delete=models.SET_NULL, blank=True, null=True)
+#class ConversationDM(models.Model):
+#    staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
+#    cust = models.ForeignKey(Customer, on_delete=models.PROTECT)
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    updated_at = models.DateTimeField(auto_now=True)  # updated with each sent message
+#    last_message = models.ForeignKey('MessageDM', on_delete=models.SET_NULL, blank=True, null=True)
+#
+#    class Meta:
+#        ordering = ['-updated_at']
+#        constraints = [
+#            models.UniqueConstraint(
+#                fields=['staff', 'cust'],
+#                name='conversation'
+#            ),
+#        ]
 
-    class Meta:
-        ordering = ['-updated_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['staff', 'cust'],
-                name='conversation'
-            ),
-        ]
+#class MessageDM(models.Model):
+#    conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='chat_messages')
+#    sender = models.ForeignKey(User, on_delete=models.PROTECT,related_name='chat_sent_messages')
+#    receiver = models.ForeignKey(User, on_delete=models.PROTECT,related_name='chat_received_messages')
+#    content = models.TextField()
+#    sent_at = models.DateTimeField(auto_now_add=True)
+#    is_read = models.BooleanField(default=False)
 
-class MessageDM(models.Model):
-    conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.PROTECT,related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.PROTECT,related_name='received_messages')
-    content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
+#    class Meta:
+#        ordering = ['sent_at']
+#
+#    def save(self,*args,**kwargs):
+#        if not (self.sender in [self.conversation.staff.user, self.conversation.cust.user] and 
+#                self.receiver in [self.conversation.staff.user, self.conversation.cust.user]):
+#            raise ValueError("Sender and receiver must be part of the conversation.")
+#        
+#        super().save(*args,**kwargs)
+#        self.conversation.last_message = self
+#        self.conversation.save()
 
-    class Meta:
-        ordering = ['sent_at']
+#class GroupChatConversation(models.Model):
+#    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='chat_group_chat')  # One group chat per trip
+#    participants = models.ManyToManyField(User, related_name='chat_group_chats')  # Customers and admins in the chat
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
 
-    def save(self,*args,**kwargs):
-        if not (self.sender in [self.conversation.staff.user, self.conversation.cust.user] and 
-                self.receiver in [self.conversation.staff.user, self.conversation.cust.user]):
-            raise ValueError("Sender and receiver must be part of the conversation.")
-        
-        super().save(*args,**kwargs)
-        self.conversation.last_message = self
-        self.conversation.save()
+#    class Meta:
+#        verbose_name = "Group Chat Conversation"
+#        verbose_name_plural = "Group Chat Conversations"
+#        ordering = ['-updated_at']
 
-class GroupChatConversation(models.Model):
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='group_chat')  # One group chat per trip
-    participants = models.ManyToManyField(User, related_name='group_chats')  # Customers and admins in the chat
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
+#    def __str__(self):
+#        return f"Group Chat for {self.trip.title}"
 
-    class Meta:
-        verbose_name = "Group Chat Conversation"
-        verbose_name_plural = "Group Chat Conversations"
-        ordering = ['-updated_at']
+#class MessageGroup(models.Model):
+#    conversation = models.ForeignKey(GroupChatConversation, on_delete=models.CASCADE, related_name='chat_messages')
+#    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_group_messages_sent')
+#    content = models.TextField()
+#    sent_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Group Chat for {self.trip.title}"
+#    class Meta:
+#        verbose_name = "Group Chat Message"
+#        verbose_name_plural = "Group Chat Messages"
+#        ordering = ['sent_at']
 
-class MessageGroup(models.Model):
-    conversation = models.ForeignKey(GroupChatConversation, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_messages_sent')
-    content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Group Chat Message"
-        verbose_name_plural = "Group Chat Messages"
-        ordering = ['sent_at']
-
-    def __str__(self):
-        return f"Message by {self.sender.username} in {self.conversation.trip.title}"
-
-class ChatbotConversation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatbot_conversations')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
-
-    class Meta:
-        verbose_name = "Chatbot Conversation"
-        verbose_name_plural = "Chatbot Conversations"
-        ordering = ['-updated_at']
-
-    def __str__(self):
-        return f"Chatbot Conversation with {self.user.username}"
+#    def __str__(self):
+#        return f"Message by {self.sender.username} in {self.conversation.trip.title}"
