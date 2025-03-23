@@ -349,9 +349,9 @@ class ConversationDM(models.Model):
         ]
 
 class MessageDM(models.Model):
-    conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.PROTECT,related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.PROTECT,related_name='received_messages')
+    conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='chat_messages')
+    sender = models.ForeignKey(User, on_delete=models.PROTECT,related_name='chat_sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.PROTECT,related_name='chat_received_messages')
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
@@ -359,9 +359,18 @@ class MessageDM(models.Model):
     class Meta:
         ordering = ['sent_at']
 
+    def save(self,*args,**kwargs):
+        if not (self.sender in [self.conversation.staff.user, self.conversation.cust.user] and 
+                self.receiver in [self.conversation.staff.user, self.conversation.cust.user]):
+            raise ValueError("Sender and receiver must be part of the conversation.")
+        
+        super().save(*args,**kwargs)
+        self.conversation.last_message = self
+        self.conversation.save()
+
 class GroupChatConversation(models.Model):
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='group_chat')  # One group chat per trip
-    participants = models.ManyToManyField(User, related_name='group_chats')  # Customers and admins in the chat
+    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='chat_group_chat')  # One group chat per trip
+    participants = models.ManyToManyField(User, related_name='chat_group_chats')  # Customers and admins in the chat
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
 
@@ -374,8 +383,8 @@ class GroupChatConversation(models.Model):
         return f"Group Chat for {self.trip.title}"
 
 class MessageGroup(models.Model):
-    conversation = models.ForeignKey(GroupChatConversation, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_messages_sent')
+    conversation = models.ForeignKey(GroupChatConversation, on_delete=models.CASCADE, related_name='chat_messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_group_messages_sent')
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
 
@@ -386,6 +395,7 @@ class MessageGroup(models.Model):
 
     def __str__(self):
         return f"Message by {self.sender.username} in {self.conversation.trip.title}"
+
 
 class ChatbotConversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatbot_conversations')
