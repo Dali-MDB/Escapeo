@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
+    'chat',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -167,3 +169,4 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,               # Blacklist old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
