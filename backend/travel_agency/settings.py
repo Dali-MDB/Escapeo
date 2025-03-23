@@ -66,6 +66,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'travel_agency.urls'
 ASGI_APPLICATION = "travel_agency.routing.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 TEMPLATES = [
