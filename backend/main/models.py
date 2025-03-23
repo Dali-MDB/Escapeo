@@ -123,7 +123,7 @@ class Hotel(models.Model):
     location = models.CharField(max_length=255)  # Address or general location
     star_rating = models.PositiveSmallIntegerField(
         validators=[
-            validators.MinValueValidator(1), validators.MaxValueValidator(5)
+            validators.MinValueValidator(1.0), validators.MaxValueValidator(5.0)
         ],
         help_text="Rating from 1 to 5 stars",
         default=3,
@@ -180,88 +180,74 @@ class HotelImages(models.Model):
 
 # -----------Trip-----------
 class Trip(models.Model):
-    title = models.CharField(max_length=200,unique=True)
-    description = models.TextField(null=True,blank=True)
+    title = models.CharField(max_length=200, unique=True)
+    description = models.TextField(null=True, blank=True)
     capacity = models.IntegerField(
         validators=[validators.MinValueValidator(1.0)],
         help_text="Number of people this trip can accommodate."
-    )  # how many ppl it can take
-    sold_tickets = models.IntegerField(default=0,db_default=0)
-
-   # hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
-
-    created_by = models.ForeignKey(Admin, on_delete=models.CASCADE,related_name='managed_trips')  # Trip organizer(s) (necssary for permissions)
-    
+    )
+    sold_tickets = models.IntegerField(default=0, db_default=0)
+    # hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
+    created_by = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='managed_trips')
     guide = models.ForeignKey(Admin, related_name='guiding', on_delete=models.SET_NULL, null=True, blank=True)  # only for group travels
     trip_type = models.CharField(max_length=50, choices=TripTypeChoices.CHOICES, null=True, blank=True)  # package type
-    experience = models.CharField(max_length=50, choices=ExperienceTypeChoices.CHOICES)  # adventure/cultural/honeymoon ..ect
-    price_category = models.CharField(max_length=50, choices=PriceTypeChoices.CHOICES, null=True, blank=True)  # price category
+    experience = models.CharField(max_length=50, choices=ExperienceTypeChoices.CHOICES)
+    price_category = models.CharField(max_length=50, choices=PriceTypeChoices.CHOICES, null=True, blank=True)
+    destination = models.CharField(max_length=100)
     destination_type = models.CharField(max_length=50, choices=DestinationTypeChoices.CHOICES, null=True, blank=True)
     transport = models.CharField(max_length=50, choices=TransportTypeChoices.CHOICES)
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
-    
-    departure_city = models.CharField(max_length=50)
-    country = models.CharField(max_length=50)
-    city = models.CharField(max_length=50)
-    
     discount = models.DecimalField(
         max_digits=4,
         decimal_places=2,
-        validators=[
-            validators.MinValueValidator(0),
-            validators.MaxValueValidator(49)
-        ],
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(49.0)],
         blank=True, null=True
     )
     stars_rating = models.FloatField(
-        validators=[
-            validators.MinValueValidator(1), validators.MaxValueValidator(5)
-        ],
+        validators=[validators.MinValueValidator(1.0), validators.MaxValueValidator(5.0)],
         help_text="Rating from 1 to 5 stars",
         db_default=3,
-    )  # Star rating (1-5 stars)
-    
-    
+    )
     departure_date = models.DateTimeField()
-
-    return_date = models.DateTimeField(blank=True, null=True)  # for one way trips
-    
+    return_date = models.DateTimeField(blank=True, null=True)
     is_one_way = models.BooleanField(default=False)
     
-
     def __str__(self):
         return f"{self.title} ({self.trip_type}, {self.departure_date})"
-
+    
     class Meta:
         verbose_name = "Trip"
         verbose_name_plural = "Trips"
-
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'created_by'],
                 name='unique_trip_signature'
             ),
         ]
-
+    
     def clean(self):
         if self.return_date and self.departure_date >= self.return_date:
             raise ValidationError("Return date cannot be before the departure date.")
-        if self.trip_type == 'group' and not self.guide:  # if it's a group trip there must be a guide
+        if self.trip_type == 'group' and not self.guide:
             raise ValidationError("A guide must be assigned for group trips.")
         if self.is_one_way and self.return_date:
             raise ValidationError("A one way trip can't have a return date")
-
     
     def delete(self, *args, **kwargs):
-        # Construct folder path based on the first image's path (if exists)
         trip_folder = os.path.join(settings.MEDIA_ROOT, "trips_images", self.title)
-
-        # Delete the folder and its contents if it exists
         if os.path.exists(trip_folder):
             shutil.rmtree(trip_folder)
-
-        # Call parent delete method
         super().delete(*args, **kwargs)
+
+
+class DepartureTrip(models.Model):
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='departure_places')
+    location = models.CharField(max_length=100)
+    capacity = models.IntegerField(validators=[validators.MinValueValidator(1)])
+    sold_tickets = models.IntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
+    
+    def __str__(self):
+        return f"{self.trip.title} - {self.location}"
 
 
 def upload_to_trip_images(instance, filename):

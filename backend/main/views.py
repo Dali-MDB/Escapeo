@@ -3,15 +3,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer,TripSerializer,AdminSerializer
+from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer
 from django.contrib.auth import authenticate,get_user_model
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Trip
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions
+from .models import Trip,TripImage,DepartureTrip
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission
 
 
 User = get_user_model()
@@ -124,7 +124,7 @@ def addAdmin(request):
 
 #----------------------- Trips -------------------------------
 @api_view(['POST'])
-@permission_classes([IsAuthenticated,CreateTripPermission])
+@permission_classes([CreateTripPermission])
 def addTrip(request):
     validated_data = request.data
     validated_data['created_by'] = request.user.admin.id
@@ -150,30 +150,125 @@ class tripDetails(APIView):
     def get_trip(self,pk):
         return get_object_or_404(Trip,id=pk)
     
-    def get(self,request,pk):
+
+    def get(self, request, pk):
         trip = self.get_trip(pk)
+        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
         trip_ser = TripSerializer(trip)
-        return Response(trip_ser.data,status=status.HTTP_200_OK)
-    
+        return Response(trip_ser.data, status=status.HTTP_200_OK)
+
     def put(self, request, pk):
         trip = self.get_trip(pk)
-        
+        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
 
-        trip_ser = TripSerializer(trip, data=request.data,partial = True)  
+        trip_ser = TripSerializer(trip, data=request.data, partial=True)
         if trip_ser.is_valid():
             trip_ser.save()
             return Response(trip_ser.data, status=status.HTTP_200_OK)
-        
-        return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
+        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
 
         trip.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
+    
 
-        
+@api_view(['POST'])
+@permission_classes([TripPermission])
+def addTripImages(request, id):
+    trip = get_object_or_404(Trip, id=id)
+    permission = TripPermission()
+    permission.has_object_permission(request,None,trip)
+    
+    if 'uploaded_images' not in request.FILES:
+        return Response({'details': 'No image files provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    images = request.FILES.getlist('uploaded_images')  # Get multiple files
+    
+    for image in images:
+        TripImage.objects.create(trip=trip, image=image)
+
+    return Response({'success':'you have added images successfully'},status=status.HTTP_204_NO_CONTENT) 
+
+
+
+@api_view(['POST'])
+@permission_classes([TripPermission])
+def deleteTripImages(request, id):
+    trip = get_object_or_404(Trip, id=id)
+    permission = TripPermission()
+    permission.has_object_permission(request,None,trip)
+    image_ids = request.data.get('deleted_images', [])
+
+    # If the user unselected all images and hit save, just return success without deleting anything.
+    if not image_ids:
+        return Response({'success': 'No images selected for deletion'}, status=status.HTTP_200_OK)
+
+    # Find images related to the trip and the provided IDs
+    images_to_delete = TripImage.objects.filter(id__in=image_ids, trip=trip)
+
+    # Delete images from media storage
+    for image in images_to_delete:
+        if image.image:
+            image.image.delete(save=False)  # Deletes the image file from storage
+
+    # Now delete from the database
+    deleted_count, _ = images_to_delete.delete()
+
+    return Response({'success': f'{deleted_count} images deleted successfully'}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
+@permission_classes([CreateTripPermission])
+def addDeparture(request, trip_id):
+    """End point to add a new departure to a trip."""
+    trip = get_object_or_404(Trip, id=trip_id)
+    #permission = DepartureTripPermission()
+    
+
+    serializer = DepartureTripSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(trip=trip)  # Assign trip explicitly
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class DepartureDetails(APIView):
+    permission_classes = [DepartureTripPermission]
+
+    def get(self, request, trip_id, departure_id):
+        """Retrieve a specific DepartureTrip."""
+        trip = get_object_or_404(Trip, id=trip_id)
+        departure = get_object_or_404(DepartureTrip, id=departure_id, trip=trip)
+        serializer = DepartureTripSerializer(departure)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, trip_id, departure_id):
+        """Update an existing DepartureTrip."""
+        trip = get_object_or_404(Trip, id=trip_id)
+        departure = get_object_or_404(DepartureTrip, id=departure_id, trip=trip)
+        self.check_object_permissions(request,departure)
+
+        serializer = DepartureTripSerializer(departure, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, trip_id, departure_id):
+        """Delete a specific DepartureTrip."""
+        trip = get_object_or_404(Trip, id=trip_id)
+        departure = get_object_or_404(DepartureTrip, id=departure_id, trip=trip)
+        self.check_object_permissions(request,departure)
+        departure.delete()
+        return Response({'success': 'Departure deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
     
     
 #---------------------Profiles-----------------------------------
