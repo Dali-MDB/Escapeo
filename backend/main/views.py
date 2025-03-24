@@ -6,7 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
-from django.db.models import Q
+from django.db.models import Q, F, Min, Max, Subquery, OuterRef, ExpressionWrapper, FloatField, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
@@ -347,28 +348,23 @@ def TripsFiltering(request):
     max_price = request.GET.get('max_price')
     min_discount = request.GET.get('min_discount')
     max_discount = request.GET.get('max_discount')
+    min_stars = request.GET.get('min_stars')
+    max_stars = request.GET.get('max_stars')
     departure_date = request.GET.get('departure_date')
     is_one_way = request.GET.get('is_one_way')
     trip_types = request.GET.getlist('trip_type')
     experiences = request.GET.getlist('experience')
     destination_types = request.GET.getlist('destination_type')
     transports = request.GET.getlist('transport')
-    min_stars = request.GET.get('min_stars')
-    max_stars = request.GET.get('max_stars')
-    sort = request.GET.get('sort')
-    ascending = request.GET.get('ascending')
+    sort = request.GET.get('sort', 'departure_date')  # Default sort by departure date
+    ascending = request.GET.get('ascending', 'true').lower() == 'true'
 
-    # Start with an empty Q object
+    # Base query for trips
     query = Q()
-
-    if departure_city:
-        query &= Q(departure_city__icontains=departure_city)
+    
+    # Apply filters
     if destination:
-        query &= Q(country__icontains=destination) | Q(city__icontains=destination)
-    if min_price:
-        query &= Q(price__gte=min_price)
-    if max_price:
-        query &= Q(price__lte=max_price)
+        query &= Q(destination__icontains=destination)
     if min_discount:
         query &= Q(discount__gte=min_discount)
     if max_discount:
@@ -378,7 +374,7 @@ def TripsFiltering(request):
     if max_stars:
         query &= Q(stars_rating__lte=max_stars)
     if departure_date:
-        query &= Q(departure_date__gte=departure_date)
+        query &= Q(departure_date__date=departure_date)
     if is_one_way is not None:
         query &= Q(is_one_way=is_one_way.lower() == "true")
     if trip_types:
@@ -389,65 +385,84 @@ def TripsFiltering(request):
         query &= Q(destination_type__in=destination_types)
     if transports:
         query &= Q(transport__in=transports)
-
-    # Fetch filtered trips
+    
     trips = Trip.objects.filter(query)
 
-    # Apply sorting logic
-    valid_sort_fields = ["price", "departure_date", "stars_rating", "discount"]
+    # Apply departure city and price filtering
+    if departure_city or min_price or max_price:
+        departure_query = Q()
+        if departure_city:
+            departure_query &= Q(location__icontains=departure_city)
+        if min_price:
+            departure_query &= Q(price__gte=min_price)
+            min_price = float(min_price)
+        if max_price:
+            departure_query &= Q(price__lte=max_price)
+            max_price = float(max_price)
+        
+        departure_trips = DepartureTrip.objects.filter(departure_query).values_list('trip_id', flat=True)
+        trips = trips.filter(id__in=departure_trips)
 
+    # Sorting logic
     if sort == "recommended":
         now = timezone.now()
+        max_price = DepartureTrip.objects.filter(trip__in=trips).aggregate(max_price=Max('price'))['max_price'] or 1
+        max_capacity = trips.aggregate(max_cap=Max('capacity'))['max_cap'] or 1
+
         for trip in trips:
-            # Calculate total price after discount
-            total_price = float(trip.price) * (1 - float(trip.discount or 0) / 100)
-
-            # Normalize scores
-            max_stars = 5  # Maximum possible stars
-            max_price = max(float(t.price) for t in trips) if trips else 1  # Avoid division by zero
-            max_capacity = max(t.capacity for t in trips) if trips else 1
-
-            # Weighted scoring
-            stars_weight = 0.4  # Higher stars = better
-            price_weight = 0.3  # Lower price = better
-            availability_weight = 0.2  # More availability = better
-            urgency_weight = 0.1  # Closer departure date = better
-
-            # Star rating score (normalized to 0-1)
-            stars_score = (trip.stars_rating or 0) / max_stars
-
-            # Price score (normalized to 0-1, lower price = better)
-            price_score = 1 - (total_price / max_price)
-
-            # Availability score (normalized to 0-1, more availability = better)
-            availability_score = (trip.capacity - trip.sold_tickets) / max_capacity
-
-            # Urgency score (normalized to 0-1, closer departure date = better)
+            min_departure_price = trip.departure_places.aggregate(min_price=Min('price'))['min_price'] or 0
+            discount_price = float(float(min_departure_price) * (1 - float(trip.discount or 0) / 100))
+            
+            stars_score = float(trip.stars_rating or 0) / 5
+            price_score = 1 - float(discount_price) / float(max_price)
+            availability_score = float(trip.capacity - trip.sold_tickets) / max_capacity
             days_until_departure = (trip.departure_date - now).days
-            urgency_score = 1 / (days_until_departure + 1) if days_until_departure >= 0 else 0
-
-            # Final recommendation score (weighted sum)
+            urgency_score = 1 / float(days_until_departure + 1) if days_until_departure >= 0 else 0
+            
             trip.rec_score = (
-                stars_weight * stars_score +
-                price_weight * price_score +
-                availability_weight * availability_score +
-                urgency_weight * urgency_score
+                0.4 * stars_score +
+                -1.2 * price_score +
+                0.2 * availability_score +
+                0.1 * urgency_score
             )
-
-
-
-        # Sort by recommendation score
-        ascending = True if ascending and ascending.lower() == 'true' else False
+        
         sorted_trips = sorted(trips, key=lambda x: x.rec_score, reverse=not ascending)
-    else:
-        if sort in valid_sort_fields:
-            if ascending and ascending.lower() == "false":
-                sort = f"-{sort}"  # Descending order
-            sorted_trips = trips.order_by(sort)
-        else:
-            sorted_trips = trips  # Default order if sorting is invalid
+    elif sort == "price":
+        if departure_city:
+            # Sort by price of the selected departure city
+            matching_departures = DepartureTrip.objects.filter(
+                trip_id=OuterRef('pk'),
+                location__icontains=departure_city
+            ).values('price')[:1]
 
-    # Serialize results
+            trips = trips.annotate(
+                selected_departure_price=Subquery(matching_departures),
+                discount_price=ExpressionWrapper(
+                    F('selected_departure_price') * (1 - F('discount') / 100),
+                    output_field=FloatField()
+                )
+            ).filter(selected_departure_price__isnull=False)
+        else:
+            # Sort by minimum departure price if no city selected
+            trips = trips.annotate(
+                min_departure_price=Min('departure_places__price'),
+                discount_price=ExpressionWrapper(
+                    F('min_departure_price') * (1 - F('discount') / 100),
+                    output_field=FloatField()
+                )
+            )
+        
+        sort_param = 'discount_price' if ascending and ascending==True else '-discount_price'
+        sorted_trips = trips.order_by(sort_param)
+    else:
+        # Default sorting
+        valid_sort_fields = ["departure_date", "stars_rating", "discount"]
+        if sort in valid_sort_fields:
+            sort_param = sort if ascending else f"-{sort}"
+            sorted_trips = trips.order_by(sort_param)
+        else:
+            sorted_trips = trips.order_by('id')
+
     serializer = TripSerializer(sorted_trips, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
