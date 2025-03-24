@@ -18,6 +18,9 @@ export default function MoreInfo() {
     e.preventDefault();
 
     try {
+      
+
+    
       await signUp(formData);
       setIsAuthenticated(true);
       alert("Registration successful!");

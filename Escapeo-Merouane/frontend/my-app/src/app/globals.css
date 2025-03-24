@@ -24,7 +24,33 @@ body {
   
 
 }
+/* Custom range input styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  background: transparent; /* bg-gray-100 */
+  border-radius: 0; /* rounded-full */
+}
 
+/* Chrome, Safari, Edge, Opera */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 25px;
+  height: 25px;
+  position: relative;
+  top: -10px;
+  background: orange; /* bg-orange-600 */
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+
+
+/* Track color for Chrome/Safari */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: black; /* bg-orange-600 */
+  border-radius: 0;
+}
 html{
   padding: 0;
   margin: 0;

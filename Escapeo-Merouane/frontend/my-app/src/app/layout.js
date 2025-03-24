@@ -1,5 +1,6 @@
 import { Urbanist } from "next/font/google";
 import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
+import  {SearchProvider}  from './context/SearchContext'
 import "./globals.css";
 
 // Configure Urbanist
@@ -20,7 +21,9 @@ export default function RootLayout({ children }) {
       <body style={{ fontFamily: 'urbanist', color: 'black' }}>
         {/* Wrap the entire application with AuthProvider */}
         <AuthProvider>
-          {children}
+        <SearchProvider>
+        {children}
+        </SearchProvider>
         </AuthProvider>
       </body>
     </html>

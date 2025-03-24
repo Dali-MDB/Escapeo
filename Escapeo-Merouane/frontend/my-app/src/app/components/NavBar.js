@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "/public/logoWhite.png";
+import logpBlack from '/public/logo.png'
 import { usePathname } from "next/navigation";
 import { Urbanist } from "next/font/google";
 import { useState } from "react";
@@ -16,7 +17,7 @@ const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 // Left Section Component
 const LeftSection = ({ path }) => {
   return (
-    <div className="w-full text-white h-full flex justify-start items-center">
+    <div className="w-full z-20  h-full flex justify-start items-center">
       <div className="w-1/2 h-full flex flex-row justify-evenly gap-2 items-center">
         {navLinks.map(({ title, link, icon }, index) => (
           <div
@@ -40,29 +41,12 @@ const LeftSection = ({ path }) => {
 };
 
 // Center Section Component
-const CenterSection = () => {
-  return (
-    <div className="w-full h-full p-0 flex justify-evenly items-center">
-      <div className="flex justify-center items-center w-1/2 h-full">
-        <Link href="/" aria-label="Home" className="w-1/2">
-          <Image
-            src={Logo}
-            height={0}
-            width={0}
-            style={{ width: "", height: "" }}
-            alt="Logo"
-            priority={true}
-          />
-        </Link>
-      </div>
-    </div>
-  );
-};
+
 
 // Right Section Component
 const RightSectionCon = ({ clicked, setClicked }) => {
   return (
-    <div className="w-full flex  text-white justify-end items-center">
+    <div className="w-full z-20 flex   justify-end items-center">
       <div className="w-1/2 flex flex-row items-center">
         <div className="flex w-full items-center justify-end gap-3">
           <Link href='/Setting/Favourite' className="flex justify-between gap-x-2 items-center">
@@ -106,7 +90,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
 
 const RightSectionUnCon = () =>{
   return (  
-  <div className="w-full flex justify-end items-center">
+  <div className="w-full z-20 flex justify-end items-center">
 
     <div className="w-1/2 font-bold flex flex-row justify-evenly text-center items-center">
     <Link href={'/Log/Login'}    className="w-full h-full rounded-md p-2">Login</Link>
@@ -123,9 +107,26 @@ export default function NavBar() {
   const { isAuthenticated } = useAuth();
   const [clicked, setClicked] = useState(false);
   const path = usePathname(); // Always call usePathname
-
+  const CenterSection = () => {
+    return (
+      <div className="w-full z-20 h-full p-0 flex justify-evenly items-center">
+        <div className="flex justify-center items-center w-1/2 h-full">
+          <Link href="/" aria-label="Home" className="w-1/2">
+            <Image
+              src={isAuthenticated ? Logo : logpBlack }
+              height={0}
+              width={0}
+              style={{ width: "", height: "" }}
+              alt="Logo"
+              priority={true}
+            />
+          </Link>
+        </div>
+      </div>
+    );
+  };
   return (
-    <div className={`w-[90%]  h-24 sticky left-[5%] top-[5%]  ${isAuthenticated ? "bg-[#235784]" : "bg-transparent"} flex px-10 flex-row z-50 rounded-full justify-between items-center ${isAuthenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
+    <div className={`w-[90%]   h-24 sticky left-[5%] top-[5%]  ${isAuthenticated ? "bg-[#235784]" : "bg-[rgba(255,250,250,0.3)] text-black"} flex px-10 flex-row z-50 rounded-full justify-between items-center ${isAuthenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
       <LeftSection path={path} />
       <CenterSection />
    { isAuthenticated ?  <RightSectionCon clicked={clicked} setClicked={setClicked} /> : <RightSectionUnCon />
