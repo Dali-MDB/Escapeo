@@ -20,7 +20,7 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
     experiences = set(trip.experience for trip in purchased_trips + favorite_trips)
     destination_types = set(trip.destination_type for trip in purchased_trips + favorite_trips)
     price_categories = set(trip.price_category for trip in purchased_trips + favorite_trips)
-    cities = set(trip.city for trip in purchased_trips + favorite_trips)
+    destinations = set(trip.destination for trip in purchased_trips + favorite_trips)
 
     # Find trips with similar attributes, excluding already purchased trips
     similar_trips = Trip.objects.filter(
@@ -28,7 +28,7 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
         Q(experience__in=experiences) |
         Q(destination_type__in=destination_types) |
         Q(price_category__in=price_categories) |
-        Q(city__in=cities)
+        Q(city__in=destinations)
     ).exclude(id__in=[trip.id for trip in purchased_trips])
 
     # Score trips based on attribute matches
@@ -44,7 +44,7 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
             score += 1  # Destination type match is relevant
         if trip.price_category in price_categories:
             score += 3  # Price category match is less important
-        if trip.city in cities:
+        if trip.destination in destinations:
             score += 4  # City match is the most relevant
 
         trip_counter[trip] = score  # Store the trip with its computed score

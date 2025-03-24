@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core import validators
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
 
 # ------------------------- Users -------------------------
@@ -123,7 +124,7 @@ class Hotel(models.Model):
     location = models.CharField(max_length=255)  # Address or general location
     star_rating = models.PositiveSmallIntegerField(
         validators=[
-            validators.MinValueValidator(1.0), validators.MaxValueValidator(5.0)
+            validators.MinValueValidator(Decimal('1.0')), validators.MaxValueValidator(Decimal('5.0'))
         ],
         help_text="Rating from 1 to 5 stars",
         default=3,
@@ -199,11 +200,11 @@ class Trip(models.Model):
     discount = models.DecimalField(
         max_digits=4,
         decimal_places=2,
-        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(49.0)],
+        validators=[validators.MinValueValidator(Decimal('0.0')), validators.MaxValueValidator(Decimal('49.0'))],
         blank=True, null=True
     )
     stars_rating = models.FloatField(
-        validators=[validators.MinValueValidator(1.0), validators.MaxValueValidator(5.0)],
+        validators=[validators.MinValueValidator(Decimal('1.0')), validators.MaxValueValidator(Decimal('5.0'))],
         help_text="Rating from 1 to 5 stars",
         db_default=3,
     )
@@ -244,7 +245,7 @@ class DepartureTrip(models.Model):
     location = models.CharField(max_length=100)
     capacity = models.IntegerField(validators=[validators.MinValueValidator(1)])
     sold_tickets = models.IntegerField(default=0)
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(Decimal('0'))])
     
     def __str__(self):
         return f"{self.trip.title} - {self.location}"
