@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Admin,Trip,TripImage
+from .models import Customer,Admin,Trip,TripImage, MessageDM, ConversationDM, GroupChatConversation, MessageGroup
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -217,5 +217,29 @@ class TripSerializer(serializers.ModelSerializer):
 
         return instance
     
+    """ CONVERSATION AND MESSAGES SERIALIZERS """
+User = get_user_model()
 
+class MessagesDMSeriliazer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField()
+    receiver = serializers.StringRelatedField()
+
+    class Meta :
+        model = MessageDM
+        fields = [
+            "id", "conversation", "sender", "receiver", 
+            "content", "sent_at", "is_read"
+        ]
+        read_only_fields = ["sent_at","is_read"]
+
+class ConversationDMSerializer(serializers.ModelSerializer):
+    staff = serializers.StringRelatedField(source="staff.user")
+    cust = serializers.StringRelatedField(source="cust.user")
+    last_message = MessagesDMSeriliazer(read_only=True)
+
+    class Meta:
+       model = ConversationDM
+       fields = ["id", "staff", "cust", 
+                 "created_at", "updated_at", 
+                 "last_message"]
 
