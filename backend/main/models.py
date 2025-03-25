@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core import validators
 from django.core.exceptions import ValidationError
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
-
+from chat.models import Thread
 # ------------------------- Users -------------------------
 import uuid
 class User(AbstractUser):
@@ -17,6 +17,9 @@ class User(AbstractUser):
 
     is_admin = models.BooleanField(default=False)
     
+    #online status fields
+    is_online = models.BooleanField(default=False, null=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
 
     #objects = 
     USERNAME_FIELD = "email"  # Authenticate using email
