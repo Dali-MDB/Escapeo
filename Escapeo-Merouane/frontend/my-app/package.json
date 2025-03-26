@@ -9,10 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.1.7",
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@radix-ui/react-slot": "^1.1.2",
+    "chart.js": "^4.4.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "d3-geo": "^3.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.484.0",
+    "next": "^15.2.4",
     "react": "^19.0.0",
+    "react-calendar": "^5.1.0",
+    "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",
-    "styled-components": "^6.1.16"
+    "react-map-gl": "^8.0.1",
+    "react-simple-maps": "^3.0.0",
+    "recharts": "^2.15.1",
+    "styled-component": "^2.8.0",
+    "styled-components": "^6.1.16",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

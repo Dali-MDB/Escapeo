@@ -17,10 +17,10 @@ class CreateTripPermission(BasePermission):
         if not hasattr(request.user, 'admin'):
             raise PermissionDenied("Only staff or owners can create trips.")
 
-        if request.user.admin.department not in ['staff', 'owner']:
-            raise PermissionDenied("You do not have permission to create a trip.")
+        if request.user.admin.department in ['staff', 'owner']:
+            return True
 
-        return True
+        raise PermissionDenied("You do not have permission to create a trip.")
     
 
 class TripPermission(BasePermission):
@@ -33,18 +33,17 @@ class TripPermission(BasePermission):
 
         # Log write access attempts.
         if not request.user.is_authenticated:
-            logger.warning(f"Unauthenticated user attempted to modify trip {obj.id}")
-            return False
+            raise PermissionDenied("Only authenticated users can access")
 
         if not hasattr(request.user, 'admin'):
-            logger.warning(f"User {request.user.id} does not have the 'admin' attribute")
-            return False
+           raise PermissionDenied("Only admins are allowed to access")
 
-        if request.user.admin == obj.created_by or request.user.admin.role == 'owner':
+        if  request.user.admin == obj.created_by or request.user.admin.department == 'owner':
             return True
+        
+        raise PermissionDenied("Only the trip owner or the superuser can edit this trip")
 
-        logger.warning(f"User {request.user.id} does not have permission to modify trip {obj.id}")
-        return False 
+        
     
 
 
@@ -64,3 +63,27 @@ class addAdminPermission(BasePermission):
             raise PermissionDenied("Only admins in the 'owner' department are allowed to perform this action.")
 
         return True
+    
+class DepartureTripPermission(BasePermission):
+    def has_permission(self, request, view):
+        return True  
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:  
+            return True
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("You must be logged in to modify this departure.")
+
+        if not hasattr(request.user, 'admin'):
+            raise PermissionDenied("Only admins can modify departures.")
+
+        if request.user.admin == obj.trip.created_by or request.user.admin.department == 'owner':
+            return True  
+
+        raise PermissionDenied("Only the trip owner or the superuser can edit this trip")
+
+
+class CustomerPermissions(BasePermission):
+    def has_permission(self, request, view):
+        return hasattr(request.user,'customer')

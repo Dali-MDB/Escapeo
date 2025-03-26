@@ -1,20 +1,5 @@
 "use client"
 
-
-import { useAuth } from "../../context/AuthContext";
-
-export default function Account() {
-  const userInfoString = localStorage.getItem("userInfo");
-
-  if (!userInfoString) {
-    alert("no")
-  } else {
-    const userInfo = JSON.parse(userInfoString);
-    console.log("✅ User info retrieved:", userInfo);
-  }
- return (<>hello</>)  
-}
-/*
 import { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Image from "next/image";
@@ -95,4 +80,4 @@ export default function Account() {
       </div>
     </div>
   );
-}*/
+}

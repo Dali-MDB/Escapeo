@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Admin,Trip,TripImage
+from .models import Customer,Admin,Trip,TripImage,DepartureTrip
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -148,74 +148,80 @@ class TripImageSerializer(serializers.ModelSerializer):
         model = TripImage
         fields = ['id','image']
 
+class DepartureTripSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepartureTrip
+        fields = ['id', 'location', 'capacity', 'sold_tickets', 'price']
+        
+
+    
 
 class TripSerializer(serializers.ModelSerializer):
     sold_tickets = serializers.IntegerField(write_only=True)
-
-    images = TripImageSerializer(many=True, read_only=True)  #GET
-    uploaded_images = serializers.ListField( #POST
+    images = TripImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
         child=serializers.ImageField(), write_only=True, required=False
-    )  
-
-    deleted_images = serializers.ListField(  # For deleting images during update
+    )
+    deleted_images = serializers.ListField(
         child=serializers.IntegerField(), write_only=True, required=False
     )
+    departure_places = DepartureTripSerializer(many=True, required=False)
+
     class Meta:
         model = Trip
         fields = [
-            'title', 'description', 'capacity', 'sold_tickets',
+            'id', 'title', 'description', 'capacity', 'sold_tickets',
             'guide', 'trip_type', 'experience', 'price_category',
-            'destination_type', 'transport', 'price',
-            'country', 'city', 'discount', 'created_by',  # Fixed: Added comma here
+            'destination', 'destination_type', 'transport',
+            'discount', 'created_by', 'stars_rating',
             'departure_date', 'return_date', 'is_one_way',
-            'images','uploaded_images','deleted_images'
+            'images', 'uploaded_images', 'deleted_images', 'departure_places'
         ]
 
     def validate(self, validated_data):
         trip_type = validated_data.get('trip_type', None)
         guide = validated_data.get('guide', None)
-
-
         if trip_type == 'group' and not guide:
             raise ValidationError('ERROR: group trips must have a guide')
-        elif not trip_type =='group' and guide:
+        elif trip_type != 'group' and guide:
             raise ValidationError('ERROR: only group trips can have a guide')
-
         departure_date = validated_data.get('departure_date', None)
         return_date = validated_data.get('return_date', None)
-
+        is_one_way = validated_data.get('is_one_way', False)
+        if is_one_way and return_date:
+            raise ValidationError('ERROR: a one way trip cannot have a return date')
+        elif is_one_way and is_one_way == False and return_date is None:
+            raise ValidationError('ERROR: the return date is missing')
         if departure_date and return_date and departure_date > return_date:
             raise ValidationError('ERROR: return date cannot be before departure date')
-
         return validated_data
     
+
     def create(self, validated_data):
-        uploaded_images = validated_data.pop("uploaded_images",[])
+        uploaded_images = validated_data.pop("uploaded_images", [])
+        departure_places_data = validated_data.pop("departure_places", [])
+
         trip = Trip.objects.create(**validated_data)
 
         for image in uploaded_images:
-            TripImage.objects.create(trip=trip,image=image)
+            TripImage.objects.create(trip=trip, image=image)
+
+        # Set the trip reference explicitly when creating departures
+        for departure_data in departure_places_data:
+            DepartureTrip.objects.create(trip=trip, **departure_data)
 
         return trip
-        
 
     def update(self, instance, validated_data):
         uploaded_images = validated_data.pop('uploaded_images', [])
         deleted_images = validated_data.pop('deleted_images', [])
 
-
         instance = super().update(instance, validated_data)
-
 
         for image in uploaded_images:
             TripImage.objects.create(trip=instance, image=image)
-    
-            
 
-        # Delete specified images
         TripImage.objects.filter(id__in=deleted_images, trip=instance).delete()
-
         return instance
-    
 
 
