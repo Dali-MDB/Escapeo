@@ -8,13 +8,13 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessagesDMSeriliazer, ConversationDMSerializer
+from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessagesDMSeriliazer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from main.models import Trip, Customer, MessageDM, ConversationDM
+from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConversation, MessageGroup
 
 
 class ListMessages(generics.ListAPIView):
@@ -43,3 +43,35 @@ class ListConversation(generics.ListAPIView):
         elif hasattr(user, 'admin'):
             return ConversationDM.objects.filter(staff__user=user)
         return ConversationDM.objects.none()
+    
+
+class ListGroupMessages(generics.ListAPIView):
+    """
+    Liste tous les messages d'une conversation de groupe spécifique.
+    Un utilisateur doit être membre du groupe pour voir les messages.
+    """
+    serializer_class = MessageGroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        conversation_id = self.kwargs.get("conversation_id")
+        conversation = get_object_or_404(GroupChatConversation, id=conversation_id)
+
+        # Vérifie si l'utilisateur fait partie du groupe
+        user = self.request.user
+        if conversation.participants.filter(id=user.id).exists():
+            return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
+
+        return MessageGroup.objects.none()
+
+# ✅ Liste des Conversations de Groupe où un Utilisateur Participe
+class ListGroupConversations(generics.ListAPIView):
+    """
+    Liste toutes les conversations de groupe où l'utilisateur est un participant.
+    """
+    serializer_class = GroupChatConversationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return GroupChatConversation.objects.filter(participants=user)

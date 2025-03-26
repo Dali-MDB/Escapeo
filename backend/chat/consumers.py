@@ -100,12 +100,11 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.timezone import now
 from channels.db import database_sync_to_async
-from main.models import MessageDM, ConversationDM, User, Admin, Customer
+from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup
 
 class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        """Gère la connexion WebSocket"""
         self.other_user = self.scope['url_route']['kwargs']['username']
         self.me = self.scope['user']
 
@@ -126,7 +125,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def receive(self, text_data):
-        """Gère l'envoi, l'édition et la suppression des messages"""
+        
         try:
             data = json.loads(text_data)
             action = data.get('action')
@@ -159,7 +158,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.chat_room, {"type": "chat_message", "text": json.dumps(response)})
 
     async def handle_edit_message(self, data):
-        """Gère l'édition d'un message"""
+        
         message_id = data.get('message_id')
         new_content = data.get('new_content')
 
@@ -177,7 +176,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(self.chat_room, {"type": "chat_message", "text": json.dumps(response)})
 
     async def handle_delete_message(self, data):
-        """Gère la suppression d'un message"""
+        
         message_id = data.get('message_id')
 
         if not message_id or not self.me.is_authenticated:
@@ -194,7 +193,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=event["text"])
 
     async def disconnect(self, close_code):
-        """Gère la déconnexion WebSocket"""
+       
         await self.set_user_offline()
         await self.channel_layer.group_discard(self.chat_room, self.channel_name)
 
@@ -212,7 +211,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def create_chat_message(self, msg):
-        """Crée et enregistre un nouveau message"""
+        
         conversation = self.conversation
         receiver = conversation.cust.user if self.me == conversation.staff.user else conversation.staff.user
 
@@ -220,7 +219,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def edit_message(self, message_id, new_content):
-        """Modifie un message si l'utilisateur est le propriétaire"""
+        
         try:
             message = MessageDM.objects.get(id=message_id, sender=self.me)
             message.content = new_content
@@ -231,7 +230,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def delete_message(self, message_id):
-        """Supprime un message si l'utilisateur est le propriétaire"""
+       
         try:
             message = MessageDM.objects.get(id=message_id, sender=self.me)
             message.delete()
@@ -241,13 +240,175 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def set_user_online(self):
-        """Marque l'utilisateur comme en ligne"""
+        
         self.me.is_online = True
         self.me.save()
 
     @database_sync_to_async
     def set_user_offline(self):
-        """Marque l'utilisateur comme hors ligne et met à jour sa dernière activité"""
+       
         self.me.is_online = False
         self.me.last_seen = now()
         self.me.save()
+
+
+class GroupChatConsumer(AsyncWebsocketConsumer):
+
+    async def connect(self):
+        
+        self.group_id = self.scope['url_route']['kwargs']['group_id']
+        self.user = self.scope['user']
+
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+
+        
+        self.conversation = await self.get_group_conversation(self.group_id)
+        if not self.conversation:
+            await self.close()
+            return
+
+        self.chat_room = f"group_chat_{self.group_id}"
+
+        await self.channel_layer.group_add(
+            self.chat_room,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def receive(self, text_data):
+        
+        data = json.loads(text_data)
+        action = data.get('action')
+
+        if action == "send":
+            await self.handle_send_message(data)
+        elif action == "edit":
+            await self.handle_edit_message(data)
+        elif action == "delete":
+            await self.handle_delete_message(data)
+
+    async def handle_send_message(self, data):
+      
+        msg = data.get('message')
+
+        if not msg:
+            return
+
+        message = await self.create_group_message(msg)
+
+        response = {
+            'action': 'send',
+            'message': msg,
+            'username': self.user.username,
+            'message_id': message.id,
+        }
+
+        await self.channel_layer.group_send(
+            self.chat_room,
+            {
+                "type": "chat_message",
+                "text": json.dumps(response)
+            }
+        )
+
+    async def handle_edit_message(self, data):
+       
+        message_id = data.get('message_id')
+        new_content = data.get('new_content')
+
+        if not message_id or not new_content:
+            return
+
+        success = await self.edit_group_message(message_id, new_content)
+
+        if success:
+            response = {
+                'action': 'edit',
+                'message_id': message_id,
+                'new_content': new_content,
+            }
+
+            await self.channel_layer.group_send(
+                self.chat_room,
+                {
+                    "type": "chat_message",
+                    "text": json.dumps(response)
+                }
+            )
+
+    async def handle_delete_message(self, data):
+        
+        message_id = data.get('message_id')
+
+        if not message_id:
+            return
+
+        success = await self.delete_group_message(message_id)
+
+        if success:
+            response = {
+                'action': 'delete',
+                'message_id': message_id,
+            }
+
+            await self.channel_layer.group_send(
+                self.chat_room,
+                {
+                    "type": "chat_message",
+                    "text": json.dumps(response)
+                }
+            )
+
+    async def chat_message(self, event):
+       
+        await self.send(text_data=event["text"])
+
+    async def disconnect(self, close_code):
+        
+        await self.channel_layer.group_discard(
+            self.chat_room,
+            self.channel_name
+        )
+
+    @database_sync_to_async
+    def get_group_conversation(self, group_id):
+        """Récupère la conversation du groupe et vérifie que l'utilisateur est membre"""
+        try:
+            conversation = GroupChatConversation.objects.get(id=group_id)
+            if self.user in conversation.participants.all():
+                return conversation
+        except GroupChatConversation.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def create_group_message(self, msg):
+        """Création d'un message dans la conversation de groupe"""
+        return MessageGroup.objects.create(
+            conversation=self.conversation,
+            sender=self.user,
+            content=msg
+        )
+
+    @database_sync_to_async
+    def edit_group_message(self, message_id, new_content):
+       
+        try:
+            message = MessageGroup.objects.get(id=message_id, sender=self.user)
+            message.content = new_content
+            message.save()
+            return True
+        except MessageGroup.DoesNotExist:
+            return False
+
+    @database_sync_to_async
+    def delete_group_message(self, message_id):
+        
+        try:
+            message = MessageGroup.objects.get(id=message_id, sender=self.user)
+            message.delete()
+            return True
+        except MessageGroup.DoesNotExist:
+            return False
