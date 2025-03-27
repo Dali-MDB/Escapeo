@@ -15,6 +15,9 @@ import os
 from dotenv import load_dotenv
 
 
+from django.core.management.utils import get_random_secret_key
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,7 +31,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -85,17 +88,15 @@ WSGI_APPLICATION = 'travel_agency.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+load_dotenv()  
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'travel_db',
-        'USER': 'postgres',
-        'PASSWORD':  os.getenv('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
+
 
 
 # Password validation
@@ -167,3 +168,11 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,               # Blacklist old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+
+
+#-------------------paypal---------------------
+PAYPAL_CLIENT_ID =os.getenv('AXqsX6BCB13DlqcXmDniVq2xODCjIUH5ITFlamS0lMV1FsQri0AnHIwlwD0KQAYpMEddTQhWBjvNIWdx') 
+PAYPAL_SECRET = os.getenv('EJW48A52I21tJLXt_vHFR6elQk5lqaFNmDNRPlz281lIh0WJlEIOhtt3jqc1j7tB6pAjU8c8i1WGzsht')
+PAYPAL_ENVIRONMENT = 'sandbox'
+

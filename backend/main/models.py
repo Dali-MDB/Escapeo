@@ -110,12 +110,15 @@ class Admin(models.Model):
     
 
 # -------- Hotel ----------
+
+
+
 class Hotel(models.Model):
     # Basic Info
-    name = models.CharField(max_length=255, unique=True)  # Unique hotel name
+    name = models.CharField(max_length=255)  # Unique hotel name
     country = models.CharField(max_length=50)
     city = models.CharField(max_length=50)
-    
+    created_by = models.ForeignKey(Admin, on_delete=models.CASCADE,related_name='managed_hotels',null=True ,blank=True)  # Trip organizer(s) (necssary for permissions)
     # Contact Info
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
@@ -132,6 +135,7 @@ class Hotel(models.Model):
     # Room & Pricing
     total_rooms = models.PositiveIntegerField(default=0)  # Total number of rooms
     total_occupied_rooms = models.PositiveBigIntegerField(default=0)
+    amenities = models.JSONField(list, blank=True,null=True)    #[........] 
     rooms = models.JSONField(default=dict)  # Room categories & pricing & availability
 
     # Example structure for room_details JSONField:
@@ -142,30 +146,37 @@ class Hotel(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.star_rating}★)"
+    
 
-'''
- # Amenities
-    amenities = models.ManyToManyField('Amenity', blank=True)  # Basic amenities
+    class Meta:
+        verbose_name = "Hotel"
+        verbose_name_plural = "Hotels"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name'],
+                name='unique_hotel_signature'
+            ),
+        ]
 
-class Amenity(models.Model):
-    AMENITY_CHOICES = [
-        ('wifi', 'Free Wi-Fi'),
-        ('pool', 'Swimming Pool'),
-        ('parking', 'Free Parking'),
-        ('gym', 'Gym/Fitness Center'),
-        ('restaurant', 'Restaurant On-Site'),
-        ('spa', 'Spa & Sauna'),
-        ('shuttle', 'Airport Shuttle'),
-        ('conference', 'Conference Room'),
-        ('laundry', 'Laundry Service'),
-    ]
+    def clean(self):
+        if self.total_occupied_rooms > self.total_rooms:
+            raise ValidationError("The number of occupied rooms cannot exceed the total number of rooms.")
 
-    name = models.CharField(max_length=50, choices=AMENITY_CHOICES, unique=True)  # Each amenity must be unique
+        
+    
+    def delete(self, *args, **kwargs):
+        hotel_folder = os.path.join(settings.MEDIA_ROOT, "hotels_images", self.name)
 
-    def __str__(self):
-        return self.name()
+        if os.path.exists(hotel_folder) and os.path.isdir(hotel_folder):
+            shutil.rmtree(hotel_folder)
 
-'''
+        super().delete(*args, **kwargs)
+
+
+
+    
+
+
 
 def upload_tp_hotel_images(instance, filename):
     return f'hotels/{instance.hotel.name}/{filename}'
@@ -174,7 +185,7 @@ class HotelImages(models.Model):
     hotel = models.ForeignKey(Hotel, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to=upload_tp_hotel_images)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
         return f"Image for {self.hotel.name} (uploaded at {self.uploaded_at})"
 
@@ -413,3 +424,57 @@ class MessageBot(models.Model):
 
     def __str__(self):
         return f"Message by {self.sender} in Chatbot Conversation {self.conversation.id}"
+
+
+
+#-------------------------payment --------------------------------
+'''class Payment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="payments")  # Lien avec Trip
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE)  # Acheteur
+    payment_id = models.CharField(max_length=100, unique=True)  # ID PayPal
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Montant payé
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")  # Statut du paiement
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.payment_id} - {self.status}"
+
+
+
+
+
+# models.py
+from django.db import models
+
+
+
+
+
+class Travel1(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return self.name
+
+class Reservation1(models.Model):
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reservations')
+    travel = models.ForeignKey(Travel1, on_delete=models.CASCADE, related_name='reservations')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_status = models.CharField(max_length=20, default='pending')  # Ex: pending, completed, cancelled
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reservation {self.id} by {self.user.username}"   '''
+
+
+
+
+#--------------stripe payment --------------------------------------------------------

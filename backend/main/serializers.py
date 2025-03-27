@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from .models import Customer,Trip,TripImage
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
+from .models import Hotel , HotelImages 
 
 User = get_user_model()
 
@@ -179,3 +180,139 @@ class TripSerializer(serializers.ModelSerializer):
 
         return instance
     
+
+
+
+class HotelImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HotelImages
+        fields = ['id', 'image']
+
+class HotelSerializer(serializers.ModelSerializer):
+    images = HotelImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField( #POST
+        child=serializers.ImageField(), write_only=True, required=False
+    )  
+
+    deleted_images = serializers.ListField(  
+        child=serializers.IntegerField(), write_only=True, required=False
+    )
+    
+    class Meta:
+        model = Hotel
+        fields = ['name', 'country', 'city', 'phone', 'email', 'location', 'star_rating', 'total_rooms',
+         'total_occupied_rooms', 'rooms', 'images', 'created_by'
+         ,'uploaded_images','deleted_images']
+
+    def validate(self, validated_data):
+        name = validated_data.get("name", "").strip()
+        created_by = validated_data.get("created_by")
+        total_rooms = validated_data.get("total_rooms", 0)
+        total_occupied_rooms = validated_data.get("total_occupied_rooms", 0)
+        star_rating = validated_data.get("star_rating", 3)
+        rooms = validated_data.get("rooms", {}) or {}
+
+        # Vérifier si un hôtel avec le même nom et le même admin existe déjà
+        if Hotel.objects.filter(name=name, created_by=created_by).exists():
+            raise ValidationError("ERROR: This administrator already has a hotel with this name.")
+
+    
+        if total_rooms < 0:
+            raise ValidationError("ERROR: Total rooms cannot be negative.")
+
+        if total_occupied_rooms > total_rooms:
+            raise ValidationError("ERROR: The number of occupied rooms cannot exceed the total rooms.")
+
+        if not (1 <= star_rating <= 5):
+            raise ValidationError("ERROR: Star rating must be between 1 and 5.")
+
+        # Vérification des chambres et leurs disponibilités
+        for category, details in rooms.items():
+            if not isinstance(details, dict) or "price" not in details or "availability" not in details:
+                raise ValidationError(f"ERROR: Room category '{category}' must have 'price' and 'availability'.")
+
+            if details["price"] < 0:
+                raise ValidationError(f"ERROR: Room price for '{category}' cannot be negative.")
+
+            if details["availability"] < 0:
+                raise ValidationError(f"ERROR: Room availability for '{category}' cannot be negative.")
+
+        return validated_data
+    
+
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])  # Récupérer les images envoyées
+        created_by = validated_data.get("created_by")
+        name = validated_data.get("name")
+
+        # Vérifier si un hôtel avec le même nom et le même administrateur existe déjà
+        if Hotel.objects.filter(name=name, created_by=created_by).exists():
+            raise serializers.ValidationError(
+                {"error": "Cet administrateur a déjà un hôtel avec ce nom."}
+            )
+
+        # Créer l'hôtel
+        hotel = Hotel.objects.create(**validated_data)
+
+        # Ajouter les images si fournies
+        for image in uploaded_images:
+            HotelImages.objects.create(hotel=hotel, image=image)
+
+        return hotel
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        deleted_images = validated_data.pop('deleted_images', [])
+
+        # Mettre à jour l'instance existante
+        instance = super().update(instance, validated_data)
+
+        # Ajouter de nouvelles images si fournies
+        for image in uploaded_images:
+            TripImage.objects.create(trip=instance, image=image)
+
+        # Supprimer les images spécifiées
+        TripImage.objects.filter(id__in=deleted_images, trip=instance).delete()
+
+        return instance
+
+#----------------payment--------------------
+
+'''from .models import Payment
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
+
+# serializers.py
+from rest_framework import serializers
+from .models import Reservation1, Travel1
+
+class TravelSerializer1(serializers.ModelSerializer):
+    class Meta:
+        model = Travel1
+        fields = ['id', 'name', 'description', 'price']
+
+class ReservationSerializer1(serializers.ModelSerializer):
+    travel = TravelSerializer1(read_only=True)  # Pour afficher les détails du voyage
+    travel_id = serializers.PrimaryKeyRelatedField(queryset=Travel1.objects.all(), write_only=True)  # Pour créer une réservation
+
+    class Meta:
+        model = Reservation1
+        fields = ['id', 'user', 'travel', 'travel_id', 'amount', 'payment_status', 'created_at']
+        read_only_fields = ['user', 'payment_status', 'created_at']  # Ces champs ne sont pas modifiables par l'utilisateur
+
+    def create(self, validated_data):
+        # Associer l'utilisateur connecté à la réservation
+        validated_data['user'] = self.context['request'].user
+        # Associer le montant du voyage à la réservation
+        validated_data['amount'] = validated_data['travel_id'].price
+        # Créer la réservation
+        reservation = Reservation1.objects.create(**validated_data)
+        return reservation    '''
+
+
+#-------------------stripe payment ---------------------------------------
