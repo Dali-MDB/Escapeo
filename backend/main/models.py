@@ -1,3 +1,4 @@
+from datetime import timezone
 import os
 import shutil
 from django.conf import settings
@@ -358,6 +359,7 @@ class MessageDM(models.Model):
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['sent_at']
@@ -370,6 +372,14 @@ class MessageDM(models.Model):
         super().save(*args,**kwargs)
         self.conversation.last_message = self
         self.conversation.save()
+
+    def mark_as_read(self, reader):
+        if not self.is_read and reader == self.receiver:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save()
+        return False
+
 
 class GroupChatConversation(models.Model):
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='chat_group_chat')  # One group chat per trip
@@ -390,6 +400,8 @@ class MessageGroup(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_group_messages_sent')
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
+    read_by = models.ManyToManyField(User, through='GroupMessageReadStatus',
+                                     related_name='read_group_messages')
 
     class Meta:
         verbose_name = "Group Chat Message"
@@ -399,6 +411,14 @@ class MessageGroup(models.Model):
     def __str__(self):
         return f"Message by {self.sender.username} in {self.conversation.trip.title}"
 
+
+class GroupMessageReadStatus(models.Model):
+    message = models.ForeignKey(MessageGroup, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('message', 'user')
 
 class ChatbotConversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatbot_conversations')

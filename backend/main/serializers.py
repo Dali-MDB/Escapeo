@@ -243,3 +243,20 @@ class ConversationDMSerializer(serializers.ModelSerializer):
                  "created_at", "updated_at", 
                  "last_message"]
 
+class MessageGroupSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sent_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = MessageGroup
+        fields = ['id', 'conversation', 'sender', 'sender_username', 'content', 'sent_at']
+        read_only_fields = ['id', 'sender', 'sent_at']
+
+class GroupChatConversationSerializer(serializers.ModelSerializer):
+    participants = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    messages = MessageGroupSerializer(many=True, source='chat_messages', read_only=True)
+
+    class Meta:
+        model = GroupChatConversation
+        fields = ['id', 'trip', 'participants', 'created_at', 'updated_at', 'messages']
+        read_only_fields = ['id', 'created_at', 'updated_at']
