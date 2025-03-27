@@ -96,11 +96,12 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         )
 
 """
+from datetime import timezone
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.timezone import now
 from channels.db import database_sync_to_async
-from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup
+from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup, GroupMessageReadStatus
 
 class PrivateChatConsumer(AsyncWebsocketConsumer):
 
@@ -136,8 +137,71 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_edit_message(data)
             elif action == "delete":
                 await self.handle_delete_message(data)
+            elif action == "typing":
+                await self.handle_typing_indicator(data)
+            elif action == "read":
+                await self.handle_read_receipt(data)
         except json.JSONDecodeError:
             return
+    
+    
+    async def handle_read_receipt(self,data):
+        message_id = data.get('message_id')
+        if not message_id:
+            return
+
+        success = await self.mark_message_as_read(message_id)
+        if success:
+            await self.update_unread_count()
+
+            response = {
+                'action': 'read',
+                'message_id': message_id,
+                'reader_id': self.me.id,
+                'read_at': timezone.now().isoformat()
+            } 
+            await self.channel_layer.group_send(
+                 self.chat_room,
+                {
+                    "type": "chat.read",
+                    "text": json.dumps(response)
+                }
+            )
+
+    @database_sync_to_async
+    def mark_message_as_read(self, message_id):
+        try:
+            message = MessageDM.objects.get(
+                id=message_id,
+                receiver=self.me
+            )
+            return message.mark_as_read(self.me)
+        except MessageDM.DoesNotExist:
+            return False
+
+    @database_sync_to_async
+    def update_unread_count(self):
+        self.conversation.refresh_from_db()
+
+
+
+    async def handle_typing_indicator(self, data):
+        await self.channel_layer.group_send(
+            self.chat_room,
+            {
+                "type":"chat.typing",
+                "username": self.me.username,
+                "is_typing":data.get('is_typing', False)
+            }
+        )
+
+    async def chat_typing(self, event):
+        await self.send(text_data=json.dumps({
+            'action':'typing',
+            'username':event['usrname'],
+            'is_typing':event['is_typing']    
+        
+        }))
 
     async def handle_send_message(self, data):
         """Gère l'envoi d'un nouveau message"""
@@ -289,6 +353,49 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             await self.handle_edit_message(data)
         elif action == "delete":
             await self.handle_delete_message(data)
+        elif action == "read":
+                await self.handle_group_read_receipt(data)
+
+              
+    async def handle_group_read_receipt(self, data):
+        message_id = data.get('message_id')
+        if not message_id:
+            return
+
+        success = await self.mark_group_message_as_read(message_id)
+        if success:
+            response = {
+                'action': 'group_read',
+                'message_id': message_id,
+                'reader_id': self.user.id,
+                'read_at': timezone.now().isoformat()
+            }
+            await self.channel_layer.group_send(
+                self.chat_room,
+                {
+                    "type": "chat.group_read",
+                    "text": json.dumps(response)
+                }
+            )
+
+    @database_sync_to_async
+    def mark_group_message_as_read(self, message_id):
+        try:
+            message = MessageGroup.objects.get(id=message_id)
+            if self.user not in message.read_by.all():
+                GroupMessageReadStatus.objects.create(
+                    message=message,
+                    user=self.user
+                )
+                return True
+        except MessageGroup.DoesNotExist:
+            pass
+        return False
+
+    async def chat_group_read(self, event):
+        """Send group read receipt to all clients"""
+        await self.send(text_data=event["text"])
+
 
     async def handle_send_message(self, data):
       
@@ -375,7 +482,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_group_conversation(self, group_id):
-        """Récupère la conversation du groupe et vérifie que l'utilisateur est membre"""
+       
         try:
             conversation = GroupChatConversation.objects.get(id=group_id)
             if self.user in conversation.participants.all():
@@ -385,7 +492,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def create_group_message(self, msg):
-        """Création d'un message dans la conversation de groupe"""
+        
         return MessageGroup.objects.create(
             conversation=self.conversation,
             sender=self.user,
