@@ -113,7 +113,7 @@ export default function NavBar() {
         <div className="flex justify-center items-center w-1/2 h-full">
           <Link href="/" aria-label="Home" className="w-1/2">
             <Image
-              src={isAuthenticated ? Logo : logpBlack }
+              src={  Logo }
               height={0}
               width={0}
               style={{ width: "", height: "" }}
@@ -126,7 +126,7 @@ export default function NavBar() {
     );
   };
   return (
-    <div className={`w-[90%]   h-24 sticky left-[5%] top-[5%]  ${isAuthenticated ? "bg-[#235784]" : "bg-[rgba(255,250,250,0.3)] text-black"} flex px-10 flex-row z-50 rounded-full justify-between items-center ${isAuthenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
+    <div className={`w-[90%]   h-24 sticky left-[5%] top-[5%]   bg-[#235784] text-white  flex px-10 flex-row z-50 rounded-full justify-between items-center ${isAuthenticated && "shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]"}`}>
       <LeftSection path={path} />
       <CenterSection />
    { isAuthenticated ?  <RightSectionCon clicked={clicked} setClicked={setClicked} /> : <RightSectionUnCon />

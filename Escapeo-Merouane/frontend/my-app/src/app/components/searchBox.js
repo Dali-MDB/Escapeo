@@ -91,7 +91,7 @@ export default function FlightSearch() {
           <div className="flex gap-5 py-3 items-center w-full">
             <input
               className="w-full bg-transparent text-lg outline-none"
-              value={searchData.from}
+              value={searchData.from || ""}
               onChange={(e) => handleInputChange("from", e.target.value)}
               placeholder="City or Airport"
             />
@@ -105,7 +105,7 @@ export default function FlightSearch() {
           <div className="flex gap-5 py-3 items-center w-full">
             <input
               className="w-full bg-transparent text-lg outline-none"
-              value={searchData.to}
+              value={searchData.to || ""}
               onChange={(e) => handleInputChange("to", e.target.value)}
               placeholder="City or Airport"
             />
@@ -120,7 +120,7 @@ export default function FlightSearch() {
             <input
               type="date"
               className="w-full bg-transparent text-lg outline-none"
-              value={searchData.departDate}
+              value={searchData.departDate || ""}
               onChange={(e) => handleInputChange("departDate", e.target.value)}
               min={new Date().toISOString().split('T')[0]} // Prevent past dates
             />
@@ -135,7 +135,7 @@ export default function FlightSearch() {
               <input
                 type="date"
                 className="w-full bg-transparent text-lg outline-none"
-                value={searchData.returnDate}
+                value={searchData.returnDate || ""}
                 onChange={(e) => handleInputChange("returnDate", e.target.value)}
                 min={searchData.departDate || new Date().toISOString().split('T')[0]}
                 disabled={!searchData.departDate}
@@ -151,13 +151,13 @@ export default function FlightSearch() {
             <input
               type="number"
               className="w-full bg-transparent text-lg outline-none"
-              value={searchData.passengers}
+              value={searchData.passengers || "" }
               onChange={(e) => handleInputChange("passengers", Math.max(1, e.target.value))}
               min="1"
             />
             <select
               className="w-full bg-transparent text-lg outline-none"
-              value={searchData.classType}
+              value={searchData.classType || "" }
               onChange={(e) => handleInputChange("classType", e.target.value)}
             >
               <option value="Economy">Economy</option>
