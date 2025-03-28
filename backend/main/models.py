@@ -335,22 +335,69 @@ class DeletionRequest(models.Model):
     
     def __str__(self):
         return f"Deletion Request for {self.user.username} - at {self.request_date} - {self.status}"
+    
+
+#      ---------- TICKET FOR SUPPORT ----------
+class SupportTicket(models.Model):
+    PENDING ='pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    STATUS_CHOICES =[
+        (PENDING,'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED,'Rejected'),
+    ]
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_by = models.ForeignKey(Admin, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-created_at']
+#----------------------------------------------------------------------------------------------------------       
+
 
 class ConversationDM(models.Model):
+
+    TYPES = {
+        ('direct', 'Direct Message'),
+        ('support', 'Support Ticket'),
+    }
+
     staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
     cust = models.ForeignKey(Customer, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # updated with each sent message
+    updated_at = models.DateTimeField(auto_now=True)  
     last_message = models.ForeignKey('MessageDM', on_delete=models.SET_NULL, blank=True, null=True)
+
+    ticket = models.OneToOneField(SupportTicket, null=True, blank=True, on_delete=models.SET_NULL)
+    conversation_type = models.CharField(max_length=10, choices=TYPES, default='direct')
 
     class Meta:
         ordering = ['-updated_at']
         constraints = [
             models.UniqueConstraint(
-                fields=['staff', 'cust'],
-                name='conversation'
+                fields=['staff', 'cust', 'ticket'],
+                name='unique_conversation'
             ),
         ]
+
+    def clean(self):
+        if self.conversation_type == 'support' and not self.ticket:
+            raise ValidationError("Support conversations must"
+            " have an associated ticket")
+        if self.conversation_type == 'direct' and self.staff.department =='customer_support':
+            raise ValidationError(
+                "Direct messages cannot be with customer support staff"
+            )
+
+
+
+
+
 
 class MessageDM(models.Model):
     conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='chat_messages')
@@ -446,3 +493,27 @@ class MessageBot(models.Model):
 
     def __str__(self):
         return f"Message by {self.sender} in Chatbot Conversation {self.conversation.id}"
+    
+
+
+#      ---------- TICKET FOR SUPPORT ----------
+class SupportTicket(models.Model):
+    PENDING ='pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    STATUS_CHOICES =[
+        (PENDING,'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED,'Rejected'),
+    ]
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_by = models.ForeignKey(Admin, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-created_at']
+    

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Admin,Trip,TripImage, MessageDM, ConversationDM, GroupChatConversation, MessageGroup
+from .models import Customer,Admin,Trip,TripImage, MessageDM, ConversationDM, GroupChatConversation, MessageGroup, SupportTicket
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -260,3 +260,11 @@ class GroupChatConversationSerializer(serializers.ModelSerializer):
         model = GroupChatConversation
         fields = ['id', 'trip', 'participants', 'created_at', 'updated_at', 'messages']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
+        read_only_fields = ['status', 'created_at', 'accepted_by']
