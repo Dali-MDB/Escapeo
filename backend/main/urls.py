@@ -25,6 +25,17 @@ urlpatterns = [
     path('my_profile/',view=views.MyProfile.as_view(),name='my-profile'),
 
     path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
+
+
+    path('add_hotel/',view=views.addHotel,name='add-hotel'),
+    path('all_hotels/',view=views.allHotels,name='all-hotels'), 
+    path('hotel_details/<int:pk>',view=views.HotelDetails.as_view(),name='hotel-details'),
+    path('add_hotel_images/<int:id>',view=views.addHotelImages,name='add-hotel-image'),
+    path('delete_hotel_images/<int:id>',view=views.deleteHotelImages,name='delete-hotel-image'),
+
+
+    
+
     
     
 ]

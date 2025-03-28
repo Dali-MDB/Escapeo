@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Admin,Trip,TripImage,DepartureTrip
+from .models import Customer,Admin,Trip,TripImage,DepartureTrip,HotelImages,Hotel
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -143,6 +143,88 @@ class AdminSerializer(serializers.ModelSerializer):
         return instance
     
 
+
+
+
+
+
+#------------------------  Hotels Serialiers ---------------------------------------
+class HotelImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotelImages
+        fields = ['id', 'image']
+
+class HotelSerializer(serializers.ModelSerializer):
+    images = HotelImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(), write_only=True, required=False
+    )  
+    deleted_images = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False
+    )
+    
+    class Meta:
+        model = Hotel
+        fields = ['name', 'location', 'phone', 'email', 'address', 'stars_rating', 'total_rooms',
+                  'total_occupied_rooms', 'rooms', 'images', 'uploaded_images', 'deleted_images']
+
+    def validate(self, validated_data):
+        name = validated_data.get("name", "").strip()
+        total_rooms = validated_data.get("total_rooms", 0)
+        total_occupied_rooms = validated_data.get("total_occupied_rooms", 0)
+        star_rating = validated_data.get("star_rating", 3)
+        rooms = validated_data.get("rooms", {}) or {}
+
+        if total_rooms < 0:
+            raise ValidationError("ERROR: Total rooms cannot be negative.")
+
+        if total_occupied_rooms > total_rooms:
+            raise ValidationError("ERROR: The number of occupied rooms cannot exceed the total rooms.")
+
+        if not (1 <= star_rating <= 5):
+            raise ValidationError("ERROR: Star rating must be between 1 and 5.")
+
+        # Validate room categories
+        for category, details in rooms.items():
+            if not isinstance(details, dict) or "price" not in details or "availability" not in details:
+                raise ValidationError(f"ERROR: Room category '{category}' must have 'price' and 'availability'.")
+
+            if details["price"] < 0:
+                raise ValidationError(f"ERROR: Room price for '{category}' cannot be negative.")
+
+            if details["availability"] < 0:
+                raise ValidationError(f"ERROR: Room availability for '{category}' cannot be negative.")
+
+        return validated_data
+    
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])  
+        hotel = Hotel.objects.create(**validated_data)
+
+        for image in uploaded_images:
+            HotelImages.objects.create(hotel=hotel, image=image)
+
+        return hotel
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        deleted_images = validated_data.pop('deleted_images', [])
+
+        instance = super().update(instance, validated_data)
+        
+        for image in uploaded_images:
+            HotelImages.objects.create(hotel=instance, image=image)
+
+        images_to_delete = HotelImages.objects.filter(id__in=deleted_images, hotel=instance)
+        for image in images_to_delete:
+            image.image.delete()
+            image.delete()
+
+        return instance
+
+
+
+
 class TripImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TripImage
@@ -221,7 +303,14 @@ class TripSerializer(serializers.ModelSerializer):
         for image in uploaded_images:
             TripImage.objects.create(trip=instance, image=image)
 
-        TripImage.objects.filter(id__in=deleted_images, trip=instance).delete()
+
+        to_delete = TripImage.objects.filter(id__in=deleted_images, trip=instance)
+        for image in to_delete:
+            image.image.delete()
+            image.delete()
         return instance
+
+
+
 
 

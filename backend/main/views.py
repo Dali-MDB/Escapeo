@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer
+from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer,HotelSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from django.db.models import Q, F, Min, Max, Subquery, OuterRef, ExpressionWrapper, FloatField, Value
@@ -11,8 +11,8 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Trip,TripImage,DepartureTrip
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission
+from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission,CreateHotelPermission,HotelPermission
 
 
 User = get_user_model()
@@ -123,6 +123,110 @@ def addAdmin(request):
     return Response(admin_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+#------------------------------hotels----------------------------------------------
+
+# ---------------------- Hotels ------------------------------------
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, CreateHotelPermission])
+def addHotel(request):
+    hotel_ser = HotelSerializer(data=request.data)
+    if hotel_ser.is_valid():
+        hotel_ser.save()
+        return Response({'success': 'A new hotel has been added successfully'}, status=status.HTTP_201_CREATED)
+    return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def allHotels(request):
+    hotels = Hotel.objects.all()
+    serializer = HotelSerializer(hotels, many=True)
+    return Response(serializer.data)
+
+
+class HotelDetails(APIView):
+    permission_classes = [HotelPermission]
+
+    def get(self, request, pk):
+        hotel = get_object_or_404(Hotel, id=pk)
+        return Response(HotelSerializer(hotel).data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        hotel = get_object_or_404(Hotel, id=pk)
+        self.check_object_permissions(request, hotel)  # Check permissions
+        hotel_ser = HotelSerializer(hotel, data=request.data, partial=True)
+        if hotel_ser.is_valid():
+            hotel_ser.save()
+            return Response(hotel_ser.data, status=status.HTTP_200_OK)
+        return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        hotel = get_object_or_404(Hotel, id=pk)
+        self.check_object_permissions(request, hotel)  # Check permissions
+        hotel.delete()
+        return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+@api_view(['POST'])
+@permission_classes([HotelPermission])
+def addHotelImages(request, id):
+    hotel = get_object_or_404(Hotel, id=id)
+    permission = HotelPermission()
+    permission.has_object_permission(request, None, hotel)
+
+    if 'uploaded_images' not in request.FILES:
+        return Response({'details': 'No image files provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    images = request.FILES.getlist('uploaded_images')  # Get multiple files
+
+    for image in images:
+        HotelImages.objects.create(hotel=hotel, image=image)
+
+    return Response({'success': 'You have added images successfully'}, status=status.HTTP_201_CREATED)
+
+
+import json
+@api_view(['POST'])
+@permission_classes([HotelPermission])
+def deleteHotelImages(request, id):
+    hotel = get_object_or_404(Hotel, id=id)
+    permission = HotelPermission()
+    permission.has_object_permission(request, None, hotel)
+    
+    image_ids = request.data.get('deleted_images', [])
+
+    if not image_ids:
+        return Response({'success': 'No images selected for deletion'}, status=status.HTTP_200_OK)
+
+    # Handle form-data (string input) & JSON (list input)
+    if isinstance(image_ids, str):  
+        try:
+            image_ids = json.loads(image_ids)  # Convert string to list
+        except json.JSONDecodeError:
+            return Response({'error': 'Invalid image ID format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        image_ids = [int(image_id) for image_id in image_ids]  # Ensure IDs are integers
+    except ValueError:
+        return Response({'error': 'Invalid image ID format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    images_to_delete = HotelImages.objects.filter(id__in=image_ids, hotel=hotel)
+
+    for image in images_to_delete:
+        if image.image:
+            image.image.delete(save=False)  # Deletes the image file from storage
+
+    deleted_count, _ = images_to_delete.delete()
+
+    return Response({'success': f'{deleted_count} images deleted successfully'}, status=status.HTTP_200_OK)
+
+
+
+
+
 #----------------------- Trips -------------------------------
 @api_view(['POST'])
 @permission_classes([CreateTripPermission])
@@ -208,6 +312,17 @@ def deleteTripImages(request, id):
     if not image_ids:
         return Response({'success': 'No images selected for deletion'}, status=status.HTTP_200_OK)
 
+    if isinstance(image_ids, str):  
+        try:
+            image_ids = json.loads(image_ids)  # Convert string to list
+        except json.JSONDecodeError:
+            return Response({'error': 'Invalid image ID format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        image_ids = [int(image_id) for image_id in image_ids]  # Ensure IDs are integers
+    except ValueError:
+        return Response({'error': 'Invalid image ID format'}, status=status.HTTP_400_BAD_REQUEST)
+    
     # Find images related to the trip and the provided IDs
     images_to_delete = TripImage.objects.filter(id__in=image_ids, trip=trip)
 

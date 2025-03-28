@@ -7,5 +7,6 @@ from main.views import path_not_found
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('main.urls')),
-    re_path(r"^(?P<path>.*)$",path_not_found ),  
+    path('chatbot/',include('chatbot.urls')),
+    #re_path(r"^(?P<path>.*)$",path_not_found ),  
 ]+  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

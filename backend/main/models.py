@@ -100,7 +100,7 @@ class Admin(models.Model):
         ('staff', 'Staff'),
         ('tour_guide', 'Tour Guide'),
         ('customer_support', 'Customer Support'),
-        ('marketing', 'Marketing'),
+        ('hotel_manager', 'Hotel Manager'),
     ]
     department = models.CharField(max_length=20, choices=DEPARTMENT_CHOICES)
 
@@ -108,76 +108,73 @@ class Admin(models.Model):
         verbose_name = "Admin"
         verbose_name_plural = "Admins"
 
+    def __str__(self):
+        return f'{self.user.username} - Admin'
+
     
 
-# -------- Hotel ----------
 class Hotel(models.Model):
     # Basic Info
     name = models.CharField(max_length=255, unique=True)  # Unique hotel name
-    country = models.CharField(max_length=50)
-    city = models.CharField(max_length=50)
+    location = models.CharField(max_length=100)  # Combined country and city
     
     # Contact Info
-    phone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
-
-    location = models.CharField(max_length=255)  # Address or general location
-    star_rating = models.PositiveSmallIntegerField(
-        validators=[
-            validators.MinValueValidator(Decimal('1.0')), validators.MaxValueValidator(Decimal('5.0'))
-        ],
+    phone = models.CharField(max_length=20)
+    email = models.EmailField(null=True,blank=True)
+    
+    # Location & Ratings
+    address = models.CharField(max_length=255)  # Address or general location
+    stars_rating = models.PositiveSmallIntegerField(
+        validators=[validators.MinValueValidator(1), validators.MaxValueValidator(5)],
         help_text="Rating from 1 to 5 stars",
         default=3,
-    )  # Star rating (1-5 stars)
+    )
     
     # Room & Pricing
-    total_rooms = models.PositiveIntegerField(default=0)  # Total number of rooms
-    total_occupied_rooms = models.PositiveBigIntegerField(default=0)
-    rooms = models.JSONField(default=dict)  # Room categories & pricing & availability
-
+    total_rooms = models.PositiveIntegerField(default=0)
+    total_occupied_rooms = models.PositiveIntegerField(default=0)
+    amenities = models.JSONField(blank=True, null=True)  # Stores a list of amenities
+    rooms = models.JSONField(default=dict)  # Room categories, pricing, and availability
     # Example structure for room_details JSONField:
     # {
     #     "Single": {"total": 106, "price_per_night": 50,"available:100"},
     #     "Double": {"total": 206, "price_per_night": 80,"available:200"}...
     # }
-
+    
+    class Meta:
+        verbose_name = "Hotel"
+        verbose_name_plural = "Hotels"
+    
+    def clean(self):
+        if self.total_occupied_rooms > self.total_rooms:
+            raise ValidationError({
+                'total_occupied_rooms': "The number of occupied rooms cannot exceed the total number of rooms."
+            })
+    
+    def delete(self, *args, **kwargs):
+        hotel_folder = os.path.join(settings.MEDIA_ROOT, "hotels", self.name)
+        if os.path.exists(hotel_folder) and os.path.isdir(hotel_folder):
+            shutil.rmtree(hotel_folder)
+        super().delete(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.name} ({self.star_rating}★)"
 
-'''
- # Amenities
-    amenities = models.ManyToManyField('Amenity', blank=True)  # Basic amenities
 
-class Amenity(models.Model):
-    AMENITY_CHOICES = [
-        ('wifi', 'Free Wi-Fi'),
-        ('pool', 'Swimming Pool'),
-        ('parking', 'Free Parking'),
-        ('gym', 'Gym/Fitness Center'),
-        ('restaurant', 'Restaurant On-Site'),
-        ('spa', 'Spa & Sauna'),
-        ('shuttle', 'Airport Shuttle'),
-        ('conference', 'Conference Room'),
-        ('laundry', 'Laundry Service'),
-    ]
-
-    name = models.CharField(max_length=50, choices=AMENITY_CHOICES, unique=True)  # Each amenity must be unique
-
-    def __str__(self):
-        return self.name()
-
-'''
-
-def upload_tp_hotel_images(instance, filename):
+def upload_to_hotel_images(instance, filename):
     return f'hotels/{instance.hotel.name}/{filename}'
 
 class HotelImages(models.Model):
     hotel = models.ForeignKey(Hotel, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=upload_tp_hotel_images)
+    image = models.ImageField(upload_to=upload_to_hotel_images)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    
+    
     def __str__(self):
         return f"Image for {self.hotel.name} (uploaded at {self.uploaded_at})"
+    
+    
 
 # -----------Trip-----------
 class Trip(models.Model):

@@ -5,6 +5,51 @@ from rest_framework.exceptions import PermissionDenied
 logger = logging.getLogger(__name__)
 
 
+
+class CreateHotelPermission(BasePermission):
+    """
+    Only authenticated users who are admins and either 'owner' or 'hotel_manager' can create hotels.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            raise PermissionDenied("You must be logged in to create a hotel.")
+
+        if not hasattr(request.user, 'admin'):
+            raise PermissionDenied("Only admins can create hotels.")
+
+        if request.user.admin.department in ['owner', 'hotel_manager']:
+            return True
+
+        raise PermissionDenied("Only owners or hotel managers can create hotels.")
+
+
+class HotelPermission(BasePermission):
+    """
+    Everyone can read hotels, but only owners or any hotel manager can modify/delete them.
+    """
+
+    def has_permission(self, request, view):
+        return True  # All users can view hotels.
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:  # Allow read-only access
+            return True
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("You must be authenticated to modify hotels.")
+
+        if not hasattr(request.user, 'admin'):
+            raise PermissionDenied("Only admins can modify hotels.")
+
+        # Allow modification/deletion if the user is an owner or any hotel manager
+        if request.user.admin.department in ['owner', 'hotel_manager']:
+            return True
+
+        raise PermissionDenied("Only hotel managers or owners can modify this hotel.")
+
+
+
 class CreateTripPermission(BasePermission):
     """
     Custom permission to allow only authenticated staff or owner users to create trips.
