@@ -34,6 +34,8 @@ urlpatterns = [
     path('delete_hotel_images/<int:id>',view=views.deleteHotelImages,name='delete-hotel-image'),
 
 
+
+    path('get_user_info/',view=views.get_user_info,name='get-user-info'),
     
 
     
