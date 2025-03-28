@@ -8,13 +8,13 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessagesDMSeriliazer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer
+from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessagesDMSeriliazer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer, SupportTicketSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConversation, MessageGroup
+from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConversation, MessageGroup, SupportTicket
 
 
 class ListMessages(generics.ListAPIView):
@@ -46,10 +46,7 @@ class ListConversation(generics.ListAPIView):
     
 
 class ListGroupMessages(generics.ListAPIView):
-    """
-    Liste tous les messages d'une conversation de groupe spécifique.
-    Un utilisateur doit être membre du groupe pour voir les messages.
-    """
+    
     serializer_class = MessageGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -64,14 +61,46 @@ class ListGroupMessages(generics.ListAPIView):
 
         return MessageGroup.objects.none()
 
-# ✅ Liste des Conversations de Groupe où un Utilisateur Participe
+
 class ListGroupConversations(generics.ListAPIView):
-    """
-    Liste toutes les conversations de groupe où l'utilisateur est un participant.
-    """
+   
     serializer_class = GroupChatConversationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         return GroupChatConversation.objects.filter(participants=user)
+    
+
+
+class SupportTicketView(generics.ListCreateAPIView):
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if hasattr(self.request.user, 'customer'):
+            return SupportTicket.objects.filter(customer=self.request.user.customer)
+        return SupportTicket.objects.none
+    
+    def perform_create(self, serializer):
+        if hasattr(self.request.user, 'customer'):
+            serializer.save(customer=self.request.user.customer)
+
+
+class AcceptTicketView(generics.UpdateAPIView):
+    queryset = SupportTicket.objects.filter(status='pending')
+    serializer_class = SupportTicketSerializer
+
+    def perform_update(self, serializer):
+         if hasattr(self.request.user, 'admin') and self.request.user.admin.department == 'customer_support':
+            serializer.save(
+                status='accepted',
+                accepted_by=self.request.user.admin
+            )
+           
+            ConversationDM.objects.create(
+                staff=self.request.user.admin,
+                cust=serializer.instance.customer,
+                ticket=serializer.instance,
+                conversation_type='support'
+            )

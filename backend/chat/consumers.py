@@ -1,119 +1,22 @@
-"""
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth import get_user_model
-from channels.db import database_sync_to_async
-from main.models import MessageDM, ConversationDM, Customer, Admin, User
 
-class PrivateChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        
-        self.other_user = self.scope['url_route']['kwargs']['username']
-        self.me = self.scope['user']
-        
-       
-        self.thread_obj = await self.get_thread(self.me, self.other_user)
-        self.chat_room = f"thread_{self.thread_obj.id}"
-
-        
-        await self.channel_layer.group_add(
-            self.chat_room,
-            self.channel_name
-        )
-
-        await self.accept()
-
-    async def receive(self, text_data):
-       
-        data = json.loads(text_data)
-        msg = data.get('message')
-        
-        if not msg:
-            return
-
-        user = self.scope['user']
-        if not user.is_authenticated:
-            return
-
-        
-        await self.create_chat_message(msg)
-
-       
-        my_response = {
-            'message': msg,
-            'username': user.username
-        }
-
-       
-        await self.channel_layer.group_send(
-            self.chat_room,
-            {
-                "type": "chat_message",
-                "text": json.dumps(my_response)
-            }
-        )
-
-    async def chat_message(self, event):
-       
-        await self.send(text_data=event["text"])
-
-    async def disconnect(self, close_code):
-        
-        await self.channel_layer.group_discard(
-            self.chat_room,
-            self.channel_name
-        )
-
-    @database_sync_to_async
-    def get_thread(self, user, other_username):
-        
-        try:
-            other_user = User.objects.get(username=other_username)
-            return ConversationDM.objects.get(
-                staff__user=user if isinstance(user, Admin) else other_user,
-                cust__user=user if isinstance(user, Customer) else other_user
-            )
-        except ConversationDM.DoesNotExist:
-            raise ValueError("Conversation does not exist.")
-
-    @database_sync_to_async
-    def create_chat_message(self, msg):
-       
-        me = self.scope['user']
-        conversation = self.thread_obj
-
-        
-        if me == conversation.staff.user:
-            receiver = conversation.cust.user
-        else:
-            receiver = conversation.staff.user
-
-        return MessageDM.objects.create(
-            conversation=conversation,
-            sender=me,
-            receiver=receiver,
-            content=msg
-        )
-
-"""
 from datetime import timezone
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.timezone import now
 from channels.db import database_sync_to_async
-from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup, GroupMessageReadStatus
+from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup, GroupMessageReadStatus, SupportTicket
 
 class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        self.other_user = self.scope['url_route']['kwargs']['username']
-        self.me = self.scope['user']
+        self.other_user_username = self.scope['url_route']['kwargs']['username']
+        self.user = self.scope['user']
 
-        if not self.me.is_authenticated:
+        if not self.user.is_authenticated:
             await self.close()
             return
         
-        self.conversation = await self.get_conversation(self.me, self.other_user)
+        self.conversation = await self.get_or_create_conversation()
         if not self.conversation:
             await self.close()
             return
@@ -124,6 +27,75 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.chat_room, self.channel_name)
         await self.accept()
+
+
+    
+
+    @database_sync_to_async
+    def get_or_create_conversation(self):
+        try:
+            other_user = User.objects.get(username=self.other_user_username)
+
+            if hasattr(self.user, 'admin'):
+                current_admin = self.user.admin
+                other_customer = other_user.customer
+
+                if current_admin.departement == 'tour_guide':
+
+                    conversation, created = ConversationDM.objects.get_or_create(
+                        staff = current_admin,
+                        cust=other_customer,
+                        conversatio_type='direct'
+                    )
+                    return conversation
+                elif current_admin.department == 'customer_support':
+                    ticket = SupportTicket.objects.filter(
+                        customer = other_customer,
+                        accepted_by=current_admin,
+                        status='accepted'
+                    ).first()
+                    if ticket:
+                        conversation, created = ConversationDM.objects.get_or_create(
+                            staff=current_admin,
+                            cust = other_customer,
+                            ticket=ticket,
+                            conversation_type='support'
+                        )
+                        return conversation
+                elif hasattr(self.user,'customer'):
+                      current_customer = self.user.customer
+                other_admin = other_user.admin
+                
+                if other_admin.department == 'tour_guide':
+                    # Direct message with guide
+                    conversation, created = ConversationDM.objects.get_or_create(
+                        staff=other_admin,
+                        cust=current_customer,
+                        conversation_type='direct'
+                    )
+                    return conversation
+                elif other_admin.department == 'customer_support':
+                    # Support conversation - must have accepted ticket
+                    ticket = SupportTicket.objects.filter(
+                        customer=current_customer,
+                        accepted_by=other_admin,
+                        status='accepted'
+                    ).first()
+                    if ticket:
+                        conversation, created = ConversationDM.objects.get_or_create(
+                            staff=other_admin,
+                            cust=current_customer,
+                            ticket=ticket,
+                            conversation_type='support'
+                        )
+                        return conversation
+        except (User.DoesNotExist, AttributeError):
+            pass
+        return None
+
+
+
+
 
     async def receive(self, text_data):
         
@@ -142,7 +114,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             elif action == "read":
                 await self.handle_read_receipt(data)
         except json.JSONDecodeError:
-            return
+            await self.send_error("Invalid JSON Format")
     
     
     async def handle_read_receipt(self,data):
@@ -204,22 +176,50 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def handle_send_message(self, data):
-        """Gère l'envoi d'un nouveau message"""
+
+        if not self.conversation:
+            return
+        
+        if self.conversation.conversation_type == 'support':
+            ticket_valid = await self.validate_ticket()
+            if not ticket_valid:
+                await self.send_error("This support ticket is no longer active")
+                return
+
+
+        
         msg = data.get('message')
 
         if not msg or not self.me.is_authenticated:
             return
 
-        message = await self.create_chat_message(msg)
+        message_obj = await self.create_chat_message(msg)
 
         response = {
-            'action': 'send',
-            'message': msg,
-            'username': self.me.username,
-            'message_id': message.id,
+            'action': 'message',
+            'id':message_obj.id,
+            'sender':self.user.username,
+            'content': msg,
+            'sent_at': message_obj.sent_at.isoformat(),
+            'conversation_type':self.conversation.conversation_type
         }
 
-        await self.channel_layer.group_send(self.chat_room, {"type": "chat_message", "text": json.dumps(response)})
+        await self.channel_layer.group_send(
+            self.chat_room, 
+            {"type": "chat_message", 
+             "text": json.dumps(response)
+             }
+        )
+
+
+    @database_sync_to_async
+    def validate_ticket(self):
+        if not self.conversation.ticket:
+            return False
+        self.conversation.ticket.refresh_from_db()
+        return self.conversation.ticket.status == 'accepted'    
+    
+
 
     async def handle_edit_message(self, data):
         
@@ -253,7 +253,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(self.chat_room, {"type": "chat_message", "text": json.dumps(response)})
 
     async def chat_message(self, event):
-        """Envoie un message WebSocket à tous les clients"""
+        
         await self.send(text_data=event["text"])
 
     async def disconnect(self, close_code):
@@ -274,12 +274,19 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             return None
 
     @database_sync_to_async
-    def create_chat_message(self, msg):
-        
-        conversation = self.conversation
-        receiver = conversation.cust.user if self.me == conversation.staff.user else conversation.staff.user
+    def create_chat_message(self, content):
+        return MessageDM.objects.create(
+            conversation=self.conversation,
+            sender=self.user,
+            content=content
+        )
 
-        return MessageDM.objects.create(conversation=conversation, sender=self.me, receiver=receiver, content=msg)
+
+    async def send_error(self, message):
+        await self.send(text_data=json.dumps({
+            'error':message
+        }))
+
 
     @database_sync_to_async
     def edit_message(self, message_id, new_content):
