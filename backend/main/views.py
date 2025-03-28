@@ -666,6 +666,30 @@ def recommendedTrips(request):
 
 
 
+
+
+
+
+
+
+
+@api_view(['GET'])
+def get_user_info(request):
+    return Response(
+        {
+            'is_authenticated' : request.user.is_authenticated,
+            'is_admin' : hasattr(request.user,'admin'),
+            'user_id' : request.user.id,
+            'customer_id' : request.user.customer.id if  hasattr(request.userm,'customer') else None,
+            'admin_id' : request.user.admin.id if  hasattr(request.userm,'admin') else None,
+            'department' : request.user.admin.deparment if hasattr(request.user,'admin') else None,
+            'is_customer' : hasattr(request.userm,'customer')
+
+        },
+        status=status.HTTP_200_OK
+    )
+
+
 @api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
 def path_not_found(request, path=None):
     return Response(
