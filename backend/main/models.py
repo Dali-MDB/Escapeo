@@ -203,6 +203,16 @@ class Trip(models.Model):
     transport = models.CharField(max_length=50, choices=TransportTypeChoices.CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
     # activities (to be added later)
+
+
+    purchasers = models.ManyToManyField(
+        Customer,
+        related_name='purchased_trips',
+        blank=True,
+        help_text="Customers who have purchased this trip"
+    )
+
+
     
     country = models.CharField(max_length=50)
     city = models.CharField(max_length=50)
@@ -243,6 +253,20 @@ class Trip(models.Model):
         if self.trip_type == 'group' and not self.guide:  # if it's a group trip there must be a guide
             raise ValidationError("A guide must be assigned for group trips.")
 
+
+
+    
+    def save(self, *args, **kwargs):
+        
+        created = not self.pk
+        super().save(*args, **kwargs)
+        
+       
+        if created and self.trip_type == 'group':
+            GroupChatConversation.objects.get_or_create(trip=self)
+
+
+
     
     def delete(self, *args, **kwargs):
         # Construct folder path based on the first image's path (if exists)
@@ -254,6 +278,30 @@ class Trip(models.Model):
 
         # Call parent delete method
         super().delete(*args, **kwargs)
+
+
+
+    @property
+    def group_chat_exists(self):
+        
+        return hasattr(self, 'group_chat')
+
+    def get_group_chat_participants(self):
+        
+        participants = list(self.purchasers.all().values_list('user', flat=True))
+        if self.guide:
+            participants.append(self.guide.user.id)
+        return User.objects.filter(id__in=participants)
+
+    def user_has_chat_access(self, user):
+       
+        if hasattr(user, 'customer'):
+            return self.purchasers.filter(id=user.customer.id).exists()
+        if hasattr(user, 'admin') and self.guide:
+            return user.admin.id == self.guide.id
+        return False
+
+
 
 
 def upload_to_trip_images(instance, filename):
@@ -438,6 +486,14 @@ class GroupChatConversation(models.Model):
         verbose_name = "Group Chat Conversation"
         verbose_name_plural = "Group Chat Conversations"
         ordering = ['-updated_at']
+
+
+    @property
+    def all_participants(self):
+        participants = list(self.trip.purchasers.all())
+        if self.trip.guide:
+            participants.append(self.trip.guide.user)
+        return participants
 
     def __str__(self):
         return f"Group Chat for {self.trip.title}"
