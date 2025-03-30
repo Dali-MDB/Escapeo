@@ -4,7 +4,9 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.timezone import now
 from channels.db import database_sync_to_async
-from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup, GroupMessageReadStatus, SupportTicket
+from main.models import MessageDM, ConversationDM, User, Admin, Customer, GroupChatConversation, MessageGroup, GroupMessageReadStatus, SupportTicket, Trip
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 class PrivateChatConsumer(AsyncWebsocketConsumer):
 
@@ -40,12 +42,12 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
                 current_admin = self.user.admin
                 other_customer = other_user.customer
 
-                if current_admin.departement == 'tour_guide':
+                if current_admin.department == 'tour_guide':
 
                     conversation, created = ConversationDM.objects.get_or_create(
                         staff = current_admin,
                         cust=other_customer,
-                        conversatio_type='direct'
+                        conversation_type='direct'
                     )
                     return conversation
                 elif current_admin.department == 'customer_support':
@@ -67,7 +69,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
                 other_admin = other_user.admin
                 
                 if other_admin.department == 'tour_guide':
-                    # Direct message with guide
+                    
                     conversation, created = ConversationDM.objects.get_or_create(
                         staff=other_admin,
                         cust=current_customer,
@@ -129,8 +131,8 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             response = {
                 'action': 'read',
                 'message_id': message_id,
-                'reader_id': self.me.id,
-                'read_at': timezone.now().isoformat()
+                'reader_id': self.user.id,
+                'read_at': now().isoformat()
             } 
             await self.channel_layer.group_send(
                  self.chat_room,
@@ -145,9 +147,9 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         try:
             message = MessageDM.objects.get(
                 id=message_id,
-                receiver=self.me
+                receiver=self.user
             )
-            return message.mark_as_read(self.me)
+            return message.mark_as_read(self.user)
         except MessageDM.DoesNotExist:
             return False
 
@@ -162,7 +164,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             self.chat_room,
             {
                 "type":"chat.typing",
-                "username": self.me.username,
+                "username": self.user.username,
                 "is_typing":data.get('is_typing', False)
             }
         )
@@ -170,7 +172,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def chat_typing(self, event):
         await self.send(text_data=json.dumps({
             'action':'typing',
-            'username':event['usrname'],
+            'username':event['username'],
             'is_typing':event['is_typing']    
         
         }))
@@ -190,7 +192,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         
         msg = data.get('message')
 
-        if not msg or not self.me.is_authenticated:
+        if not msg or not self.user.is_authenticated:
             return
 
         message_obj = await self.create_chat_message(msg)
@@ -226,7 +228,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         message_id = data.get('message_id')
         new_content = data.get('new_content')
 
-        if not message_id or not new_content or not self.me.is_authenticated:
+        if not message_id or not new_content or not self.user.is_authenticated:
             return
 
         success = await self.edit_message(message_id, new_content)
@@ -243,7 +245,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         
         message_id = data.get('message_id')
 
-        if not message_id or not self.me.is_authenticated:
+        if not message_id or not self.user.is_authenticated:
             return
 
         success = await self.delete_message(message_id)
@@ -263,7 +265,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_conversation(self, user, other_username):
-        """Récupère une conversation existante entre deux utilisateurs"""
+        
         try:
             other_user = User.objects.get(username=other_username)
             return ConversationDM.objects.filter(
@@ -292,7 +294,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     def edit_message(self, message_id, new_content):
         
         try:
-            message = MessageDM.objects.get(id=message_id, sender=self.me)
+            message = MessageDM.objects.get(id=message_id, sender=self.user)
             message.content = new_content
             message.save()
             return True
@@ -303,7 +305,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     def delete_message(self, message_id):
        
         try:
-            message = MessageDM.objects.get(id=message_id, sender=self.me)
+            message = MessageDM.objects.get(id=message_id, sender=self.user)
             message.delete()
             return True
         except MessageDM.DoesNotExist:
@@ -312,16 +314,19 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def set_user_online(self):
         
-        self.me.is_online = True
-        self.me.save()
+        self.user.is_online = True
+        self.user.save()
 
     @database_sync_to_async
     def set_user_offline(self):
        
-        self.me.is_online = False
-        self.me.last_seen = now()
-        self.me.save()
+        self.user.is_online = False
+        self.user.last_seen = now()
+        self.user.save()
 
+
+
+#---------------------------GROUPCHAT------------------------------
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
 
@@ -334,6 +339,10 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        has_access = await self.validate_user_access()
+        if not has_access:
+            await self.close()
+            return
         
         self.conversation = await self.get_group_conversation(self.group_id)
         if not self.conversation:
@@ -348,6 +357,24 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
+
+    @database_sync_to_async
+    def validate_user_access(self):
+        try:
+            trip = Trip.objects.get(id=self.trip_id)
+
+            if hasattr(self.user, 'admin') and trip.guide:
+                if self.user.admin.id == trip.guide.id:
+                    return True
+
+
+            if hasattr(self.user, 'customer'):
+                return trip.purchasers.filter(id=self.user.customer.id).exists()
+
+        except(Trip.DoesNotExist, AttributeError):
+            pass
+        return False    
+
 
     async def receive(self, text_data):
         
@@ -389,18 +416,24 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     def mark_group_message_as_read(self, message_id):
         try:
             message = MessageGroup.objects.get(id=message_id)
-            if self.user not in message.read_by.all():
-                GroupMessageReadStatus.objects.create(
-                    message=message,
-                    user=self.user
-                )
-                return True
+
+            if self.user not in message.group.participants.all():
+                return
+
+            async_to_sync(self.channel_layer.group_send)(
+            self.group_name,
+            {
+                'type': 'group_message_read',
+                'message_id': message.id,
+                'read_by': list(message.read_by.values_list('id', flat=True)),
+                'read_at': now().isoformat(),
+            })
+           
         except MessageGroup.DoesNotExist:
-            pass
-        return False
+            return 
 
     async def chat_group_read(self, event):
-        """Send group read receipt to all clients"""
+       
         await self.send(text_data=event["text"])
 
 
@@ -412,12 +445,16 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             return
 
         message = await self.create_group_message(msg)
+        is_guide = await self.is_user_guide()
 
         response = {
             'action': 'send',
             'message': msg,
             'username': self.user.username,
             'message_id': message.id,
+            'sender_id':self.user.id,
+            'is_guide':is_guide,
+            'sent_at':message.sent_at.isoformat()
         }
 
         await self.channel_layer.group_send(
@@ -427,6 +464,17 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
                 "text": json.dumps(response)
             }
         )
+
+    
+    @database_sync_to_async
+    def is_user_guide(self):
+        try:
+            if hasattr(self.user, 'admin') and self.conversation.trip.guide:
+                return self.user.admin.id == self.conversation.trip.guide.id
+        except AttributeError:
+            pass
+        return False
+
 
     async def handle_edit_message(self, data):
        
@@ -492,10 +540,21 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
        
         try:
             conversation = GroupChatConversation.objects.get(id=group_id)
-            if self.user in conversation.participants.all():
-                return conversation
+            trip = conversation.trip
+
+            if hasattr(self.user, 'admin') and trip.guide:
+                if self.user.admin.id == trip.guide.id:
+                    return conversation
+            
+            if hasattr(self.user,'customer'):
+                if trip.purchasers.filter(id=self.user.customer.id).exists():
+                    return conversation
+
+
+
         except GroupChatConversation.DoesNotExist:
-            return None
+            pass
+        return None
 
     @database_sync_to_async
     def create_group_message(self, msg):
