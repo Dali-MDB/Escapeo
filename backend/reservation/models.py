@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from main.models import Customer,Trip,Hotel,DepartureTrip
 
@@ -32,10 +31,6 @@ class BaseReservation(models.Model):
         abstract = True
         ordering = ['-created_at']
 
-    def apply_discount(self):
-        if self.discount:
-            self.total_price -= self.total_price * (self.discount / Decimal('100.0'))
-        return self.total_price
 
     def mark_as_paid(self):
         self.payment_status = 'paid'
@@ -84,7 +79,6 @@ class HotelReservation(BaseReservation):
         for room_type, details in self.room_details.items():
             self.total_price += Decimal(details['quantity']) * Decimal(details['price_per_night']) * self.total_nights
         
-        self.apply_discount()
         super().save(*args, **kwargs)
 
     def cancel(self):
@@ -150,7 +144,6 @@ class TripReservation(BaseReservation):
         if self.hotel_reservation:
             self.total_price += self.hotel_reservation.total_price
         
-        self.apply_discount()
         super().save(*args, **kwargs)
 
     def cancel(self, cancel_hotel=True):
