@@ -165,15 +165,15 @@ class HotelSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Hotel
-        fields = ['name', 'location', 'phone', 'email', 'address', 'stars_rating', 'total_rooms',
-                  'total_occupied_rooms', 'rooms', 'images', 'uploaded_images', 'deleted_images']
+        fields = ['id','name', 'location','price_per_night' ,'phone', 'email', 'address', 'stars_rating', 'total_rooms',
+                  'total_occupied_rooms', 'images', 'uploaded_images','amenities' ,'deleted_images']
 
     def validate(self, validated_data):
         name = validated_data.get("name", "").strip()
         total_rooms = validated_data.get("total_rooms", 0)
         total_occupied_rooms = validated_data.get("total_occupied_rooms", 0)
         star_rating = validated_data.get("star_rating", 3)
-        rooms = validated_data.get("rooms", {}) or {}
+    
 
         if total_rooms < 0:
             raise ValidationError("ERROR: Total rooms cannot be negative.")
@@ -185,16 +185,7 @@ class HotelSerializer(serializers.ModelSerializer):
             raise ValidationError("ERROR: Star rating must be between 1 and 5.")
 
         # Validate room categories
-        for category, details in rooms.items():
-            if not isinstance(details, dict) or "price" not in details or "availability" not in details:
-                raise ValidationError(f"ERROR: Room category '{category}' must have 'price' and 'availability'.")
-
-            if details["price"] < 0:
-                raise ValidationError(f"ERROR: Room price for '{category}' cannot be negative.")
-
-            if details["availability"] < 0:
-                raise ValidationError(f"ERROR: Room availability for '{category}' cannot be negative.")
-
+    
         return validated_data
     
     def create(self, validated_data):

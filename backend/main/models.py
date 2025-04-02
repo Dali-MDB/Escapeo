@@ -122,6 +122,7 @@ class Hotel(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(null=True,blank=True)
     
+
     # Location & Ratings
     address = models.CharField(max_length=255)  # Address or general location
     stars_rating = models.PositiveSmallIntegerField(
@@ -133,13 +134,9 @@ class Hotel(models.Model):
     # Room & Pricing
     total_rooms = models.PositiveIntegerField(default=0)
     total_occupied_rooms = models.PositiveIntegerField(default=0)
-    amenities = models.JSONField(blank=True, null=True)  # Stores a list of amenities
-    rooms = models.JSONField(default=dict)  # Room categories, pricing, and availability
-    # Example structure for room_details JSONField:
-    # {
-    #     "Single": {"total": 106, "price_per_night": 50,"available:100"},
-    #     "Double": {"total": 206, "price_per_night": 80,"available:200"}...
-    # }
+    price_per_night = models.DecimalField(max_digits=6,decimal_places=2,default=60.99)
+    amenities = models.CharField(max_length=200,blank=True, null=True)  # Stores a list of amenities
+    
     
     class Meta:
         verbose_name = "Hotel"
@@ -185,7 +182,7 @@ class Trip(models.Model):
         help_text="Number of people this trip can accommodate."
     )
     sold_tickets = models.IntegerField(default=0, db_default=0)
-    # hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
     created_by = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='managed_trips')
     guide = models.ForeignKey(Admin, related_name='guiding', on_delete=models.SET_NULL, null=True, blank=True)  # only for group travels
     trip_type = models.CharField(max_length=50, choices=TripTypeChoices.CHOICES, null=True, blank=True)  # package type

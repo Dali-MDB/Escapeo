@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
+    'drf_spectacular',    #swagger auto documentation
 
     'corsheaders',   #to link the front
 ]
@@ -165,7 +166,8 @@ REST_FRAMEWORK = {
     
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -180,4 +182,11 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,                  # Rotate refresh tokens on refresh
     'BLACKLIST_AFTER_ROTATION': False,               # Blacklist old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+
+SPECTACULAR_SETTINGS = {        #for auto documentation
+    'TITLE': 'Your API',
+    'DESCRIPTION': 'Auto-generated docs',
+    'VERSION': '1.0.0',
 }
