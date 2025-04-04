@@ -8,9 +8,18 @@ import Foryou from "./components/ForYou";
 import Reviews from "./components/reviewsHome";
 import { useAuth } from "./context/AuthContext";
 import NavBar from "./components/NavBar";
+import Template from './template';
 
 export default function Home() {
+{/**
+  // app/page.js (or any other page)
 
+export default function Home() {
+  return (
+    <Template>
+      </Template>
+    );
+  } */}
   
   const { isAuthenticated, setIsAuthenticated } = useAuth();
 

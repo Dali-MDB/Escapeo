@@ -1,10 +1,11 @@
 // components/Layout.js
 import Navbar from './Components/NavBar'; // Assuming you have a Navbar component
 import Sidebar from './Components/SideBar';
-
+import { TripProvider } from './context/tripContext';
 
 export default function Layout({ children }) {
   return (
+    <TripProvider>
     <div style={{ display: 'flex', backgroundColor:'#EEDAC4',color:'black',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
       {/* Navbar at the top */}
       <Navbar />
@@ -28,5 +29,6 @@ export default function Layout({ children }) {
         </div>
       </div>
     </div>
+    </TripProvider>
   );
 }

@@ -29,13 +29,6 @@ export default function History() {
         </div>
       </div>
 
-      <div className="w-full flex flex-col justify-center items-center gap-6 ">
-        {choice === "Flights" ? (
-        flightsData.map((el,index)=><HistoryBox key={index} {...el} />) 
-        ) :(
-            staysData.map((el,index)=><HistoryBox key={index} {...el} />) 
-            ) }
-      </div>
-    </div>
+     </div>
   );
 }

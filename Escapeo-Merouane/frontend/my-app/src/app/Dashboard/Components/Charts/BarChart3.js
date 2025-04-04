@@ -7,11 +7,11 @@ export default function MyBarChart3() {
 
   const generateVisitData = () => {
     return [
-      { URL: "/Flights/",  views: Math.floor(Math.random() * 700 + 20) },
-      { URL: "/Stays",   views: Math.floor(Math.random() * 700 + 20) },
-      { URL: "/Settings",    views: Math.floor(Math.random() * 700 + 20) },
-      { URL: "/Popular",      views: Math.floor(Math.random() * 800 + 80) },
-      ];
+      { URL: "/Flights/", views: Math.floor(Math.random() * 700 + 20) },
+      { URL: "/Stays", views: Math.floor(Math.random() * 700 + 20) },
+      { URL: "/Settings", views: Math.floor(Math.random() * 700 + 20) },
+      { URL: "/Popular", views: Math.floor(Math.random() * 800 + 80) },
+    ];
   };
 
   useEffect(() => {
@@ -74,9 +74,8 @@ export default function MyBarChart3() {
           legendOffset: 10,
           truncateTickAt: 0,
           tickPadding: 15,
-          labelPosition:"center"
+          labelPosition: "center",
         }}
-        
         enableGridY={false}
         labelSkipWidth={12}
         labelSkipHeight={20}
@@ -85,7 +84,17 @@ export default function MyBarChart3() {
           modifiers: [["darker", "0"]],
         }}
         labelPosition="center"
-        legends={[ "Urls", "views" ]}
+        legends={[
+          {
+            dataFrom: "keys",
+            anchor: "bottom-right",
+            direction: "column",
+            translateX: 120,
+            itemWidth: 100,
+            itemHeight: 20,
+            symbolSize: 20,
+          },
+        ]}
         role="application"
         ariaLabel="Nivo bar chart demo"
         barAriaLabel={(e) => `${e.data.URL}: ${e.value} views`}
