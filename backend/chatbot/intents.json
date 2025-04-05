@@ -1,0 +1,172 @@
+{
+    "greetings": {
+        "patterns": ["hello", "hi", "hey", "good morning", "good evening"],
+        "match_threshold": 70,
+        "response": "Welcome to our Travel Agency! How can I assist you today?",
+        "output_context": ["greeting_context"],
+        "follow_ups": {
+            "greeting-help": {
+                "patterns": ["help", "need assistance", "looking for information"],
+                "match_threshold": 75,
+                "response": "Sure! I can help you with destinations, bookings, travel packages, and more. What specifically are you interested in?",
+                "output_context": ["assistance_context"]
+            }
+        }
+    },
+    "destination_inquiry": {
+        "patterns": ["destinations", "where can I go", "travel locations", "vacation spots"],
+        "match_threshold": 70,
+        "response": "We offer amazing destinations worldwide! Are you interested in specific types of travel?",
+        "output_context": ["destination_context"],
+        "follow_ups": {
+            "destination_inquiry-types": {
+                "patterns": ["beach", "mountain", "city", "adventure", "cultural"],
+                "match_threshold": 75,
+                "response": "Great choice! Let me tell you about our top {type} destinations.",
+                "output_context": ["destination_type_context"],
+                "follow_ups": {
+                    "destination_inquiry-types-details": {
+                        "patterns": ["tell me more", "details", "packages"],
+                        "match_threshold": 70,
+                        "response": "We have some fantastic {type} packages. Would you like to hear about specific locations or pricing?",
+                        "output_context": ["destination_details_context"],
+                        "follow_ups": {
+                            "destination-booking": {
+                                "patterns": ["book", "interested", "pricing"],
+                                "match_threshold": 75,
+                                "response": "Wonderful! I'll connect you with our booking specialist to customize your perfect {type} trip.",
+                                "output_context": ["booking_context"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "travel_packages": {
+        "patterns": ["packages", "tour packages", "vacation deals", "all-inclusive"],
+        "match_threshold": 70,
+        "response": "We have a variety of travel packages! Are you looking for international or domestic packages?",
+        "output_context": ["packages_context"],
+        "follow_ups": {
+            "travel_packages-type": {
+                "patterns": ["international", "domestic", "budget", "luxury"],
+                "match_threshold": 75,
+                "response": "Our {type} packages offer unique experiences. What's your preferred duration?",
+                "output_context": ["package_type_context"],
+                "follow_ups": {
+                    "travel_packages-type-duration": {
+                        "patterns": ["weekend", "week", "two weeks", "month"],
+                        "match_threshold": 70,
+                        "response": "Perfect! We have {type} {duration} packages. Would you like to see specific options?",
+                        "output_context": ["package_duration_context"],
+                        "follow_ups": {
+                            "package-details": {
+                                "patterns": ["yes", "show me", "details"],
+                                "match_threshold": 75,
+                                "response": "Great! I'll send you our top {type} {duration} package recommendations.",
+                                "output_context": ["package_details_context"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "booking_inquiry": {
+        "patterns": ["book a trip", "make a reservation", "travel booking","booking"],
+        "match_threshold": 70,
+        "response": "Booking a trip is easy! What would you like to book - flights, hotels, or complete travel packages?",
+        "output_context": ["booking_inquiry_context"],
+        "follow_ups": {
+            "booking_inquiry-type": {
+                "patterns": ["flights", "hotels", "packages", "complete trip"],
+                "match_threshold": 75,
+                "response": "Excellent! For {type} booking, I'll need some additional details. What are your travel dates?",
+                "output_context": ["booking_type_context"],
+                "follow_ups": {
+                    "booking_inquiry-type-dates": {
+                        "patterns": ["next month", "summer", "specific dates"],
+                        "match_threshold": 70,
+                        "response": "Got it! How many travelers will be joining?",
+                        "output_context": ["booking_dates_context"],
+                        "follow_ups": {
+                            "booking-travelers": {
+                                "patterns": ["1", "2", "family", "group"],
+                                "match_threshold": 75,
+                                "response": "Perfect! Let's customize your {type} booking for {travelers}.",
+                                "output_context": ["booking_travelers_context"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "travel_requirements": {
+        "patterns": ["visa", "passport", "travel documents", "requirements"],
+        "match_threshold": 70,
+        "response": "Travel documentation is crucial! Which country are you planning to visit?",
+        "output_context": ["requirements_context"],
+        "follow_ups": {
+            "travel_requirements-country": {
+                "patterns": ["Europe", "Asia", "USA", "Caribbean"],
+                "match_threshold": 75,
+                "response": "For {country}, here are the key travel requirements. Do you need detailed visa information?",
+                "output_context": ["requirements_country_context"],
+                "follow_ups": {
+                    "travel_requirements-country": {
+                        "patterns": ["yes", "details", "more information"],
+                        "match_threshold": 75,
+                        "response": "I'll provide comprehensive visa and entry requirements for {country}.",
+                        "output_context": ["requirements_details_context"]
+                    }
+                }
+            }
+        }
+    },
+    "customer_support": {
+        "patterns": ["help", "support", "problem", "issue"],
+        "match_threshold": 70,
+        "response": "Our support team is ready to help! What kind of assistance do you need?",
+        "output_context": ["support_context"],
+        "follow_ups": {
+            "customer_support-types": {
+                "patterns": ["booking", "cancellation", "refund", "change reservation"],
+                "match_threshold": 75,
+                "response": "I understand you need help with {type}. Can you provide more details?",
+                "output_context": ["support_type_context"],
+                "follow_ups": {
+                    "customer_support-types-details": {
+                        "patterns": ["reservation number", "booking details"],
+                        "match_threshold": 70,
+                        "response": "Thank you for providing details. Our team will assist you promptly.",
+                        "output_context": ["support_details_context"]
+                    }
+                }
+            }
+        }
+    },
+    "pricing_inquiry": {
+        "patterns": ["price", "cost", "budget", "how much"],
+        "match_threshold": 70,
+        "response": "We offer competitive pricing! What type of travel are you interested in?",
+        "output_context": ["pricing_context"],
+        "follow_ups": {
+            "pricing_inquiry-type": {
+                "patterns": ["international", "domestic", "budget", "luxury"],
+                "match_threshold": 75,
+                "response": "Our {type} travel options range from affordable to premium. What's your budget range?",
+                "output_context": ["pricing_type_context"],
+                "follow_ups": {
+                    "pricing_inquiry-type-budget": {
+                        "patterns": ["under 1000", "1000-2000", "2000-5000", "no limit"],
+                        "match_threshold": 70,
+                        "response": "Great! I can help you find {type} options within your {budget} budget.",
+                        "output_context": ["pricing_budget_context"]
+                    }
+                }
+            }
+        }
+    }
+}
