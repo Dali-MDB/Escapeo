@@ -12,6 +12,7 @@ from main.permissions import CustomerPermissions
 from rest_framework.exceptions import ValidationError
 from .serializers import HotelReservationSerializer,TripReservationSerializer
 from main.serializers import HotelSerializer
+from datetime import date
 
 
 
@@ -149,8 +150,9 @@ def trip_reservation_payment_init(request, trip_id):
 
     # Calculate total price to pay (trip + hotel)
     total_price_to_pay = float(result['total_price']) + float(hotel_price)
-    print(total_price_to_pay , '=' , float(result['total_price']), '+' , float(hotel_price))
+    
 
+    
     # Create reservation
     reservation = TripReservation.objects.create(
         user=request.user.customer,
@@ -158,7 +160,8 @@ def trip_reservation_payment_init(request, trip_id):
         trip=trip,
         departure_trip=departure_trip,
         tickets=tickets,
-        hotel_reservation=hotel_reservation if hotel_reservation else None  # Link the hotel reservation
+        hotel_reservation=hotel_reservation if hotel_reservation else None, # Link the hotel reservation
+        date = trip.departure_date,
     )
 
     # Update inventory
@@ -167,6 +170,11 @@ def trip_reservation_payment_init(request, trip_id):
     trip.save()
     departure_trip.save()
 
+    #add the trip to purchased trips list of the user
+    request.user.customer.purchased_trips.add(trip)
+
+
+    #return the reservation
     serializer = TripReservationSerializer(reservation)
     return Response(
         data={
@@ -216,6 +224,116 @@ def simulate_payment_webhook(request, reservation_id):
 
 
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated,CustomerPermissions])
+def cancelHotelReservation(request,reservation_id):
+    customer = request.user.customer
+    reservation = get_object_or_404(HotelReservation, id=reservation_id, user=customer)
+
+
+    if reservation.status == 'cancelled':
+        return Response({
+            'message': 'This reservation has already been cancelled',
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if reservation.status == 'over':
+        return Response({
+            'message': 'This reservation has already been finished',
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if reservation.status == 'pending':
+        reservation.cancel()
+        return Response({
+            'message': 'Pending reservation cancelled. No refund issued.',
+        }, status=status.HTTP_200_OK)
+
+
+
+    customer.balance += reservation.total_price    #total refund on hotels
+    reservation.cancel()
+    return Response(
+        {
+            'message': 'Reservation cancelled successfully.',
+            'hotel_refund' : reservation.total_price,
+        },status=status.HTTP_200_OK
+
+    )
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, CustomerPermissions])
+def cancelTripReservation(request, reservation_id):
+    customer = request.user.customer
+    cancel_hotel = bool(request.data.get('cancel_hotel', True))
+    
+    # Get the reservation and check its status
+    reservation = get_object_or_404(TripReservation, id=reservation_id, user=customer)
+    
+    # Check if the reservation is already cancelled or over
+    if reservation.status == 'cancelled':
+        return Response({
+            'message': 'This reservation has already been cancelled',
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if reservation.status == 'over':
+        return Response({
+            'message': 'This reservation has already been finished',
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # If the status is pending (unpaid), just cancel without refund
+    if reservation.status == 'pending':
+        reservation.cancel(cancel_hotel)
+        return Response({
+            'message': 'Pending reservation cancelled. No refund issued.',
+        }, status=status.HTTP_200_OK)
+
+    today = date.today()
+    departure_date = reservation.date
+    days_left = (departure_date - today).days
+
+   # Calculate refund based on how close to departure date
+    if days_left > 30:
+        refund_percent = 1.0  # Full refund
+    elif 21 <= days_left <= 30:
+        refund_percent = 0.75  # 75% refund
+    elif 14 <= days_left < 21:
+        refund_percent = 0.5  # 50% refund
+    elif 7 <= days_left < 14:
+        refund_percent = 0.25  # 25% refund
+    else:
+        refund_percent = 0.0  # No refund if it's less than 7 days
+
+
+    trip_price = reservation.total_price
+    trip_refund = trip_price * refund_percent
+
+    hotel_refund = 0
+    if cancel_hotel and reservation.hotel_reservation:
+        hotel_refund = reservation.hotel_reservation.total_price
+
+    total_refund = trip_refund + hotel_refund
+
+    # Update the customer's balance
+    customer.balance += total_refund
+    customer.save()
+
+    # Call the cancel method, which will handle status updates and hotel cancellations
+    reservation.cancel(cancel_hotel)
+
+    return Response({
+        'message': 'Reservation cancelled successfully.',
+        'trip_refund': trip_refund,
+        'hotel_refund': hotel_refund,
+        'total_refund': total_refund,
+        'days_before_departure': days_left
+    }, status=status.HTTP_200_OK)
+
+
+    
+    
+    
+
+
 
 from django.db.models import Prefetch
 @api_view(['GET'])
@@ -244,7 +362,8 @@ def view_my_reservations(request):
         result = {
             'pending': [],
             'confirmed': [],
-            'over': []
+            'over': [],
+            'cancelled' : []
         }
         for item in queryset:
             result[item.status].append(item)
@@ -273,6 +392,10 @@ def view_my_reservations(request):
                 response_data['hotel_reservations']['over'],
                 many=True
             ).data,
+            'cancelled': HotelReservationSerializer(
+                response_data['hotel_reservations']['cancelled'],
+                many=True
+            ).data,
         },
         'trip_reservations': {
             'pending': TripReservationSerializer(
@@ -285,6 +408,10 @@ def view_my_reservations(request):
             ).data,
             'over': TripReservationSerializer(
                 response_data['trip_reservations']['over'],
+                many=True
+            ).data,
+            'cancelled': TripReservationSerializer(
+                response_data['trip_reservations']['cancelled'],
                 many=True
             ).data,
         }
@@ -308,3 +435,11 @@ def get_nearby_hotels(request,trip_id):
     hotel_serializer = HotelSerializer(hotels,many=True)
     
     return Response(hotel_serializer.data)
+
+
+
+
+
+
+
+    

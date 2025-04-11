@@ -435,9 +435,17 @@ class MyProfile(APIView):
             return Response(profile_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+import uuid
 @api_view(['GET'])
 def viewProfile(request,id):
+    # UUID4 verification
+    try:
+        uuid.UUID(id, version=4)  # Will raise ValueError if invalid
+    except ValueError:
+        return Response(
+            {"error": "Invalid ID format - must be UUID4"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     user = get_object_or_404(User,id=id)
     if hasattr(user,'admin'):
         profile = user.admin

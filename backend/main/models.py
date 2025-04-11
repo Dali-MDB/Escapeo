@@ -308,6 +308,7 @@ class Notification(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unread')
 
+
     def mark_as_read(self):
         """Marks the notification as read."""
         self.status = 'read'

@@ -10,6 +10,7 @@ class BaseReservation(models.Model):
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('over','Over'),
+        ('cancelled','cancelled'),
     ]
 
 
@@ -17,6 +18,7 @@ class BaseReservation(models.Model):
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -68,7 +70,8 @@ class HotelReservation(BaseReservation):
     def cancel(self):
         self.hotel.total_occupied_rooms -= self.rooms
         self.hotel.save()
-        self.delete()
+        self.status = 'cancelled'
+        self.save()
         return True
 
     def __str__(self):
@@ -86,9 +89,16 @@ class TripReservation(BaseReservation):
         HotelReservation,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL,    #if a trip is cancelled without cancelling its hotel reservation
         related_name='trip_reservation'
     )
+    date = models.DateField()   
+
+
+    @property
+    def get_total_price(self):
+        hotel_price = self.hotel_reservation.total_price if self.hotel_reservation else 0
+        return self.total_price + hotel_price
 
     def clean(self):
         # Validate ticket availability
@@ -117,9 +127,9 @@ class TripReservation(BaseReservation):
         if cancel_hotel and self.hotel_reservation:
             self.hotel_reservation.cancel()
         
-        self.trip.sold_tickets -= self.tickets
-        self.trip.save()
-        self.delete()
+        
+        self.status = 'cancelled'
+        self.save()
         return True
 
     def __str__(self):

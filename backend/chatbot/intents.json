@@ -168,5 +168,100 @@
                 }
             }
         }
+    },
+    "agency_info": {
+        "patterns": ["about your agency", "who are you", "company info", "travel agency details"],
+        "match_threshold": 75,
+        "response": "We're Sunshine Travel, specializing in dream vacations since 2010. We offer expert planning for all travel types. Would you like to know about our team, awards, or service areas?",
+        "output_context": ["agency_context"],
+        "follow_ups": {
+            "agency_info-details": {
+                "patterns": ["team", "agents", "staff"],
+                "match_threshold": 70,
+                "response": "Our team includes 50+ certified travel experts specializing in regions worldwide.",
+                "output_context": ["team_context"]
+            },
+            "agency_info-awards": {
+                "patterns": ["awards", "recognitions", "accreditations"],
+                "match_threshold": 70,
+                "response": "We're proud recipients of the 'Best Travel Agency 2023' award by Travel+Leisure.",
+                "output_context": ["awards_context"]
+            }
+        }
+    },
+    "website_help": {
+        "patterns": ["use the website", "site navigation", "where to find", "how to browse"],
+        "match_threshold": 70,
+        "response": "Our website sections include: Destinations, Special Offers, Travel Guides, and Contact. Which section do you need help with?",
+        "output_context": ["website_context"],
+        "follow_ups": {
+            "website_help-section": {
+                "patterns": ["destinations", "offers", "guides", "contact"],
+                "match_threshold": 75,
+                "response": "To access {section}: 1) Click the menu icon 2) Select '{section}' 3) Use filters to refine results. Need more specific guidance?",
+                "output_context": ["website_section_context"]
+            }
+        }
+    },
+    "booking_steps": {
+        "patterns": ["how to book", "reservation process", "steps to reserve"],
+        "match_threshold": 80,
+        "response": "Our booking process: 1) Search trips 2) Select package 3) Complete traveler details 4) Secure payment. Which step do you need explained?",
+        "output_context": ["booking_steps_context"],
+        "follow_ups": {
+            "booking_steps-details": {
+                "patterns": ["search", "select", "traveler details", "payment"],
+                "match_threshold": 70,
+                "response": "For '{step}': {details}",
+                "output_context": ["step_details_context"],
+                "response_options": {
+                    "search": "Use our destination filters or search bar to find trips matching your preferences",
+                    "select": "Click any package to see full itinerary, prices, and availability calendar",
+                    "traveler details": "Have passport information and special requests ready before starting",
+                    "payment": "We accept all major cards; your reservation is confirmed only after payment"
+                }
+            }
+        }
+    },
+    "travel_docs": {
+        "patterns": ["required documents", "what to bring", "passport needed", "visa requirements"],
+        "match_threshold": 75,
+        "response": "For international travel, you'll typically need: 1) Valid passport 2) Visas (if required) 3) Travel insurance. Specify a country for exact requirements.",
+        "output_context": ["docs_context"],
+        "follow_ups": {
+            "travel_docs-country": {
+                "patterns": ["USA", "Europe", "Thailand", "Brazil"],
+                "match_threshold": 70,
+                "response": "For {country}: {requirements}",
+                "output_context": ["country_docs_context"],
+                "response_options": {
+                    "USA": "ESTA authorization for visa waiver, passport valid for stay duration",
+                    "Europe": "Schengen visa if required, passport with 3+ months validity",
+                    "Thailand": "30-day visa exemption for most passports, proof of onward travel",
+                    "Brazil": "e-Visa for tourism, yellow fever certificate if visiting certain areas"
+                }
+            }
+        }
+    },
+    "contact_support": {
+        "patterns": ["talk to agent", "customer service", "help center", "live support"],
+        "match_threshold": 80,
+        "response": "Our support options: 1) Live chat (Mon-Fri 9AM-6PM) 2) Email response within 24h 3) Phone: +1 (800) 555-TRAVEL. Which method works best?",
+        "output_context": ["support_context"],
+        "follow_ups": {
+            "contact_support-method": {
+                "patterns": ["chat", "email", "phone", "callback"],
+                "match_threshold": 70,
+                "response": "For {method}: {instructions}",
+                "output_context": ["support_method_context"],
+                "response_options": {
+                    "chat": "Click the blue chat icon in the bottom-right of any page",
+                    "email": "Send inquiries to help@sunshinetravel.com with your booking reference",
+                    "phone": "Call +1 (800) 555-TRAVEL (press 1 for bookings, 2 for existing reservations)",
+                    "callback": "Visit our Contact page to request a callback within 2 business hours"
+                }
+            }
+        }
     }
+
 }
