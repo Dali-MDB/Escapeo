@@ -155,7 +155,7 @@ class Hotel(models.Model):
         super().delete(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.name} ({self.star_rating}★)"
+        return f"{self.name} ({self.stars_rating}★)"
 
 
 def upload_to_hotel_images(instance, filename):

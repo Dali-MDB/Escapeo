@@ -330,8 +330,31 @@ def cancelTripReservation(request, reservation_id):
 
 
     
+from .permissions import acceptHotelReservationPermission,acceptTripReservationPermission
+@api_view(['POST'])
+@permission_classes([acceptHotelReservationPermission])
+def confirmHotelReservationManually(request,reservation_id):
+    reservation = get_object_or_404(HotelReservation,id=reservation_id)
+    reservation.status = 'confirmed'
+    reservation.save()
+    return Response({'success':'the hotel reservation has been validated and confirmed'})
+
+
+@api_view(['POST'])
+@permission_classes([acceptTripReservationPermission])
+def confirmTripReservationManually(request,reservation_id):
+    reservation = get_object_or_404(TripReservation,id=reservation_id)
+    permission = acceptTripReservationPermission()
+    permission.has_object_permission(request,None,reservation)
+    reservation.status = 'confirmed'
+    reservation.save()
+    return Response({'success':'the trip reservation has been validated and confirmed'})
     
     
+
+
+
+
 
 
 

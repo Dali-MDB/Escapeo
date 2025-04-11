@@ -14,4 +14,8 @@ urlpatterns = [
 
     path('cancel_hotel_reservation/<int:reservation_id>/',view=views.cancelHotelReservation,name='cancel-hotel-reservation'),
     path('cancel_trip_reservation/<int:reservation_id>/',view=views.cancelTripReservation,name='cancel-trip-reservation'),
+
+
+    path('confirm_hotel_reservation_manually/<int:reservation_id>/',view=views.confirmHotelReservationManually,name='confirm-hotel-reservation-manually'),
+    path('confirm_trip_reservation_manually/<int:reservation_id>/',view=views.confirmTripReservationManually,name='confirm-trip-reservation-manually'),
 ]
