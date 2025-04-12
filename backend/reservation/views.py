@@ -13,6 +13,7 @@ from rest_framework.exceptions import ValidationError
 from .serializers import HotelReservationSerializer,TripReservationSerializer
 from main.serializers import HotelSerializer
 from datetime import date
+from decimal import Decimal
 
 
 
@@ -250,6 +251,7 @@ def cancelHotelReservation(request,reservation_id):
 
 
     customer.balance += reservation.total_price    #total refund on hotels
+    customer.save()
     reservation.cancel()
     return Response(
         {
@@ -305,20 +307,21 @@ def cancelTripReservation(request, reservation_id):
 
 
     trip_price = reservation.total_price
-    trip_refund = trip_price * refund_percent
+    trip_refund = float(trip_price) * float(refund_percent)
 
     hotel_refund = 0
     if cancel_hotel and reservation.hotel_reservation:
         hotel_refund = reservation.hotel_reservation.total_price
 
-    total_refund = trip_refund + hotel_refund
+    total_refund = trip_refund + float(hotel_refund)
 
     # Update the customer's balance
-    customer.balance += total_refund
+    customer.balance += Decimal(total_refund)
     customer.save()
 
     # Call the cancel method, which will handle status updates and hotel cancellations
     reservation.cancel(cancel_hotel)
+    
 
     return Response({
         'message': 'Reservation cancelled successfully.',
