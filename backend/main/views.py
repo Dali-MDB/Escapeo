@@ -461,6 +461,45 @@ def viewProfile(request,id):
 
 
 
+
+#------------- Favorite trips ---------------------------------
+
+@api_view(['POST'])
+@permission_classes([CustomerPermissions])
+def add_to_favorites(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    customer.favorite_trips.add(trip)
+    return Response({'message': 'Trip added to favorites.'}, status=200)
+
+
+@api_view(['DELETE'])
+@permission_classes([CustomerPermissions])
+def remove_from_favorites(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    customer.favorite_trips.remove(trip)
+    return Response({'message': 'Trip removed from favorites.'}, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([CustomerPermissions])
+def list_favorite_trips(request):
+    customer = request.user.customer
+    favorite_trips = customer.favorite_trips.all()
+    serializer = TripSerializer(favorite_trips, many=True)
+    return Response(serializer.data, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([CustomerPermissions])
+def is_favorite(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    is_fav = customer.favorite_trips.filter(id=trip.id).exists()
+    return Response({'is_favorite': is_fav}, status=200)
+
+
 #------------- filtering system -----------------------------
 @api_view(['GET'])
 def TripsFiltering(request):

@@ -468,4 +468,9 @@ def get_nearby_hotels(request,trip_id):
 
 
 
+
+
+
+
+
     
