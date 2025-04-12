@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages
 from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission,CreateHotelPermission,HotelPermission
-
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -225,6 +225,57 @@ def deleteHotelImages(request, id):
 
 
 
+
+
+
+@api_view(['GET'])
+def search_hotels(request):
+    location = request.GET.get('location', '')
+    min_stars = request.GET.get('min_stars')
+    max_stars = request.GET.get('max_stars')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort')  # 'price' or 'stars'
+    ascending = request.GET.get('ascending', 'true').lower() == 'true'
+
+    filters = Q()
+
+    if location:
+        filters &= Q(location__icontains=location)
+
+    if min_stars:
+        filters &= Q(stars_rating__gte=int(min_stars))
+    if max_stars:
+        filters &= Q(stars_rating__lte=int(max_stars))
+    
+    if min_price:
+        filters &= Q(price_per_night__gte=Decimal(min_price)) 
+    if max_price:
+        filters &= Q(price_per_night__lte=Decimal(max_price))  
+
+    hotels = Hotel.objects.filter(filters)
+    # Sorting
+    if sort == 'recommended':
+        hotels = list(hotels)
+        # Normalize values and calculate recommendation score
+        max_price = max((h.price_per_night for h in hotels), default=1)
+        max_stars = 5  # Since stars are always between 1–5
+
+        for hotel in hotels:
+            price_score = float(hotel.price_per_night) / float(max_price)
+            star_score = hotel.stars_rating / max_stars
+            hotel.recommendation_score = 0.7 * (1 - price_score) + 0.3 * star_score  # Lower price is better
+
+        hotels.sort(key=lambda h: h.recommendation_score, reverse=not ascending)
+
+    if sort in ['price', 'stars_rating']:
+        sort_field = 'price_per_night' if sort == 'price' else 'stars_rating'
+        if not ascending:
+            sort_field = f'-{sort_field}'
+        hotels = hotels.order_by(sort_field)
+
+    serializer = HotelSerializer(hotels, many=True)
+    return Response(serializer.data)
 
 
 #----------------------- Trips -------------------------------

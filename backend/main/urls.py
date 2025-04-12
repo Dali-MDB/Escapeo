@@ -32,17 +32,18 @@ urlpatterns = [
     path('hotel_details/<int:pk>',view=views.HotelDetails.as_view(),name='hotel-details'),
     path('add_hotel_images/<int:id>',view=views.addHotelImages,name='add-hotel-image'),
     path('delete_hotel_images/<int:id>',view=views.deleteHotelImages,name='delete-hotel-image'),
+    path('hotels/search/', view=views.search_hotels, name='search_hotels'),
 
 
     path('favorites/', view=views.list_favorite_trips, name='list_favorites'),
     path('favorites/add/<int:trip_id>/', view=views.add_to_favorites, name='add_favorite'),
     path('favorites/remove/<int:trip_id>/', view=views.remove_from_favorites, name='remove_favorite'),
     path('favorites/check/<int:trip_id>/', view=views.is_favorite, name='check_favorite'),
-    
+
 
     path('get_user_info/',view=views.get_user_info,name='get-user-info'),
     
 
-    
+
     
 ]
