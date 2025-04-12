@@ -120,12 +120,7 @@ export const fetchFlights = async (searchParams) => {
     return response;
   } catch (error) {
     console.error("Flight search error:", error);
-    return {
-      error: error.message,
-      results: [],
-      status: "error",
-    };
-  }
+   }
 };
 
 export async function login(email, password) {

@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 from . import views
-
+from .views import MessageAPIView
 urlpatterns = [
     path('home/',view=views.home,name='home'),
 
@@ -26,7 +26,8 @@ urlpatterns = [
 
     path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
 
-    path('get_user_info/',view=views.get_user_info,name='get-user-info')
+    path('get_user_info/',view=views.get_user_info,name='get-user-info'),
+    path('messages/',view=MessageAPIView.as_view(),name='messages'),
     
 
     

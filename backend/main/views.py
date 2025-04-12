@@ -702,8 +702,15 @@ def path_not_found(request, path=None):
 
 
 
+from .pusher import pusher_client
 
 
-
+class MessageAPIView(APIView):
+    def post(self, request):
+        pusher_client.trigger('chat', 'message', {
+            'username': request.data.get('username'),
+            'message': request.data.get('message')
+        })
+        return Response([])
 
 

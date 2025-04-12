@@ -119,7 +119,7 @@ export default function Login() {
       <div className="w-full text-center">
         <p>
           Don't have an account?
-          <Link href="/Sign_up" className="text-[#ED881F] px-2">
+          <Link href="/Sign/Sign_up" className="text-[#ED881F] px-2">
             Sign up
           </Link>
         </p>
