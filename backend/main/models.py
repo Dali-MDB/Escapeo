@@ -144,6 +144,26 @@ class Hotel(models.Model):
     #     "Double": {"total": 206, "price_per_night": 80,"available:200"}...
     # }
 
+    def reserve_rooms(self, room_data):
+        for room_type, details in room_data.items():
+            if room_type in self.rooms:
+                self.rooms[room_type]['available']-= details['quantity']
+                self.total_occupied_rooms += details['quantity']
+                self.save()
+    
+    def free_rooms(self, room_data):
+        for room_type, details in room_data.items():
+            if room_type in self.rooms :
+                self.rooms[room_type]['available']+=details['quantity']
+                self.total_occupied_rooms -= details['quantity']
+                self.save()
+
+
+
+
+
+
+
     def __str__(self):
         return f"{self.name} ({self.star_rating}★)"
 
@@ -211,6 +231,16 @@ class Trip(models.Model):
         blank=True,
         help_text="Customers who have purchased this trip"
     )
+
+    #trip status for automation
+
+    STATUS_CHOICES =[
+        ('coming','Coming Soon'),
+        ('ongoing','Ongoing'),
+        ('done','Completed'),
+    ]
+
+
 
 
     
@@ -333,7 +363,25 @@ class Reservation(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+    STATUS_CHOICES=[
+        ('Pending','Pending'),
+        ('Confirmed','Confirmed'),
+        ('Completed','Completed'),
+        ('Canceled','Canceled')
+    ]
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='Pending'
+    )
+    is_paid = models.BooleanField(default=False)
     
+
+    @property
+    def check_out_time(self):
+        return self.trip.return_date
 
     def __str__(self):
         return f"Reservation by {self.user.user.username} at {self.hotel.name} ({self.status})"
