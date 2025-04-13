@@ -188,3 +188,21 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC' 
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'update-trip-statuses': {
+        'task': 'your_app.tasks.update_trip_statuses',
+        'schedule': crontab(minute='*/15'),  # Every 15 minutes
+    },
+    'expire-unpaid-reservations': {
+        'task': 'your_app.tasks.expire_unpaid_reservations',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'free-occupied-rooms': {
+        'task': 'your_app.tasks.free_occupied_rooms',
+        'schedule': crontab(hour='*/1'),  # Every hour
+    },
+}
