@@ -835,7 +835,37 @@ def recommendedTrips(request):
 
 
 
+#-------------- notifications -----------------------
+from .serializers import NotificationSerializer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_notifications(request):
+    notifications = request.user.notifications.all().order_by('-timestamp')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
 
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_notification_as_read(request, pk):
+    notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+    notification.mark_as_read()
+    return Response({'success': 'Notification marked as read'})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_notification(request, pk):
+    notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+    notification.delete()
+    return Response({'success': 'Notification deleted'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_unread_notification_count(request):
+    count = request.user.notifications.filter(status='unread').count()
+    return Response({'unread_count': count})
 
 
 
