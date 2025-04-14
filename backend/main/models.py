@@ -70,7 +70,7 @@ class Customer(models.Model):
         verbose_name_plural = "Customers"
 
     def __str__(self):
-        return f"{self.user.username} - Customer"
+        return f"{self.user} -Customer"
 
 
 
@@ -109,7 +109,7 @@ class Admin(models.Model):
         verbose_name_plural = "Admins"
 
     def __str__(self):
-        return f'{self.user.username} - Admin'
+        return f'{self.user} -Admin'
 
     
 
@@ -289,24 +289,26 @@ class Notification(models.Model):
     ]
     
     TYPE_CHOICES = [
-        ('reservation_confirmed', 'Reservation Confirmed'),
-        ('reservation_rejected', 'Reservation Rejected'),
-        ('reservation_canceled', 'Reservation Canceled'),
-        ('payment_received', 'Payment Received'),
-        ('payment_failed', 'Payment Failed'),
-        ('trip_reminder', 'Trip Reminder'),
-        ('trip_canceled', 'Trip Canceled'),
-        ('trip_rescheduled', 'Trip Rescheduled'),
-        ('security_alert', 'Security Alert'),
-        ('promo_offer', 'Promo Offer'),
-        ('subscription-expired', 'subscription-expired'),
+        ('Reservation' , 'Reservation'),
+        ('Payment' , 'Payment'),
+        ('Trip' , 'Trip'),
+        ('Security' , 'Security'),
+        ('Hotel','Hotel'),
     ]
 
+    PRIORITY_CHOICES = [
+        ('urgent','urgent'),
+        ('high','High'),
+        ('medium','Medium'),
+        ('low','Low'),
+    ]
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    title = models.CharField(max_length=50)
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unread')
+    priority = models.CharField(max_length=6,choices=PRIORITY_CHOICES,default='medium')
 
 
     def mark_as_read(self):
@@ -381,29 +383,3 @@ class MessageGroup(models.Model):
     def __str__(self):
         return f"Message by {self.sender.username} in {self.conversation.trip.title}"
 
-class ChatbotConversation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatbot_conversations')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
-
-    class Meta:
-        verbose_name = "Chatbot Conversation"
-        verbose_name_plural = "Chatbot Conversations"
-        ordering = ['-updated_at']
-
-    def __str__(self):
-        return f"Chatbot Conversation with {self.user.username}"
-
-class MessageBot(models.Model):
-    conversation = models.ForeignKey(ChatbotConversation, on_delete=models.CASCADE, related_name='messages')
-    sender = models.CharField(max_length=10, choices=[('user', 'User'), ('bot', 'Bot')])  # Track who sent the message
-    content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Chatbot Message"
-        verbose_name_plural = "Chatbot Messages"
-        ordering = ['sent_at']
-
-    def __str__(self):
-        return f"Message by {self.sender} in Chatbot Conversation {self.conversation.id}"

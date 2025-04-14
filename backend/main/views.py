@@ -11,9 +11,12 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages
+from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages,Notification,Admin,Customer
 from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission,CreateHotelPermission,HotelPermission
 from decimal import Decimal
+
+
+
 
 User = get_user_model()
 
@@ -31,6 +34,13 @@ def register(request):
     if user_ser.is_valid():
         customer = user_ser.save()
         refresh = RefreshToken.for_user(customer.user)
+
+        Notification.objects.create(
+            recipient=request.user,
+            type='Security',
+            title='Welcome to Our Travel Platform!',
+            message='Your account has been successfully created. We are excited to have you onboard!',
+        )
 
         context = {
             'details' : user_ser.data,
@@ -115,6 +125,14 @@ def addAdmin(request):
         admin.user.is_admin = True
         admin.user.save()
 
+
+        Notification.objects.create(
+            recipient=admin.user,  # assuming new_admin is the Admin instance just created
+            type='Security',
+            title='Admin Account Created',
+            message='Your admin account has been created by the system administrator. You can now log in and manage the platform.',
+        )
+
         context = {
             'success' : 'a new admin has been added successfully',
             'details' : admin_ser.data
@@ -133,8 +151,23 @@ def addAdmin(request):
 def addHotel(request):
     hotel_ser = HotelSerializer(data=request.data)
     if hotel_ser.is_valid():
-        hotel_ser.save()
-        return Response({'success': 'A new hotel has been added successfully'}, status=status.HTTP_201_CREATED)
+        hotel = hotel_ser.save()
+
+        notified_admins = Admin.objects.filter(department__in=['owner', 'hotel_manager'])
+
+        # Create notifications for each admin (either owner or hotel_manager)
+        for admin in notified_admins:
+            Notification.objects.create(
+                recipient=admin.user,
+                type='Hotel',
+                title='New Hotel Added',
+                message=f'A new hotel named "{hotel.name}" has been added by {request.user.admin}.',
+            )
+
+        return Response({
+            'success': 'A new hotel has been added successfully',
+            'hotel' : hotel_ser.data,
+            }, status=status.HTTP_201_CREATED)
     return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -155,15 +188,50 @@ class HotelDetails(APIView):
     def put(self, request, pk):
         hotel = get_object_or_404(Hotel, id=pk)
         self.check_object_permissions(request, hotel)  # Check permissions
+        
+        # Get all old data dynamically
+        old_data = {
+            field.name: getattr(hotel, field.name)
+            for field in hotel._meta.get_fields()
+            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
+        }
+
+
         hotel_ser = HotelSerializer(hotel, data=request.data, partial=True)
         if hotel_ser.is_valid():
             hotel_ser.save()
+
+            notified_admins = Admin.objects.filter(department__in=['owner', 'hotel_manager'])
+
+            # Compare changes
+            new_data = hotel_ser.data
+            changes = []
+
+            for field, old_value in old_data.items():
+                new_value = new_data.get(field)
+                if str(old_value) != str(new_value):
+                    print(old_value,'xxxxxxxx',new_value)
+                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
+
+            if changes:
+                changes = "\n".join(changes)
+
+                # Create notifications for each admin
+                for admin in notified_admins:
+                    Notification.objects.create(
+                        recipient=admin.user,  # The admin to receive the notification
+                        type='Hotel',  # Notification type
+                        title='Hotel Updated',  # Title of the notification
+                        message=f'The hotel "{hotel.name}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
+                    )
+
             return Response(hotel_ser.data, status=status.HTTP_200_OK)
         return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         hotel = get_object_or_404(Hotel, id=pk)
         self.check_object_permissions(request, hotel)  # Check permissions
+        #return Response(HotelReservationSerializer(active_reservations,many=True).data)
         hotel.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
 
