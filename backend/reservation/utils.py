@@ -14,7 +14,7 @@ def calculate_trip_price(trip, departure_trip, tickets, customer):
     trip_discount = trip.discount if trip.discount else 0
     final_discount = trip_discount + loyalty_discount
     total_price = tickets * departure_trip.price * (100 - final_discount) / 100
-    total_price -= max(customer.balance,0)
+    total_price = max(total_price - customer.balance,0)
 
     return {
         'total_price': round(float(total_price), 2),

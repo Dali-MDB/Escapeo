@@ -92,7 +92,7 @@ class TripReservation(BaseReservation):
         on_delete=models.SET_NULL,    #if a trip is cancelled without cancelling its hotel reservation
         related_name='trip_reservation'
     )
-    date = models.DateField()   
+    date = models.DateTimeField()   
 
 
     @property

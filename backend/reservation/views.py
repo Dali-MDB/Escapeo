@@ -122,7 +122,8 @@ def getTripReservationPrice(request, trip_id):
 def trip_reservation_payment_init(request, trip_id):
     # Get basic data
     trip = get_object_or_404(Trip, id=trip_id)
-    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.data.get('departure_trip_id'))
+    print(request.data.get('departure_trip_id'))
+    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get('departure_trip_id'))
     tickets = int(request.data.get('tickets', 1))
     submitted_price = float(request.data.get('total_price'))
     
