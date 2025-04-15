@@ -326,12 +326,21 @@ class DeletionRequest(models.Model):
     def __str__(self):
         return f"Deletion Request for {self.user.username} - at {self.request_date} - {self.status}"
 
+
+class ConversationDMManager(models.Manager):
+    def get_or_create_participants(self, user1, user2):
+        staff, cust = (user1, user2) if isinstance(user1, Admin) else (user2, user1)
+        return self.get_or_create(staff=staff, cust=cust)
+
+
 class ConversationDM(models.Model):
     staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
     cust = models.ForeignKey(Customer, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # updated with each sent message
+    updated_at = models.DateTimeField(auto_now=True)
     last_message = models.ForeignKey('MessageDM', on_delete=models.SET_NULL, blank=True, null=True)
+
+    objects = ConversationDMManager()  # Attach custom manager here
 
     class Meta:
         ordering = ['-updated_at']
@@ -341,6 +350,7 @@ class ConversationDM(models.Model):
                 name='conversation'
             ),
         ]
+
 
 class MessageDM(models.Model):
     conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='messages')
@@ -407,3 +417,4 @@ class MessageBot(models.Model):
 
     def __str__(self):
         return f"Message by {self.sender} in Chatbot Conversation {self.conversation.id}"
+    

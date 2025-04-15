@@ -23,7 +23,7 @@ export default function LoginLayout({ children }) {
 
   return (
     <FormProvider> {/* Wrap the layout with FormProvider */}
-      <div className="w-screen h-screen text-black bg-[#EEDAC4] flex justify-center items-center gap-10">
+      <div className="h-screen w-screen text-black bg-[#EEDAC4] flex justify-center items-center gap-10">
         <div className="w-3/6 h-[80%] flex flex-col gap-10 justify-center items-center">
           {children} {/* This will now have access to the FormContext */}
         </div>

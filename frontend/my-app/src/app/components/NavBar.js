@@ -61,7 +61,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
                 ? `${response.profile.city}, ${response.profile.country}`
                 : null,
             date_of_birth: response.profile.birthdate,
-            profile_picture: response.profile.profile_picture,
+            profile_picture: '/JohnDoe.jpg',
           };
           setProfileData(transformedData);
         } else {

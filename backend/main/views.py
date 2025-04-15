@@ -11,8 +11,11 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission
+from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages,Notification,Admin,Customer
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission,CreateHotelPermission,HotelPermission
+from decimal import Decimal
+
+
 
 
 User = get_user_model()
@@ -31,6 +34,13 @@ def register(request):
     if user_ser.is_valid():
         customer = user_ser.save()
         refresh = RefreshToken.for_user(customer.user)
+
+        Notification.objects.create(
+            recipient=request.user,
+            type='Security',
+            title='Welcome to Our Travel Platform!',
+            message='Your account has been successfully created. We are excited to have you onboard!',
+        )
 
         context = {
             'details' : user_ser.data,
@@ -115,6 +125,14 @@ def addAdmin(request):
         admin.user.is_admin = True
         admin.user.save()
 
+
+        Notification.objects.create(
+            recipient=admin.user,  # assuming new_admin is the Admin instance just created
+            type='Security',
+            title='Admin Account Created',
+            message='Your admin account has been created by the system administrator. You can now log in and manage the platform.',
+        )
+
         context = {
             'success' : 'a new admin has been added successfully',
             'details' : admin_ser.data
@@ -127,14 +145,29 @@ def addAdmin(request):
 #------------------------------hotels----------------------------------------------
 
 # ---------------------- Hotels ------------------------------------
-"""
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, CreateHotelPermission])
 def addHotel(request):
     hotel_ser = HotelSerializer(data=request.data)
     if hotel_ser.is_valid():
-        hotel_ser.save()
-        return Response({'success': 'A new hotel has been added successfully'}, status=status.HTTP_201_CREATED)
+        hotel = hotel_ser.save()
+
+        notified_admins = Admin.objects.filter(department__in=['owner', 'hotel_manager'])
+
+        # Create notifications for each admin (either owner or hotel_manager)
+        for admin in notified_admins:
+            Notification.objects.create(
+                recipient=admin.user,
+                type='Hotel',
+                title='New Hotel Added',
+                message=f'A new hotel named "{hotel.name}" has been added by {request.user.admin}.',
+            )
+
+        return Response({
+            'success': 'A new hotel has been added successfully',
+            'hotel' : hotel_ser.data,
+            }, status=status.HTTP_201_CREATED)
     return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -155,15 +188,50 @@ class HotelDetails(APIView):
     def put(self, request, pk):
         hotel = get_object_or_404(Hotel, id=pk)
         self.check_object_permissions(request, hotel)  # Check permissions
+        
+        # Get all old data dynamically
+        old_data = {
+            field.name: getattr(hotel, field.name)
+            for field in hotel._meta.get_fields()
+            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
+        }
+
+
         hotel_ser = HotelSerializer(hotel, data=request.data, partial=True)
         if hotel_ser.is_valid():
             hotel_ser.save()
+
+            notified_admins = Admin.objects.filter(department__in=['owner', 'hotel_manager'])
+
+            # Compare changes
+            new_data = hotel_ser.data
+            changes = []
+
+            for field, old_value in old_data.items():
+                new_value = new_data.get(field)
+                if str(old_value) != str(new_value):
+                    print(old_value,'xxxxxxxx',new_value)
+                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
+
+            if changes:
+                changes = "\n".join(changes)
+
+                # Create notifications for each admin
+                for admin in notified_admins:
+                    Notification.objects.create(
+                        recipient=admin.user,  # The admin to receive the notification
+                        type='Hotel',  # Notification type
+                        title='Hotel Updated',  # Title of the notification
+                        message=f'The hotel "{hotel.name}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
+                    )
+
             return Response(hotel_ser.data, status=status.HTTP_200_OK)
         return Response(hotel_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         hotel = get_object_or_404(Hotel, id=pk)
         self.check_object_permissions(request, hotel)  # Check permissions
+        #return Response(HotelReservationSerializer(active_reservations,many=True).data)
         hotel.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -226,7 +294,58 @@ def deleteHotelImages(request, id):
 
 
 
-"""
+
+
+@api_view(['GET'])
+def search_hotels(request):
+    location = request.GET.get('location', '')
+    min_stars = request.GET.get('min_stars')
+    max_stars = request.GET.get('max_stars')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort')  # 'price' or 'stars'
+    ascending = request.GET.get('ascending', 'true').lower() == 'true'
+
+    filters = Q()
+
+    if location:
+        filters &= Q(location__icontains=location)
+
+    if min_stars:
+        filters &= Q(stars_rating__gte=int(min_stars))
+    if max_stars:
+        filters &= Q(stars_rating__lte=int(max_stars))
+    
+    if min_price:
+        filters &= Q(price_per_night__gte=Decimal(min_price)) 
+    if max_price:
+        filters &= Q(price_per_night__lte=Decimal(max_price))  
+
+    hotels = Hotel.objects.filter(filters)
+    # Sorting
+    if sort == 'recommended':
+        hotels = list(hotels)
+        # Normalize values and calculate recommendation score
+        max_price = max((h.price_per_night for h in hotels), default=1)
+        max_stars = 5  # Since stars are always between 1–5
+
+        for hotel in hotels:
+            price_score = float(hotel.price_per_night) / float(max_price)
+            star_score = hotel.stars_rating / max_stars
+            hotel.recommendation_score = 0.7 * (1 - price_score) + 0.3 * star_score  # Lower price is better
+
+        hotels.sort(key=lambda h: h.recommendation_score, reverse=not ascending)
+
+    if sort in ['price', 'stars_rating']:
+        sort_field = 'price_per_night' if sort == 'price' else 'stars_rating'
+        if not ascending:
+            sort_field = f'-{sort_field}'
+        hotels = hotels.order_by(sort_field)
+
+    serializer = HotelSerializer(hotels, many=True)
+    return Response(serializer.data)
+
+
 #----------------------- Trips -------------------------------
 @api_view(['POST'])
 @permission_classes([CreateTripPermission])
@@ -406,8 +525,6 @@ class MyProfile(APIView):
     def get(self,request):
         profile_data =  self.get_my_account(request.user)
         profile_data['username'] = request.user.username
-        profile_data['email'] = request.user.email
-        profile_data['phone_number'] = request.user.phone_number
         return Response(profile_data)
 
    
@@ -437,9 +554,17 @@ class MyProfile(APIView):
             return Response(profile_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+import uuid
 @api_view(['GET'])
 def viewProfile(request,id):
+    # UUID4 verification
+    try:
+        uuid.UUID(id, version=4)  # Will raise ValueError if invalid
+    except ValueError:
+        return Response(
+            {"error": "Invalid ID format - must be UUID4"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     user = get_object_or_404(User,id=id)
     if hasattr(user,'admin'):
         profile = user.admin
@@ -453,6 +578,45 @@ def viewProfile(request,id):
     profile_data['username'] = request.user.username
     return Response(profile_data)
 
+
+
+
+#------------- Favorite trips ---------------------------------
+
+@api_view(['POST'])
+@permission_classes([CustomerPermissions])
+def add_to_favorites(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    customer.favorite_trips.add(trip)
+    return Response({'message': 'Trip added to favorites.'}, status=200)
+
+
+@api_view(['DELETE'])
+@permission_classes([CustomerPermissions])
+def remove_from_favorites(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    customer.favorite_trips.remove(trip)
+    return Response({'message': 'Trip removed from favorites.'}, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([CustomerPermissions])
+def list_favorite_trips(request):
+    customer = request.user.customer
+    favorite_trips = customer.favorite_trips.all()
+    serializer = TripSerializer(favorite_trips, many=True)
+    return Response(serializer.data, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([CustomerPermissions])
+def is_favorite(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    customer = request.user.customer
+    is_fav = customer.favorite_trips.filter(id=trip.id).exists()
+    return Response({'is_favorite': is_fav}, status=200)
 
 
 #------------- filtering system -----------------------------
@@ -671,7 +835,37 @@ def recommendedTrips(request):
 
 
 
+#-------------- notifications -----------------------
+from .serializers import NotificationSerializer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_notifications(request):
+    notifications = request.user.notifications.all().order_by('-timestamp')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
 
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_notification_as_read(request, pk):
+    notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+    notification.mark_as_read()
+    return Response({'success': 'Notification marked as read'})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_notification(request, pk):
+    notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+    notification.delete()
+    return Response({'success': 'Notification deleted'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_unread_notification_count(request):
+    count = request.user.notifications.filter(status='unread').count()
+    return Response({'unread_count': count})
 
 
 
@@ -702,15 +896,8 @@ def path_not_found(request, path=None):
 
 
 
-from .pusher import pusher_client
 
 
-class MessageAPIView(APIView):
-    def post(self, request):
-        pusher_client.trigger('chat', 'message', {
-            'username': request.data.get('username'),
-            'message': request.data.get('message')
-        })
-        return Response([])
+
 
 

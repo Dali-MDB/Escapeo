@@ -32,7 +32,7 @@ export default function Account() {
                 ? `${response.profile.city}, ${response.profile.country}`
                 : null,
             date_of_birth: response.profile.birthdate,
-            profile_picture: response.profile.profile_picture,
+            profile_picture: '/JohnDoe.jpg', // Default image
             // Add any other fields you need
           };
           setProfileData(transformedData);
@@ -82,7 +82,8 @@ export default function Account() {
         <div
     className="w-full h-full rounded-full"
     style={{
-      backgroundImage: `url(${API_URL}${profileData.profile_picture || "/media/profile_pictures/JohnDoe.jpg"})`,
+      backgroundImage: `url('/JohnDoe.jpg')`,
+      backgroundPosition: "center",
       backgroundSize: "cover",
     }}
   ></div>

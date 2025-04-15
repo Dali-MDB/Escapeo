@@ -9,7 +9,9 @@ import Reviews from "./components/reviewsHome";
 import { useAuth } from "./context/AuthContext";
 import NavBar from "./components/NavBar";
 import Template from './template';
-
+import Footer from "./components/Footer";
+import Image from "next/image";
+import { useState } from "react";
 export default function Home() {
 {/**
   // app/page.js (or any other page)
@@ -33,6 +35,7 @@ export default function Home() {
       <Packages />
       {isAuthenticated && <Foryou />}
       <Reviews />
+      <Footer />
     </div>
   );
 }
