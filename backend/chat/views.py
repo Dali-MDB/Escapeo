@@ -15,7 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConversation, MessageGroup, SupportTicket
-
+from main.models import SupportTicket
+from main.serializers import SupportTicketSerializer
 
 class ListMessages(generics.ListAPIView):
     serializer_class = MessagesDMSeriliazer
@@ -23,12 +24,17 @@ class ListMessages(generics.ListAPIView):
 
     def get_queryset(self):
         conversation_id = self.kwargs.get("conversation_id")
-        conversation = get_object_or_404(ConversationDM, id =conversation_id)
+        try:
+            conversation = ConversationDM.objects.get(id=conversation_id)
+        except ConversationDM.DoesNotExist:
+            raise NotFound("Conversation not found.")
 
+        
         user = self.request.user
         if user == conversation.staff.user or user == conversation.cust.user:
             return MessageDM.objects.filter(conversation=conversation).order_by("timestamp")
         return MessageDM.objects.none()
+
 
 
 class ListConversation(generics.ListAPIView):
@@ -46,7 +52,6 @@ class ListConversation(generics.ListAPIView):
     
 
 class ListGroupMessages(generics.ListAPIView):
-    
     serializer_class = MessageGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -54,12 +59,11 @@ class ListGroupMessages(generics.ListAPIView):
         conversation_id = self.kwargs.get("conversation_id")
         conversation = get_object_or_404(GroupChatConversation, id=conversation_id)
 
-        # Vérifie si l'utilisateur fait partie du groupe
         user = self.request.user
         if conversation.participants.filter(id=user.id).exists():
             return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
-
         return MessageGroup.objects.none()
+
 
 
 class ListGroupConversations(generics.ListAPIView):
@@ -104,3 +108,72 @@ class AcceptTicketView(generics.UpdateAPIView):
                 ticket=serializer.instance,
                 conversation_type='support'
             )
+
+
+class LatestSupportTicketAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if hasattr(request.user, 'customer'):
+            ticket = SupportTicket.objects.filter(customer=request.user.customer).order_by('-created_at').first()
+            if ticket:
+                serializer = SupportTicketSerializer(ticket)
+                return Response(serializer.data)
+        return Response({})
+
+
+class CreateGroupChatAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, trip_id):
+        try:
+            trip = Trip.objects.get(id=trip_id)
+
+           
+            if not hasattr(request.user, 'admin') or request.user.admin != trip.guide:
+                return Response({"error": "Only the trip's guide can create the group chat."}, status=403)
+
+            
+            participants = [trip.guide.user] + [c.user for c in trip.purchasers.all()]
+            if len(participants) < 2:
+                return Response({"error": "Not enough participants to create a group chat."}, status=400)
+
+            group_chat, created = GroupChatConversation.objects.get_or_create(trip=trip)
+            group_chat.participants.set(participants)
+            group_chat.save()
+
+           
+            if request.data.get('title'):
+                group_chat.title = request.data['title']
+                group_chat.save()
+
+            serializer = GroupChatConversationSerializer(group_chat)
+            return Response(serializer.data)
+
+        except Trip.DoesNotExist:
+            return Response({"error": "Trip not found"}, status=404)
+
+        
+
+class CreatePrivateChatAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        try:
+           
+            user = get_object_or_404(Customer, id=user_id)
+            other_user = user.user
+
+           
+            if request.user == other_user:
+                return Response({"error": "You cannot start a chat with yourself."}, status=400)
+
+            
+            conversation, created = ConversationDM.objects.get_or_create(
+                cust=user, staff=request.user.admin if hasattr(request.user, 'admin') else None)
+
+            serializer = ConversationDMSerializer(conversation)
+            return Response(serializer.data)
+
+        except Customer.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
