@@ -203,7 +203,7 @@ class HotelDetails(APIView):
 
             notified_admins = Admin.objects.filter(department__in=['owner', 'hotel_manager'])
 
-            # Compare changes
+            #Compare changes
             new_data = hotel_ser.data
             changes = []
 
@@ -231,7 +231,6 @@ class HotelDetails(APIView):
     def delete(self, request, pk):
         hotel = get_object_or_404(Hotel, id=pk)
         self.check_object_permissions(request, hotel)  # Check permissions
-        #return Response(HotelReservationSerializer(active_reservations,many=True).data)
         hotel.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -354,7 +353,20 @@ def addTrip(request):
     validated_data['created_by'] = request.user.admin.id
     trip_ser = TripSerializer(data=validated_data)
     if trip_ser.is_valid():
-        trip_ser.save()
+        trip = trip_ser.save()
+
+        notified_admins = Admin.objects.filter(department='owner')
+        if request.user.admin.department != 'owner':
+            notified_admins = list(notified_admins) + [request.user.admin]
+
+        # Create notifications for each admin (either owner or hotel_manager)
+        for admin in notified_admins:
+            Notification.objects.create(
+                recipient=admin.user,
+                type='Trip',
+                title='New Trip Added',
+                message=f'A new Trip named "{trip.title}" has been added by {request.user.admin}.',
+            )
         return Response({'success : a new trip has been added successfully'},status=status.HTTP_201_CREATED)
     return Response(trip_ser.errors,status=status.HTTP_400_BAD_REQUEST)
 
@@ -385,17 +397,49 @@ class tripDetails(APIView):
         trip = self.get_trip(pk)
         self.check_object_permissions(request, trip)  # ✅ Ensure permission check
 
+        # Get all old data dynamically
+        old_data = {
+            field.name: getattr(trip, field.name)
+            for field in trip._meta.get_fields()
+            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
+        }
+
         trip_ser = TripSerializer(trip, data=request.data, partial=True)
         if trip_ser.is_valid():
             trip_ser.save()
+
+
+            notified_admins = Admin.objects.filter(department='owner')
+            if request.user.admin.department != 'owner':
+                notified_admins = list(notified_admins) + [request.user.admin]
+
+            #Compare changes
+            new_data = trip_ser.data
+            changes = []
+
+            for field, old_value in old_data.items():
+                new_value = new_data.get(field)
+                if str(old_value) != str(new_value):
+                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
+
+            if changes:
+                changes = "\n".join(changes)
+
+                # Create notifications for each admin
+                for admin in notified_admins:
+                    Notification.objects.create(
+                        recipient=admin.user,  # The admin to receive the notification
+                        type='Trip',  # Notification type
+                        title='Trip Updated',  # Title of the notification
+                        message=f'The Trip "{trip.title}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
+                    )
             return Response(trip_ser.data, status=status.HTTP_200_OK)
 
         return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
-
+        self.check_object_permissions(request, trip)  
         trip.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
     
@@ -467,7 +511,21 @@ def addDeparture(request, trip_id):
 
     serializer = DepartureTripSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(trip=trip)  # Assign trip explicitly
+        departure_trip = serializer.save(trip=trip)  # Assign trip explicitly
+        
+
+        notified_admins = Admin.objects.filter(department='owner')
+        if request.user.admin.department != 'owner':
+            notified_admins = list(notified_admins) + [request.user.admin]
+
+        # Create notifications for each admin (either owner or hotel_manager)
+        for admin in notified_admins:
+            Notification.objects.create(
+                recipient=admin.user,
+                type='Trip',
+                title='New Departure Trip Added',
+                message=f'A new Departure has been added for the Trip named "{trip.title}" by {request.user.admin}.',
+            )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -490,11 +548,41 @@ class DepartureDetails(APIView):
         departure = get_object_or_404(DepartureTrip, id=departure_id, trip=trip)
         self.check_object_permissions(request,departure)
 
+        # Get all old data dynamically
+        old_data = {
+            field.name: getattr(trip, field.name)
+            for field in trip._meta.get_fields()
+            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
+        }
         serializer = DepartureTripSerializer(departure, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            departure = serializer.save()
+
+            notified_admins = Admin.objects.filter(department='owner')
+            if request.user.admin.department != 'owner':
+                notified_admins = list(notified_admins) + [request.user.admin]
+
+            new_data = serializer.data
+            changes = []
+
+            for field, old_value in old_data.items():
+                new_value = new_data.get(field)
+                if str(old_value) != str(new_value):
+                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
+
+            if changes:
+                changes = "\n".join(changes)
+                # Create notifications for each admin (either owner or hotel_manager)
+                for admin in notified_admins:
+                    Notification.objects.create(
+                        recipient=admin.user,
+                        type='Trip',
+                        title='Departure Trip modified',
+                        message=f'The departure trip {departure.location} has been modified for the Trip named "{trip.title}" by {request.user.admin}.',
+                )
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request, trip_id, departure_id):
         """Delete a specific DepartureTrip."""

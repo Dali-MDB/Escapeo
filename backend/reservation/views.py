@@ -14,6 +14,8 @@ from .serializers import HotelReservationSerializer,TripReservationSerializer
 from main.serializers import HotelSerializer
 from datetime import date
 from decimal import Decimal
+from main.models import Notification,Admin
+from .signals import handle_hotel_notification,handle_trip_notification,notify_failed_trip_payment,handle_cancelled_hotel_reservation,handle_cancelled_trip_reservation
 
 
 
@@ -86,7 +88,7 @@ def hotel_reservation_payment_init(request, hotel_id):
     # Update inventory
     hotel.total_occupied_rooms += rooms
     hotel.save()
-    
+
     serializer = HotelReservationSerializer(reservation)
     return Response(serializer.data,status=status.HTTP_201_CREATED)
 
@@ -176,6 +178,8 @@ def trip_reservation_payment_init(request, trip_id):
     request.user.customer.purchased_trips.add(trip)
 
 
+
+    
     #return the reservation
     serializer = TripReservationSerializer(reservation)
     return Response(
@@ -219,7 +223,24 @@ def simulate_payment_webhook(request, reservation_id):
     if reservation.simulate_payment():
         customer = request.user.customer
         customer.balance = 0 if total_price >= customer.balance else (customer.balance - total_price)    #adjust the custome wallet
+
+        if reservation_type=='hotel':
+            handle_hotel_notification(reservation,True)
+        else:   #trip 
+            handle_trip_notification(reservation,True)
+
         return Response({'status': 'payment was successful'},status=status.HTTP_202_ACCEPTED)
+    
+    #paiment failed 
+    if reservation_type == 'hotel':
+        Notification.objects.create(
+            user=request.user,
+            type='Payment',
+            title='Failed hotel reservation payment',
+            message=f'your payment for the reservation at {reservation.hotel} (check-in : {reservation.check_in}- check-out: {reservation.check_out}) had faild, review or actions or contact the staff if you think that we have done a mistake.',
+        )
+    else:
+        notify_failed_trip_payment(reservation)
     return Response({'error': 'Payment simulation failed'}, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -245,15 +266,17 @@ def cancelHotelReservation(request,reservation_id):
     
     if reservation.status == 'pending':
         reservation.cancel()
+        handle_cancelled_hotel_reservation(reservation,False)
         return Response({
             'message': 'Pending reservation cancelled. No refund issued.',
         }, status=status.HTTP_200_OK)
-
+        
 
 
     customer.balance += reservation.total_price    #total refund on hotels
     customer.save()
     reservation.cancel()
+    handle_cancelled_hotel_reservation(reservation,True)
     return Response(
         {
             'message': 'Reservation cancelled successfully.',
@@ -286,6 +309,7 @@ def cancelTripReservation(request, reservation_id):
     # If the status is pending (unpaid), just cancel without refund
     if reservation.status == 'pending':
         reservation.cancel(cancel_hotel)
+        handle_cancelled_trip_reservation(reservation,False)
         return Response({
             'message': 'Pending reservation cancelled. No refund issued.',
         }, status=status.HTTP_200_OK)
@@ -320,6 +344,14 @@ def cancelTripReservation(request, reservation_id):
     customer.balance += Decimal(total_refund)
     customer.save()
 
+    handle_cancelled_trip_reservation(
+        reservation=reservation,
+        paid=True,
+        trip_refund=trip_refund,
+        hotel_refund=hotel_refund,
+        total_refund=total_refund
+    )
+
     # Call the cancel method, which will handle status updates and hotel cancellations
     reservation.cancel(cancel_hotel)
     
@@ -341,6 +373,9 @@ def confirmHotelReservationManually(request,reservation_id):
     reservation = get_object_or_404(HotelReservation,id=reservation_id)
     reservation.status = 'confirmed'
     reservation.save()
+
+    # Notify the user about their confirmed hotel reservation
+    handle_hotel_notification(reservation, paid=True)
     return Response({'success':'the hotel reservation has been validated and confirmed'})
 
 
@@ -352,6 +387,9 @@ def confirmTripReservationManually(request,reservation_id):
     permission.has_object_permission(request,None,reservation)
     reservation.status = 'confirmed'
     reservation.save()
+
+    # Notify the user about their confirmed trip reservation
+    handle_trip_notification(reservation, paid=True)
     return Response({'success':'the trip reservation has been validated and confirmed'})
     
     
