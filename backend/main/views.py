@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,7 +13,7 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages,Notification,Admin,Customer
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission,CreateHotelPermission,HotelPermission
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission 
 from decimal import Decimal
 
 
@@ -145,7 +146,7 @@ def addAdmin(request):
 #------------------------------hotels----------------------------------------------
 
 # ---------------------- Hotels ------------------------------------
-
+'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, CreateHotelPermission])
 def addHotel(request):
@@ -345,7 +346,7 @@ def search_hotels(request):
     serializer = HotelSerializer(hotels, many=True)
     return Response(serializer.data)
 
-
+'''
 #----------------------- Trips -------------------------------
 @api_view(['POST'])
 @permission_classes([CreateTripPermission])
@@ -901,3 +902,268 @@ def path_not_found(request, path=None):
 
 
 
+from rest_framework.exceptions import NotFound
+from django.shortcuts import render
+from rest_framework.response import Response
+
+from rest_framework import generics
+from rest_framework import permissions
+
+from rest_framework import status
+from rest_framework.decorators import api_view,APIView,permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
+from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessageDMSerializer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer
+from django.contrib.auth import authenticate,get_user_model
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConversation, MessageGroup
+
+from rest_framework import generics, permissions
+from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
+from .models import MessageDM, ConversationDM
+from .serializers import MessageDMSerializer
+
+class ListMessages(generics.ListAPIView):
+    serializer_class = MessageDMSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        conversation_id = self.kwargs['conversation_id']
+        
+        if not conversation_id:
+            raise ValidationError("conversation_id is required as a query parameter.")
+
+        try:
+            conversation = ConversationDM.objects.get(id=conversation_id)
+        except ConversationDM.DoesNotExist:
+            raise NotFound("Conversation not found.")
+
+        user = self.request.user
+        if not conversation.participants.filter(id=user.id).exists():
+            raise PermissionDenied("You are not a participant in this conversation.")
+
+        return MessageDM.objects.filter(conversation_id=conversation_id).order_by('sent_at')
+
+class ListConversation(generics.ListAPIView):
+
+    serializer_class = ConversationDMSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'customer'):
+            return ConversationDM.objects.filter(cust__user=user)
+        elif hasattr(user, 'admin'):
+            return ConversationDM.objects.filter(staff__user=user)
+        return ConversationDM.objects.none()
+    
+
+class CreateMessageView(generics.CreateAPIView):
+    serializer_class = MessageDMSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        conversation_id = self.request.data.get('conversation')
+        conversation = get_object_or_404(ConversationDM, id=conversation_id)
+        user = self.request.user
+
+        
+        # Save the message
+        message = serializer.save(
+            sender=user,
+            conversation=conversation
+        )
+
+        # Trigger Pusher event (if using real-time)
+        pusher_client.trigger(
+            f'conversation-{conversation.id}',
+            'new-message',
+            MessageDMSerializer(message).data
+        )
+
+class CreateConversation(generics.CreateAPIView):
+    serializer_class = ConversationDMSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data.copy()
+        try:
+            if hasattr(user, 'customer'):
+                # Customers can only create conversations with staff
+                staff = Admin.objects.first()  # Or implement logic to select appropriate staff
+                if not staff:
+                    return Response(
+                        {"error": "No staff available to start conversation"},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Check if conversation already exists
+                existing_convo = ConversationDM.objects.filter(
+                    cust=user.customer,
+                    staff=staff
+                ).first()
+                
+                if existing_convo:
+                    return Response(
+                        ConversationDMSerializer(existing_convo).data,
+                        status=status.HTTP_200_OK
+                    )
+                
+                data['cust'] = user.customer.id
+                data['staff'] = staff.id
+                
+            elif hasattr(user, 'admin'):
+                # Staff can initiate conversations with specific customers
+                customer_id = data.get('customer_id')
+                if not customer_id:
+                    return Response(
+                        {"error": "Customer ID is required for staff-initiated conversations"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                try:
+                    customer = Customer.objects.get(id=customer_id)
+                except Customer.DoesNotExist:
+                    return Response(
+                        {"error": "Customer not found"},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Check if conversation already exists
+                existing_convo = ConversationDM.objects.filter(
+                    cust=customer,
+                    staff=user.admin
+                ).first()
+                
+                if existing_convo:
+                    return Response(
+                        ConversationDMSerializer(existing_convo).data,
+                        status=status.HTTP_200_OK
+                    )
+                
+                data['cust'] = customer.id
+                data['staff'] = user.admin.id
+                
+            
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+            
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+class ListGroupMessages(generics.ListAPIView):
+    
+    serializer_class = MessageGroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        conversation_id = self.kwargs.get("conversation_id")
+        conversation = get_object_or_404(GroupChatConversation, id=conversation_id)
+
+        # Vérifie si l'utilisateur fait partie du groupe
+        user = self.request.user
+        if conversation.participants.filter(id=user.id).exists():
+            return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
+
+        return MessageGroup.objects.none()
+
+
+class ListGroupConversations(generics.ListAPIView):
+   
+    serializer_class = GroupChatConversationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return GroupChatConversation.objects.filter(participants=user)
+    
+from .pusher import pusher_client
+from rest_framework import generics
+from .models import MessageDM
+from .serializers import MessageDMSerializer
+from rest_framework.permissions import IsAuthenticated
+
+class CreateMessageView(generics.CreateAPIView):
+    serializer_class = MessageDMSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        conversation_id = self.request.data.get('conversation')
+        try:
+            conversation = ConversationDM.objects.get(id=conversation_id)
+            
+            # Verify user is part of the conversation
+            user = self.request.user
+            if not (user == conversation.cust.user or user == conversation.staff.user):
+                raise PermissionDenied("You are not part of this conversation")
+            
+            message = serializer.save(
+                sender=user,
+                conversation=conversation
+            )
+            
+            # Trigger Pusher event
+            pusher_client.trigger(
+                f'conversation-{conversation.id}',
+                'new_message',
+                {
+                    'id': message.id,
+                    'sender': user.username,
+                    'content': message.content,
+                    'timestamp': message.timestamp.isoformat(),
+                    'conversation_id': conversation.id
+                }
+            )
+            
+            # Update conversation last updated
+            conversation.save()
+            
+        except ConversationDM.DoesNotExist:
+            raise NotFound("Conversation not found")
+
+
+#
+#class SupportTicketView(generics.ListCreateAPIView):
+#    serializer_class = SupportTicketSerializer
+#    permission_classes = [IsAuthenticated]
+#
+#    def get_queryset(self):
+#        if hasattr(self.request.user, 'customer'):
+#            return SupportTicket.objects.filter(customer=self.request.user.customer)
+#        return SupportTicket.objects.none
+#    
+#    def perform_create(self, serializer):
+#        if hasattr(self.request.user, 'customer'):
+#            serializer.save(customer=self.request.user.customer)
+#
+#
+#class AcceptTicketView(generics.UpdateAPIView):
+#    queryset = SupportTicket.objects.filter(status='pending')
+#    serializer_class = SupportTicketSerializer
+#
+#    def perform_update(self, serializer):
+#         if hasattr(self.request.user, 'admin') and self.request.user.admin.department == 'customer_support':
+#            serializer.save(
+#                status='accepted',
+#                accepted_by=self.request.user.admin
+#            )
+#           
+#            ConversationDM.objects.create(
+#                staff=self.request.user.admin,
+#                cust=serializer.instance.customer,
+#                ticket=serializer.instance,
+#                conversation_type='support'
+#            )

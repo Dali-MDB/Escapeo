@@ -24,6 +24,7 @@ export async function getMyProfile() {
     return {
       success: true,
       profile: await response.json(),
+      token: token,
     };
   } catch (error) {
     console.error("Profile fetch error:", error);
@@ -33,6 +34,8 @@ export async function getMyProfile() {
     };
   }
 }
+
+
 
 /**
  * Fetches another user's profile by ID

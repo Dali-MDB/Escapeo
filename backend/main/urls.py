@@ -27,14 +27,12 @@ urlpatterns = [
     path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
 
 
-    path('add_hotel/',view=views.addHotel,name='add-hotel'),
-    path('all_hotels/',view=views.allHotels,name='all-hotels'), 
-    path('hotel_details/<int:pk>',view=views.HotelDetails.as_view(),name='hotel-details'),
-    path('add_hotel_images/<int:id>',view=views.addHotelImages,name='add-hotel-image'),
-    path('delete_hotel_images/<int:id>',view=views.deleteHotelImages,name='delete-hotel-image'),
-    path('hotels/search/', view=views.search_hotels, name='search_hotels'),
-
-
+    #path('add_hotel/',view=views.addHotel,name='add-hotel'),
+    #path('all_hotels/',view=views.allHotels,name='all-hotels'), 
+    #path('hotel_details/<int:pk>',view=views.HotelDetails.as_view(),name='hotel-details'),
+    #path('add_hotel_images/<int:id>',view=views.addHotelImages,name='add-hotel-image'),
+    #path('delete_hotel_images/<int:id>',view=views.deleteHotelImages,name='delete-hotel-image'),
+    #path('hotels/search/', view=views.search_hotels, name='search_hotels'),
     path('favorites/', view=views.list_favorite_trips, name='list_favorites'),
     path('favorites/add/<int:trip_id>/', view=views.add_to_favorites, name='add_favorite'),
     path('favorites/remove/<int:trip_id>/', view=views.remove_from_favorites, name='remove_favorite'),
@@ -49,6 +47,14 @@ urlpatterns = [
     path('notifications/unread-count/', view= views.get_unread_notification_count),
     path('notifications/read/<int:pk>/', view= views.mark_notification_as_read),
     path('notifications/delete/<int:pk>/', view= views.delete_notification),
+    path('messages/<int:conversation_id>/', views.ListMessages.as_view(), name='list-messages'),
+    path('messages/', views.CreateMessageView.as_view(), name='create-message'),
+    path('conversations/', views.ListConversation.as_view(), name='list-conversations'),
+    path('create-conversation/', views.CreateConversation.as_view(), name='create-conversation'),
+    path('group-messages/<int:conversation_id>/', views.ListGroupMessages.as_view(), name='list-group-messages'),
+    path('group-conversations/', views.ListGroupConversations.as_view(), name='list-group-conversations'),
+    #path('support/tickets/',views.SupportTicketView.as_view(), name='support-tickets'),
+    #path('support/tickets/<int:pk>/accept/',views.AcceptTicketView.as_view(), name='accept-ticket'),
 
     
 ]

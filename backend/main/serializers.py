@@ -315,3 +315,50 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+from rest_framework import serializers
+from main.models import ConversationDM, MessageDM, MessageGroup, GroupChatConversation
+
+class ConversationDMSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConversationDM
+        fields = ['id', 'cust', 'staff', 'created_at']  # Use your actual field names
+        read_only_fields = ['created_at']
+
+class MessageDMSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageDM
+        fields = ['id', 'conversation', 'sender', 'receiver', 'content', 'sent_at', 'is_read']
+        read_only_fields = ['sent_at', 'is_read']
+
+    def create(self, validated_data):
+        # Mark previous messages as read if needed
+        message = MessageDM.objects.create(**validated_data)
+        return message
+    def update(self, instance, validated_data):
+        # Update the message instance with the provided data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class GroupChatConversationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GroupChatConversation
+        fields = ['id', 'name', 'participants', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+class MessageGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageGroup
+        fields = ['id', 'group', 'sender', 'content', 'timestamp']
+        read_only_fields = ['timestamp']
+
+    def create(self, validated_data):
+        message = MessageGroup.objects.create(**validated_data)
+        return message
+#from main.models import SupportTicket
+
+#class SupportTicketSerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = SupportTicket
+#        fields = '__all__'

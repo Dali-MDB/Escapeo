@@ -1,66 +1,31 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react';
-import { useForm } from '@/app/context/FormContext';
+import { useState, useEffect } from 'react';
 import Pusher from 'pusher-js';
 import { API_URL } from '@/app/utils/constants';
 import { getMyProfile } from '@/app/utils/auth';
 
 export default function Messages() {
     const [messages, setMessages] = useState([]);
+    const [conversations, setConversations] = useState([]);
     const [message, setMessage] = useState("");
-    const [username, setUsername] = useState("");
-    const [isConnected, setIsConnected] = useState(false);
-    const chatDisplayRef = useRef(null);
+    const [user, setUser] = useState(null);
+    const [conversationId, setConversationId] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Fetch username and previous messages
+    // Setup Pusher
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await getMyProfile();
-                if (response.success) {
-                    const cleanUsername = response.profile.username.replace(/\s+/g, "_");
-                    setUsername(cleanUsername);
-                    
-                    // Fetch previous messages
-                    const token = localStorage.getItem('access_token');
-                    const messagesRes = await fetch(`${API_URL}/get_messages/?username=${cleanUsername}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (messagesRes.ok) {
-                        const messagesData = await messagesRes.json();
-                        setMessages(messagesData);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    // Subscribe to Pusher when username is available
-    useEffect(() => {
-        if (!username) return;
+        if (!conversationId) return;
 
         const pusher = new Pusher('4b8aedc65def2e33fdf6', {
             cluster: 'eu',
             forceTLS: true
         });
 
-        const channel = pusher.subscribe(`chat-client-${username.replace(/\s+/g, "_")}`);
-        
-        channel.bind('message', (data) => {
-            setMessages((prev) => [...prev, data]);
-            setIsConnected(true);
-        });
-
-        pusher.connection.bind('state_change', (states) => {
-            setIsConnected(states.current === 'connected');
+        const channel = pusher.subscribe(`conversation-${conversationId}`);
+        channel.bind('new-message', (data) => {
+            setMessages(prev => [...prev, data]);
         });
 
         return () => {
@@ -68,95 +33,212 @@ export default function Messages() {
             channel.unsubscribe();
             pusher.disconnect();
         };
-    }, [username]);
+    }, [conversationId]);
 
-    // Auto-scroll to bottom when messages change
+    // Fetch user and conversations
     useEffect(() => {
-        if (chatDisplayRef.current) {
-            chatDisplayRef.current.scrollTop = chatDisplayRef.current.scrollHeight;
-        }
-    }, [messages]);
+        async function fetchConversations() {
+            try {
+                setLoading(true);
+                const responseUser = await getMyProfile();
+                setUser(responseUser.profile);
+                console.log(responseUser.token + " " + responseUser.profile.id);
 
-    const submit = async (e) => {
+                const response = await fetch(`${API_URL}/conversations/`, {
+                    headers: {
+                        'Authorization': `Bearer ${responseUser.token}`
+                    }
+                });
+
+
+                const data = await response.json();
+                setConversations(data);
+                if (data.length > 0) {
+                    setConversationId(data[0].id);
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchConversations();
+    }, []);
+
+    // Fetch messages for the current conversation
+    useEffect(() => {
+
+        async function fetchMessages() {
+            try {
+                const responseUser = await getMyProfile();
+                const response = await fetch(`${API_URL}/messages/${conversationId}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${responseUser.token}`
+                    },
+                });
+
+                
+                if (!response.ok) {
+                    console.log('Failed to fetch messages' , response);
+                }else{
+                const data = await response.json();
+                setMessages(data);}
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+
+        fetchMessages();
+    }, [conversationId]);
+
+    async function createConversation() {
+        try {
+            const responseUser = await getMyProfile();
+            const response = await fetch(`${API_URL}/create-conversation/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${responseUser.token}`
+                },
+                body: JSON.stringify({
+                    cust: responseUser.profile.id,
+                    user: responseUser.profile
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create conversation');
+            }
+
+            const data = await response.json();
+            setConversations(prev => [...prev, data]);
+            setConversationId(data.id);
+        } catch (err) {
+            setError(err.message);
+        }
+    }
+
+    async function sendMessage(e) {
         e.preventDefault();
-        if (!username || !message.trim()) return;
+        if (!message.trim() || !conversationId || !user) return;
 
         try {
-            const token = localStorage.getItem('access_token');
+            const responseUser = await getMyProfile();
             const response = await fetch(`${API_URL}/messages/`, {
-                method: "POST",
+                method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${responseUser.token}`
                 },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({
+                    conversation: conversationId,
+                    content: message,
+                    sender: user.id
+                })
             });
-            
 
-            if (response.ok) {
-                setMessage("");
-            } else {
-                throw new Error("Failed to send message");
+            if (!response.ok) {
+                throw new Error('Failed to send message');
             }
-        } catch (error) {
-            console.error("Error sending message:", error);
-            alert("Failed to send message");
+
+            setMessage("");
+        } catch (err) {
+            setError(err.message);
         }
+    }
+
+    const ConversationBox = ({ conversation }) => {
+        return (
+            <div
+                onClick={() => setConversationId(conversation.id)}
+                className={`p-3 rounded-lg cursor-pointer ${
+                    conversation.id === conversationId
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+            >
+                <p className="font-medium">Staff Chat</p>
+            </div>
+        );
     };
 
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
     return (
-        <div className="w-full rounded-xl flex flex-row gap-14 px-16">
-            <div className="w-full mx-auto bg-white dark:bg-zinc-800 shadow-md rounded-lg overflow-hidden">
-                <div className="flex flex-col min-h-[400px]">
-                    <div className="px-4 py-3 border-b dark:border-zinc-700 flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-zinc-800 dark:text-white">
-                            Messages
-                        </h2>
-                        <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} 
-                             title={isConnected ? 'Connected' : 'Disconnected'}></div>
-                    </div>
-                    <div 
-                        ref={chatDisplayRef}
-                        className="flex-1 p-3 overflow-y-auto flex flex-col space-y-2"
-                    >
-                        {messages.length > 0 ? (
-                            messages.map((msg, index) => (
-                                <div 
-                                    key={index} 
-                                    className={`flex flex-col ${msg.username === username ? 'items-end' : 'items-start'}`}
-                                >
-                                    <div className="max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg 
-                                        bg-blue-100 dark:bg-blue-900 text-zinc-800 dark:text-white">
-                                        <div className="font-semibold text-sm">{msg.username}</div>
-                                        <div className="text-sm mt-1">{msg.message}</div>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="flex justify-center items-center h-full text-zinc-500 dark:text-zinc-400">
-                                No messages yet
-                            </div>
-                        )}
-                    </div>
-                    <div className="px-3 py-2 border-t dark:border-zinc-700">
-                        <form onSubmit={submit} className="flex gap-2">
-                            <input 
-                                placeholder="Type your message..." 
-                                className="flex-1 p-2 border rounded-lg dark:bg-zinc-700 dark:text-white dark:border-zinc-600 text-sm" 
-                                value={message} 
-                                onChange={(e) => setMessage(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && submit(e)}
-                            />
-                            <button 
-                                type="submit" 
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg transition duration-300 ease-in-out text-sm"
-                                disabled={!message.trim()}
-                            >
-                                Send
-                            </button>
-                        </form>
-                    </div>
+        <div className="w-full min-h-[40vh] rounded-xl flex">
+            {/* Sidebar */}
+            <div className="w-1/3 rounded-xl bg-zinc-100 dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Conversations</h2>
+                    {conversations.length === 0 && (
+                        <button
+                            onClick={createConversation}
+                            className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                        >
+                            + New
+                        </button>
+                    )}
                 </div>
+                <div className="space-y-2">
+                    {conversations.map((conv) => (
+                        <ConversationBox key={conv.id} conversation={conv} />
+                    ))}
+                </div>
+            </div>
+
+            {/* Chat area */}
+            <div className="w-2/3 flex flex-col">
+                {conversationId ? (
+                    <>
+                        <div className="flex-1 p-4 overflow-y-auto">
+                            {messages.length === 0 ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <p className="text-gray-500">No messages yet</p>
+                                </div>
+                            ) : (
+                                messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`mb-3 ${
+                                            msg.sender === user?.id ? 'text-right' : 'text-left'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`inline-block p-3 rounded-lg ${
+                                                msg.sender === user?.id
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-zinc-200 dark:bg-zinc-700'
+                                            }`}
+                                        >
+                                            {msg.content}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <form onSubmit={sendMessage} className="p-4 border-t">
+                            <div className="flex gap-2">
+                                <input
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="Type a message..."
+                                    className="flex-1 p-2 border rounded"
+                                />
+                                <button
+                                    type="submit"
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                >
+                                    Send
+                                </button>
+                            </div>
+                        </form>
+                    </>
+                ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                        <p>Select or create a conversation</p>
+                    </div>
+                )}
             </div>
         </div>
     );
