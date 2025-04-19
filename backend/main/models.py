@@ -460,10 +460,10 @@ class SupportTicket(models.Model):
 
 class ConversationDM(models.Model):
 
-    TYPES = {
+    TYPES = [
         ('direct', 'Direct Message'),
         ('support', 'Support Ticket'),
-    }
+    ]
 
     staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
     cust = models.ForeignKey(Customer, on_delete=models.PROTECT)

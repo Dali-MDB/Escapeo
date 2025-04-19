@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'phone_number', 'password']
+        fields = ['username', 'email', 'phone_number', 'password','last_seen', 'is_online']
 
     def validate(self, data):
         email = data.get("email")
