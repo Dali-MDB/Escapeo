@@ -24,8 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(BASE_DIR, ".env"))
-
+#load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -33,8 +33,12 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+<<<<<<< HEAD
 ALLOWED_HOSTS = []
 CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins
+=======
+ALLOWED_HOSTS = ['*']
+>>>>>>> neil
 
 
 # Application definition
@@ -51,8 +55,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
+<<<<<<< HEAD
     'channels',
     'corsheaders',   #to link the front
+=======
+    'chat',
+    'channels',
+>>>>>>> neil
 ]
 
 MIDDLEWARE = [
@@ -73,6 +82,16 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'travel_agency.urls'
+ASGI_APPLICATION = "travel_agency.routing.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
 
 TEMPLATES = [
     {
@@ -101,7 +120,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'travel_db',
         'USER': 'postgres',
-        'PASSWORD':  os.getenv('DB_PASSWORD'),
+        'PASSWORD':  'neil071005',
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -180,4 +199,31 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,                  # Rotate refresh tokens on refresh
     'BLACKLIST_AFTER_ROTATION': False,               # Blacklist old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+#CELERY SETTINGS
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'update-trip-statuses': {
+        'task': 'your_app.tasks.update_trip_statuses',
+        'schedule': crontab(minute='*/15'),  # Every 15 minutes
+    },
+    'expire-unpaid-reservations': {
+        'task': 'your_app.tasks.expire_unpaid_reservations',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'free-occupied-rooms': {
+        'task': 'your_app.tasks.free_occupied_rooms',
+        'schedule': crontab(hour='*/1'),  # Every hour
+    },
 }

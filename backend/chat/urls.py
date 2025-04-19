@@ -14,4 +14,8 @@ urlpatterns = [
     path('support/tickets/<int:pk>/accept/', AcceptTicketView.as_view(), name='accept-ticket'),
     path('create-group-chat/<int:trip_id>/', CreateGroupChatAPIView.as_view(), name='create-group-chat'),
     path('create-private-chat/<int:user_id>/', CreatePrivateChatAPIView.as_view(), name='create-private-chat'),
+<<<<<<< HEAD
 ]
+=======
+]
+>>>>>>> neil

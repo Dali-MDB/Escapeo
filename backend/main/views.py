@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 from django.forms import ValidationError
+=======
+from rest_framework.exceptions import NotFound
+>>>>>>> neil
 from django.shortcuts import render
 from rest_framework.response import Response
+
+from rest_framework import generics
+from rest_framework import permissions
+
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,11 +20,16 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+<<<<<<< HEAD
 from .models import Trip,TripImage,Hotel,HotelImages,Notification,Admin,Customer
 from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission 
 from decimal import Decimal
 
 
+=======
+from .models import Trip, Customer
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission
+>>>>>>> neil
 
 
 User = get_user_model()
@@ -894,8 +907,19 @@ def path_not_found(request, path=None):
         status=status.HTTP_404_NOT_FOUND
     )
 
+# for customers to list all their purcahsed trips and favorite trips  
+class ListPurchasedTrips(generics.ListAPIView):
+    serializer_class = TripSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-
+    def get_queryset(self):
+        
+        try:
+            customer = self.request.user.customer  
+        except Customer.DoesNotExist:
+            raise NotFound("No customer profile found for this user.")
+        
+        return customer.purchased_trips.all()
 
 
 

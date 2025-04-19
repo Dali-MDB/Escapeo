@@ -300,6 +300,7 @@ class TripSerializer(serializers.ModelSerializer):
             image.image.delete()
             image.delete()
         return instance
+<<<<<<< HEAD
 
 
 
@@ -362,10 +363,60 @@ class GroupChatConversationSerializer(serializers.ModelSerializer):
 from main.models import SupportTicket
 
 
+=======
+    
+    """ CONVERSATION AND MESSAGES SERIALIZERS """
+User = get_user_model()
+
+class MessagesDMSeriliazer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField()
+    receiver = serializers.StringRelatedField()
+
+    class Meta :
+        model = MessageDM
+        fields = [
+            "id", "conversation", "sender", "receiver", 
+            "content", "sent_at", "is_read"
+        ]
+        read_only_fields = ["sent_at","is_read"]
+
+class ConversationDMSerializer(serializers.ModelSerializer):
+    staff = serializers.StringRelatedField(source="staff.user")
+    cust = serializers.StringRelatedField(source="cust.user")
+    last_message = MessagesDMSeriliazer(read_only=True)
+
+    class Meta:
+       model = ConversationDM
+       fields = ["id", "staff", "cust", 
+                 "created_at", "updated_at", 
+                 "last_message"]
+
+class MessageGroupSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sent_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = MessageGroup
+        fields = ['id', 'conversation', 'sender', 'sender_username', 'content', 'sent_at']
+        read_only_fields = ['id', 'sender', 'sent_at']
+
+class GroupChatConversationSerializer(serializers.ModelSerializer):
+    participants = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    messages = MessageGroupSerializer(many=True, source='chat_messages', read_only=True)
+
+    class Meta:
+        model = GroupChatConversation
+        fields = ['id', 'trip', 'participants', 'created_at', 'updated_at', 'messages']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+
+>>>>>>> neil
 class SupportTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportTicket
         fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
+<<<<<<< HEAD
         read_only_fields = ['status', 'created_at', 'accepted_by']
 
 
@@ -373,3 +424,6 @@ class SupportTicketSerializer(serializers.ModelSerializer):
 #    class Meta:
 #        model = SupportTicket
 #        fields = '__all__'
+=======
+        read_only_fields = ['status', 'created_at', 'accepted_by']
+>>>>>>> neil

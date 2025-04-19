@@ -1,3 +1,5 @@
+
+
 import logging
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import PermissionDenied
@@ -63,6 +65,7 @@ class addAdminPermission(BasePermission):
             raise PermissionDenied("Only admins in the 'owner' department are allowed to perform this action.")
 
         return True
+<<<<<<< HEAD
     
 class DepartureTripPermission(BasePermission):
     def has_permission(self, request, view):
@@ -87,3 +90,6 @@ class DepartureTripPermission(BasePermission):
 class CustomerPermissions(BasePermission):
     def has_permission(self, request, view):
         return hasattr(request.user,'customer')
+=======
+#>>>>>>> a96ed28500fa535f1beee2238946d918d24d3f9c:backend/main/permissions.py
+>>>>>>> neil

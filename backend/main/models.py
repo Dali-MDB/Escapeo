@@ -1,3 +1,4 @@
+from datetime import timezone
 import os
 import shutil
 from django.conf import settings
@@ -7,7 +8,6 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
-
 # ------------------------- Users -------------------------
 import uuid
 class User(AbstractUser):
@@ -18,6 +18,9 @@ class User(AbstractUser):
 
     is_admin = models.BooleanField(default=False)
     
+    #online status fields
+    is_online = models.BooleanField(default=False, null=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
 
     #objects = 
     USERNAME_FIELD = "email"  # Authenticate using email
@@ -62,7 +65,7 @@ class Customer(models.Model):
     ]
     favorite_currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USD')
 
-    purchased_trips = models.ManyToManyField('Trip', related_name="purchasers", blank=True)
+    #purchased_trips = models.ManyToManyField('Trip', related_name="purchasers", blank=True)
     favorite_trips = models.ManyToManyField('Trip', related_name="favorited_by", blank=True)
 
     class Meta:
@@ -71,6 +74,9 @@ class Customer(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Customer"
+    @property
+    def purchased_trips(self):
+        return Trip.objects.filter(purchasers=self)
 
 
 
@@ -400,6 +406,35 @@ class Trip(models.Model):
     destination = models.CharField(max_length=100)
     destination_type = models.CharField(max_length=50, choices=DestinationTypeChoices.CHOICES, null=True, blank=True)
     transport = models.CharField(max_length=50, choices=TransportTypeChoices.CHOICES)
+<<<<<<< HEAD
+=======
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
+    # activities (to be added later)
+
+
+    purchasers = models.ManyToManyField(
+        Customer,
+        related_name='purchased_trips',
+        blank=True,
+        help_text="Customers who have purchased this trip"
+    )
+
+    #trip status for automation
+
+    STATUS_CHOICES =[
+        ('coming','Coming Soon'),
+        ('ongoing','Ongoing'),
+        ('done','Completed'),
+    ]
+
+
+
+
+    
+    country = models.CharField(max_length=50)
+    city = models.CharField(max_length=50)
+    
+>>>>>>> neil
     discount = models.DecimalField(
         max_digits=4,
         decimal_places=2,
@@ -433,8 +468,26 @@ class Trip(models.Model):
             raise ValidationError("Return date cannot be before the departure date.")
         if self.trip_type == 'group' and not self.guide:
             raise ValidationError("A guide must be assigned for group trips.")
+<<<<<<< HEAD
         if self.is_one_way and self.return_date:
             raise ValidationError("A one way trip can't have a return date")
+=======
+
+
+
+    
+    def save(self, *args, **kwargs):
+        
+        created = not self.pk
+        super().save(*args, **kwargs)
+        
+       
+        if created and self.trip_type == 'group':
+            GroupChatConversation.objects.get_or_create(trip=self)
+
+
+
+>>>>>>> neil
     
     def delete(self, *args, **kwargs):
         trip_folder = os.path.join(settings.MEDIA_ROOT, "trips_images", self.title)
@@ -443,6 +496,7 @@ class Trip(models.Model):
         super().delete(*args, **kwargs)
 
 
+<<<<<<< HEAD
 class DepartureTrip(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='departure_places')
     location = models.CharField(max_length=100)
@@ -452,6 +506,30 @@ class DepartureTrip(models.Model):
     
     def __str__(self):
         return f"{self.trip.title} - {self.location}"
+=======
+
+    @property
+    def group_chat_exists(self):
+        
+        return hasattr(self, 'group_chat')
+
+    def get_group_chat_participants(self):
+        
+        participants = list(self.purchasers.all().values_list('user', flat=True))
+        if self.guide:
+            participants.append(self.guide.user.id)
+        return User.objects.filter(id__in=participants)
+
+    def user_has_chat_access(self, user):
+       
+        if hasattr(user, 'customer'):
+            return self.purchasers.filter(id=user.customer.id).exists()
+        if hasattr(user, 'admin') and self.guide:
+            return user.admin.id == self.guide.id
+        return False
+
+
+>>>>>>> neil
 
 
 def upload_to_trip_images(instance, filename):
@@ -465,6 +543,119 @@ class TripImage(models.Model):
     def __str__(self):
         return f"Image for {self.trip.title} (Uploaded at {self.uploaded_at})"
 
+<<<<<<< HEAD
+=======
+# ---------------------- reservation -------------------#
+class Reservation(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Canceled', 'Canceled'),
+    ]
+
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    departure_location = models.CharField(max_length=50)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
+    rooms = models.JSONField(default=dict)  # Example: {"Single": 2, "Suite": 1}
+    tickets_number = models.PositiveBigIntegerField(default=1)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    STATUS_CHOICES=[
+        ('Pending','Pending'),
+        ('Confirmed','Confirmed'),
+        ('Completed','Completed'),
+        ('Canceled','Canceled')
+    ]
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='Pending'
+    )
+    is_paid = models.BooleanField(default=False)
+    
+
+    @property
+    def check_out_time(self):
+        return self.trip.return_date
+
+    def __str__(self):
+        return f"Reservation by {self.user.user.username} at {self.hotel.name} ({self.status})"
+
+    
+
+# notification
+class Notification(models.Model):
+    STATUS_CHOICES = [
+        ('unread', 'Unread'),
+        ('read', 'Read'),
+    ]
+    
+    TYPE_CHOICES = [
+        ('reservation_confirmed', 'Reservation Confirmed'),
+        ('reservation_rejected', 'Reservation Rejected'),
+        ('reservation_canceled', 'Reservation Canceled'),
+        ('payment_received', 'Payment Received'),
+        ('payment_failed', 'Payment Failed'),
+        ('trip_reminder', 'Trip Reminder'),
+        ('trip_canceled', 'Trip Canceled'),
+        ('trip_rescheduled', 'Trip Rescheduled'),
+        ('security_alert', 'Security Alert'),
+        ('promo_offer', 'Promo Offer'),
+        ('subscription-expired', 'subscription-expired'),
+    ]
+
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unread')
+
+    def mark_as_read(self):
+        """Marks the notification as read."""
+        self.status = 'read'
+        self.save()
+
+    def __str__(self):
+        return f"{self.recipient.username} - {self.type} - {self.status}"
+
+class DeletionRequest(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="deletion_request")
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('cancelled', 'Cancelled'),('completed','completed')], default='pending')
+    request_date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Deletion Request for {self.user.username} - at {self.request_date} - {self.status}"
+    
+
+#      ---------- TICKET FOR SUPPORT ----------
+class SupportTicket(models.Model):
+    PENDING ='pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    STATUS_CHOICES =[
+        (PENDING,'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED,'Rejected'),
+    ]
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_by = models.ForeignKey(Admin, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-created_at']
+#----------------------------------------------------------------------------------------------------------       
+
+>>>>>>> neil
 
 class ConversationDM(models.Model):
 
@@ -481,7 +672,11 @@ class ConversationDM(models.Model):
 
     ticket = models.OneToOneField(SupportTicket, null=True, blank=True, on_delete=models.SET_NULL)
     conversation_type = models.CharField(max_length=10, choices=TYPES, default='direct')
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> neil
     class Meta:
         ordering = ['-updated_at']
         constraints = [
@@ -608,6 +803,7 @@ class MessageBot(models.Model):
     def __str__(self):
         return f"Message by {self.sender} in Chatbot Conversation {self.conversation.id}"
     
+<<<<<<< HEAD
 # ---------------------- reservation -------------------#
 class Reservation(models.Model):
     STATUS_CHOICES = [
@@ -631,3 +827,28 @@ class Reservation(models.Model):
     def __str__(self):
         return f"Reservation by {self.user.user.username} at {self.hotel.name} ({self.status})"
 
+=======
+
+
+"""#      ---------- TICKET FOR SUPPORT ----------
+class SupportTicket(models.Model):
+    PENDING ='pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    STATUS_CHOICES =[
+        (PENDING,'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED,'Rejected'),
+    ]
+    
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_by = models.ForeignKey(Admin, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-created_at']
+    """
+>>>>>>> neil
