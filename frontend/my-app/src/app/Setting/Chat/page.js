@@ -37,28 +37,31 @@ export default function Messages() {
 */
     // Fetch user and conversations
     useEffect(() => {
-        async function fetchConversations() {
+        async function fetchtchTickets() {
             try {
                 const responseUser = await getMyProfile();
                 setUser(responseUser.profile);
-                console.log(responseUser.token + " " + responseUser.profile);
 
-                const response = await fetch(`${API_URL}/conversations/`, {
+                const response = await fetch(`${API_URL}/tickets/`, {
                     headers: {
                         'Authorization': `Bearer ${responseUser.token}`
-                    }
+                    },
                 });
 
+                if (!response.ok) {
+                    setError('Failed to fetch tickets');
+                    return;
+                }
 
                 const data = await response.json();
-                setConversations(data);
+                setTickets(data);
             } catch (err) {
                 setError(err.message);
             }
         }
 
-        fetchConversations();
-    }, []);
+        fetchtchTickets();
+    },[])
 
     /*// Fetch messages for the current conversation
     useEffect(() => {
@@ -85,7 +88,7 @@ export default function Messages() {
 
         fetchMessages();
     }, [conversationId]);
-*/
+
     async function createConversation() {
         try {
             const responseUser = await getMyProfile();
@@ -111,7 +114,7 @@ export default function Messages() {
             setError(err.message);
         }
     }
-/*
+
     async function sendMessage(e) {
         e.preventDefault();
         if (!message.trim() || !conversationId || !user) return;
@@ -161,19 +164,10 @@ export default function Messages() {
             <div className="w-1/3 rounded-xl bg-zinc-100 dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Conversations</h2>
-                    {conversations.length === 0 && (
-                        <button
-                            onClick={createConversation}
-                            className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-                        >
-                            + New
-                        </button>
-                    )}
+                    
                 </div>
                 <div className="space-y-2">
-                    {conversations.map((conv , index) => (
-                        <ConversationBox key={index} conversation={conv} />
-                    ))}
+                    
                 </div>
             </div>
 

@@ -53,8 +53,10 @@ urlpatterns = [
     path('create-conversation/', views.CreateConversation.as_view(), name='create-conversation'),
     path('group-messages/<int:conversation_id>/', views.ListGroupMessages.as_view(), name='list-group-messages'),
     path('group-conversations/', views.ListGroupConversations.as_view(), name='list-group-conversations'),
-    #path('support/tickets/',views.SupportTicketView.as_view(), name='support-tickets'),
-    #path('support/tickets/<int:pk>/accept/',views.AcceptTicketView.as_view(), name='accept-ticket'),
+    path('tickets/', views.SupportTicketView.as_view(), name='ticket-list'),
+    path('tickets/<int:pk>/accept/', views.AcceptTicketView.as_view(), name='accept-ticket'),
+    path('tickets/<int:ticket_id>/conversation/', views.TicketConversationView.as_view(), name='ticket-conversation'),
+    path('tickets/latest/', views.LatestSupportTicketAPIView.as_view(), name='latest-ticket'),
 
     
 ]

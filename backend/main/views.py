@@ -900,9 +900,82 @@ def path_not_found(request, path=None):
         status=status.HTTP_404_NOT_FOUND
     )
 
+from .serializers import SupportTicketSerializer
+from .models import SupportTicket, ConversationDM
+#----------------- Support Tickets ------------------
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import SupportTicket, ConversationDM
+from .serializers import SupportTicketSerializer, AcceptTicketSerializer, ConversationDMSerializer
+from rest_framework.exceptions import PermissionDenied
 
 
+class SupportTicketView(generics.ListCreateAPIView):
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'customer'):
+            return SupportTicket.objects.filter(customer=user.customer)
+        elif hasattr(user, 'admin'):
+            return SupportTicket.objects.all()
+        return SupportTicket.objects.none()
+
+    def perform_create(self, serializer):
+        if hasattr(self.request.user, 'customer'):
+            serializer.save(customer=self.request.user.customer)
+        else:
+            raise PermissionDenied("Only customers can create tickets")
+
+class AcceptTicketView(generics.UpdateAPIView):
+    serializer_class = AcceptTicketSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = SupportTicket.objects.filter(status=SupportTicket.PENDING)
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if hasattr(user, 'admin') and user.admin.department == 'customer_support':
+            ticket = serializer.save(
+                status=SupportTicket.ACCEPTED,
+                accepted_by=user.admin
+            )
+            conversation = ticket.accept(user.admin)
+            return Response({
+                'ticket': SupportTicketSerializer(ticket).data,
+                'conversation': ConversationDMSerializer(conversation).data
+            }, status=status.HTTP_200_OK)
+        else:
+            raise PermissionDenied("Only customer support staff can accept tickets")
+class TicketConversationView(generics.RetrieveAPIView):
+    serializer_class = ConversationDMSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        ticket_id = self.kwargs.get('ticket_id')
+        ticket = get_object_or_404(SupportTicket, id=ticket_id)
+        
+        # Verify user has access to this ticket's conversation
+        user = self.request.user
+        if not (hasattr(user, 'admin') and not (hasattr(user, 'customer') and user.customer != ticket.customer)):
+            raise PermissionDenied()
+            
+        if not hasattr(ticket, 'conversation'):
+            raise Http404("No conversation exists for this ticket")
+            
+        return ticket.conversation
+
+class LatestSupportTicketAPIView(generics.RetrieveAPIView):
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        if hasattr(self.request.user, 'customer'):
+            return SupportTicket.objects.filter(
+                customer=self.request.user.customer
+            ).order_by('-created_at').first()
+        return None
 
 
 

@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 User = get_user_model()
 
 
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -366,8 +367,31 @@ class GroupChatConversationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+from rest_framework import serializers
+from .models import SupportTicket, ConversationDM
 
 class SupportTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields = ['id', 'subject', 'description', 'status', 'created_at', 'accepted_by', 'accepted_at']
+        read_only_fields = ['status', 'created_at', 'accepted_by', 'accepted_at']
+
+class AcceptTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields = ['status']
+        read_only_fields = ['status']
+
+    def validate(self, attrs):
+        if self.instance.status != SupportTicket.PENDING:
+            raise serializers.ValidationError("Only pending tickets can be accepted")
+        return attrs
+
+class ConversationDMSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConversationDM
+        fields = ['id', 'staff', 'cust', 'created_at', 'updated_at', 'ticket', 'conversation_type']
+        read_only_fields = ['created_at', 'updated_at']
     class Meta:
         model = SupportTicket
         fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
