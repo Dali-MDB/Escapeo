@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer,HotelSerializer
+from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,HotelSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from django.db.models import Q, F, Min, Max, Subquery, OuterRef, ExpressionWrapper, FloatField, Value
@@ -12,7 +12,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages,Notification,Admin,Customer
+from .models import Trip,TripImage,Hotel,HotelImages,Notification,Admin,Customer
 from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission 
 from decimal import Decimal
 
@@ -912,7 +912,7 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessageDMSerializer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer
+from main.serializers import CustomerSerializer,TripSerializer,AdminSerializer, MessagesDMSeriliazer, ConversationDMSerializer, GroupChatConversationSerializer, MessageGroupSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated
 
@@ -923,10 +923,10 @@ from main.models import Trip, Customer, MessageDM, ConversationDM, GroupChatConv
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from .models import MessageDM, ConversationDM
-from .serializers import MessageDMSerializer
+from .serializers import MessagesDMSeriliazer
 
 class ListMessages(generics.ListAPIView):
-    serializer_class = MessageDMSerializer
+    serializer_class = MessagesDMSeriliazer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -961,7 +961,7 @@ class ListConversation(generics.ListAPIView):
     
 
 class CreateMessageView(generics.CreateAPIView):
-    serializer_class = MessageDMSerializer
+    serializer_class = MessagesDMSeriliazer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -980,7 +980,7 @@ class CreateMessageView(generics.CreateAPIView):
         pusher_client.trigger(
             f'conversation-{conversation.id}',
             'new-message',
-            MessageDMSerializer(message).data
+            MessagesDMSeriliazer(message).data
         )
 
 class CreateConversation(generics.CreateAPIView):
@@ -1093,11 +1093,11 @@ class ListGroupConversations(generics.ListAPIView):
 from .pusher import pusher_client
 from rest_framework import generics
 from .models import MessageDM
-from .serializers import MessageDMSerializer
+from .serializers import MessagesDMSeriliazer
 from rest_framework.permissions import IsAuthenticated
 
 class CreateMessageView(generics.CreateAPIView):
-    serializer_class = MessageDMSerializer
+    serializer_class = MessagesDMSeriliazer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):

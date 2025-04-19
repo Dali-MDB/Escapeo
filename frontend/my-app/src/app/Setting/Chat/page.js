@@ -15,34 +15,33 @@ export default function Messages() {
     const [error, setError] = useState(null);
 
     // Setup Pusher
-    useEffect(() => {
-        if (!conversationId) return;
-
+    /*useEffect(() => {
         const pusher = new Pusher('4b8aedc65def2e33fdf6', {
             cluster: 'eu',
             forceTLS: true
         });
 
-        const channel = pusher.subscribe(`conversation-${conversationId}`);
-        channel.bind('new-message', (data) => {
-            setMessages(prev => [...prev, data]);
-        });
+        if (conversationId) {
+            const channel = pusher.subscribe(`conversation-${conversationId}`);
+            channel.bind('new-message', (data) => {
+                setMessages(prev => [...prev, data]);
+            });
 
-        return () => {
-            channel.unbind_all();
-            channel.unsubscribe();
-            pusher.disconnect();
-        };
+            return () => {
+                channel.unbind_all();
+                channel.unsubscribe();
+                pusher.disconnect();
+            };
+        }
     }, [conversationId]);
-
+*/
     // Fetch user and conversations
     useEffect(() => {
         async function fetchConversations() {
             try {
-                setLoading(true);
                 const responseUser = await getMyProfile();
                 setUser(responseUser.profile);
-                console.log(responseUser.token + " " + responseUser.profile.id);
+                console.log(responseUser.token + " " + responseUser.profile);
 
                 const response = await fetch(`${API_URL}/conversations/`, {
                     headers: {
@@ -53,18 +52,15 @@ export default function Messages() {
 
                 const data = await response.json();
                 setConversations(data);
-                if (data.length > 0) {
-                    setConversationId(data[0].id);
-                }
-            } finally {
-                setLoading(false);
+            } catch (err) {
+                setError(err.message);
             }
         }
 
         fetchConversations();
     }, []);
 
-    // Fetch messages for the current conversation
+    /*// Fetch messages for the current conversation
     useEffect(() => {
 
         async function fetchMessages() {
@@ -89,7 +85,7 @@ export default function Messages() {
 
         fetchMessages();
     }, [conversationId]);
-
+*/
     async function createConversation() {
         try {
             const responseUser = await getMyProfile();
@@ -106,17 +102,16 @@ export default function Messages() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create conversation');
+                setError('Failed to create conversation');
             }
 
             const data = await response.json();
             setConversations(prev => [...prev, data]);
-            setConversationId(data.id);
         } catch (err) {
             setError(err.message);
         }
     }
-
+/*
     async function sendMessage(e) {
         e.preventDefault();
         if (!message.trim() || !conversationId || !user) return;
@@ -145,23 +140,19 @@ export default function Messages() {
             setError(err.message);
         }
     }
-
+*/
     const ConversationBox = ({ conversation }) => {
         return (
             <div
-                onClick={() => setConversationId(conversation.id)}
                 className={`p-3 rounded-lg cursor-pointer ${
-                    conversation.id === conversationId
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                }`}
+                    'bg-blue-500 text-white'
+                    }`}
             >
                 <p className="font-medium">Staff Chat</p>
             </div>
         );
     };
 
-    if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
     return (
@@ -180,16 +171,15 @@ export default function Messages() {
                     )}
                 </div>
                 <div className="space-y-2">
-                    {conversations.map((conv) => (
-                        <ConversationBox key={conv.id} conversation={conv} />
+                    {conversations.map((conv , index) => (
+                        <ConversationBox key={index} conversation={conv} />
                     ))}
                 </div>
             </div>
 
-            {/* Chat area */}
+            {/* Chat area 
             <div className="w-2/3 flex flex-col">
-                {conversationId ? (
-                    <>
+                <>
                         <div className="flex-1 p-4 overflow-y-auto">
                             {messages.length === 0 ? (
                                 <div className="flex items-center justify-center h-full">
@@ -217,7 +207,7 @@ export default function Messages() {
                             )}
                         </div>
 
-                        <form onSubmit={sendMessage} className="p-4 border-t">
+                        {/*<form onSubmit={sendMessage} className="p-4 border-t">
                             <div className="flex gap-2">
                                 <input
                                     value={message}
@@ -234,12 +224,8 @@ export default function Messages() {
                             </div>
                         </form>
                     </>
-                ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                        <p>Select or create a conversation</p>
-                    </div>
-                )}
-            </div>
+                
+            </div>*/}
         </div>
     );
 }

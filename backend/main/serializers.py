@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Customer,Admin,Trip,TripImage,DepartureTrip,HotelImages,Hotel
+from .models import Customer,Admin,Trip,TripImage, MessageDM, ConversationDM, GroupChatConversation, MessageGroup, SupportTicket
 from .trip_categories import TripTypeChoices
 from rest_framework.exceptions import ValidationError
 
@@ -146,7 +146,7 @@ class AdminSerializer(serializers.ModelSerializer):
 
 
 
-
+from .models import Hotel, HotelImages, TripImage, DepartureTrip
 
 #------------------------  Hotels Serialiers ---------------------------------------
 class HotelImageSerializer(serializers.ModelSerializer):
@@ -318,45 +318,56 @@ class NotificationSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from main.models import ConversationDM, MessageDM, MessageGroup, GroupChatConversation
 
-class ConversationDMSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConversationDM
-        fields = ['id', 'cust', 'staff', 'created_at']  # Use your actual field names
-        read_only_fields = ['created_at']
+class MessagesDMSeriliazer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField()
+    receiver = serializers.StringRelatedField()
 
-class MessageDMSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta :
         model = MessageDM
-        fields = ['id', 'conversation', 'sender', 'receiver', 'content', 'sent_at', 'is_read']
-        read_only_fields = ['sent_at', 'is_read']
+        fields = [
+            "id", "conversation", "sender", "receiver", 
+            "content", "sent_at", "is_read"
+        ]
+        read_only_fields = ["sent_at","is_read"]
 
-    def create(self, validated_data):
-        # Mark previous messages as read if needed
-        message = MessageDM.objects.create(**validated_data)
-        return message
-    def update(self, instance, validated_data):
-        # Update the message instance with the provided data
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+class ConversationDMSerializer(serializers.ModelSerializer):
+    staff = serializers.StringRelatedField(source="staff.user")
+    cust = serializers.StringRelatedField(source="cust.user")
+    last_message = MessagesDMSeriliazer(read_only=True)
 
-class GroupChatConversationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GroupChatConversation
-        fields = ['id', 'name', 'participants', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
+       model = ConversationDM
+       fields = ["id", "staff", "cust", 
+                 "created_at", "updated_at", 
+                 "last_message"]
 
 class MessageGroupSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sent_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
     class Meta:
         model = MessageGroup
-        fields = ['id', 'group', 'sender', 'content', 'timestamp']
-        read_only_fields = ['timestamp']
+        fields = ['id', 'conversation', 'sender', 'sender_username', 'content', 'sent_at']
+        read_only_fields = ['id', 'sender', 'sent_at']
 
-    def create(self, validated_data):
-        message = MessageGroup.objects.create(**validated_data)
-        return message
-#from main.models import SupportTicket
+class GroupChatConversationSerializer(serializers.ModelSerializer):
+    participants = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    messages = MessageGroupSerializer(many=True, source='chat_messages', read_only=True)
+
+    class Meta:
+        model = GroupChatConversation
+        fields = ['id', 'trip', 'participants', 'created_at', 'updated_at', 'messages']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+from main.models import SupportTicket
+
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
+        read_only_fields = ['status', 'created_at', 'accepted_by']
+
 
 #class SupportTicketSerializer(serializers.ModelSerializer):
 #    class Meta:

@@ -25,6 +25,7 @@ const InputLogin = ({ type, name, value, onChange, placeholder }) => {
             id={name}
             className={`input bg-transparent ${isFilled ? "filled" : ""}`}
             onChange={(e) => {
+              e.preventDefault();
               onChange(e); // Pass the event to the parent
             }}
             required
@@ -41,6 +42,7 @@ const InputLogin = ({ type, name, value, onChange, placeholder }) => {
             id={name}
             className={` input   ${isFilled ? "filled" : ""}`}
             onChange={(e) => {
+              e.preventDefault();
               onChange(e); // Pass the event to the parent
             }}
             required
