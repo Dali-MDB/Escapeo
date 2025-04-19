@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const PackageCard = (props) => {
   return (
-    <div className="group relative rounded-[50px] w-80 h-[500px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
+    <div className="group relative rounded-[50px] w-72 min-h-[420px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
       {/* Background Image */}
       <div
         className="absolute inset-0 rounded-[50px] bg-cover bg-center"

@@ -90,7 +90,7 @@ const StyledWrapper = styled.div`
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    background-color: #FEF8F5;
+    background-color: white;
     padding: 0 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);

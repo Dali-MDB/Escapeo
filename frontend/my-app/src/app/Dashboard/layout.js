@@ -6,6 +6,7 @@ import { TripProvider } from './context/tripContext';
 export default function Layout({ children }) {
   return (
     <TripProvider>
+      
     <div style={{ display: 'flex', backgroundColor:'#EEDAC4',color:'black',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
       {/* Navbar at the top */}
       <Navbar />

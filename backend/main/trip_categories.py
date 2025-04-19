@@ -40,7 +40,7 @@ class DestinationTypeChoices:
 class TransportTypeChoices:
     CAR = 'car','car'
     BUS = 'bus','bus'
-    AIR_PLANE = 'air-place','air-plane'
+    AIR_PLANE = 'air-plane','air-plane'
     CRUISE = 'cruise', 'Cruise Ship'
     CHOICES = [CAR,BUS,AIR_PLANE,CRUISE]
 

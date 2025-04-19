@@ -65,7 +65,7 @@ const StyledWrapper = styled.div`
   }
 
   .selected {
-    background-color: #FEF8F5;
+    background-color: white;
     padding: 14px 12px 6px;
     border: 1px solid rgba(0, 0, 0, 0.3);
     border-radius: 8px;
@@ -88,7 +88,7 @@ const StyledWrapper = styled.div`
     left: 12px;
     top: 0%;
     transform: translateY(-50%);
-    background-color: #FEF8F5;
+    background-color: white;
     padding: 0 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);
@@ -106,7 +106,7 @@ const StyledWrapper = styled.div`
    .options {
     position: absolute;
     width: 100%;
-    background-color: #FEF8F5;
+    background-color: white;
     border-radius: 5px;
     margin-top: 5px;
     overflow: hidden;
@@ -130,11 +130,11 @@ const StyledWrapper = styled.div`
   }
 
   .selected-option {
-    background-color: #f0f0f0;
+    background-color: white;
   }
 
   .select.open .selected {
-    border-color: #ed881f;
+    border-color: white;
   }
 
   /* Rest of your styles remain the same */
