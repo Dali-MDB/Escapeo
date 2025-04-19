@@ -1,35 +1,28 @@
-<<<<<<< HEAD
-from django.forms import ValidationError
-=======
-from rest_framework.exceptions import NotFound
->>>>>>> neil
+import json
 from django.shortcuts import render
 from rest_framework.response import Response
-
-from rest_framework import generics
-from rest_framework import permissions
-
 from rest_framework import status
 from rest_framework.decorators import api_view,APIView,permission_classes
+from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,HotelSerializer
+from .serializers import CustomerSerializer,TripSerializer,AdminSerializer,DepartureTripSerializer,HotelSerializer
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
+from rest_framework.exceptions import NotFound
 from django.db.models import Q, F, Min, Max, Subquery, OuterRef, ExpressionWrapper, FloatField, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-<<<<<<< HEAD
-from .models import Trip,TripImage,Hotel,HotelImages,Notification,Admin,Customer
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission 
+from .models import Trip,TripImage,DepartureTrip,Hotel,HotelImages,Notification,Admin,Customer
+from .permissions import TripPermission,CreateTripPermission,addAdminPermission,CustomerPermissions,DepartureTripPermission
 from decimal import Decimal
 
+# Correct the import path or remove it if unnecessary
+# Example: If permissions is in the same directory as views.py
+from . import permissions
 
-=======
-from .models import Trip, Customer
-from .permissions import TripPermission,CreateTripPermission,addAdminPermission
->>>>>>> neil
+
 
 
 User = get_user_model()
@@ -907,10 +900,17 @@ def path_not_found(request, path=None):
         status=status.HTTP_404_NOT_FOUND
     )
 
-# for customers to list all their purcahsed trips and favorite trips  
+
+
+
+
+
+
+
+
 class ListPurchasedTrips(generics.ListAPIView):
     serializer_class = TripSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         
@@ -920,11 +920,7 @@ class ListPurchasedTrips(generics.ListAPIView):
             raise NotFound("No customer profile found for this user.")
         
         return customer.purchased_trips.all()
-
-
-
-
-
+    
 
 from rest_framework.exceptions import NotFound
 from django.shortcuts import render
@@ -1104,7 +1100,6 @@ class ListGroupMessages(generics.ListAPIView):
 
         return MessageGroup.objects.none()
 
-
 class ListGroupConversations(generics.ListAPIView):
    
     serializer_class = GroupChatConversationSerializer
@@ -1157,37 +1152,3 @@ class CreateMessageView(generics.CreateAPIView):
             
         except ConversationDM.DoesNotExist:
             raise NotFound("Conversation not found")
-
-
-#
-#class SupportTicketView(generics.ListCreateAPIView):
-#    serializer_class = SupportTicketSerializer
-#    permission_classes = [IsAuthenticated]
-#
-#    def get_queryset(self):
-#        if hasattr(self.request.user, 'customer'):
-#            return SupportTicket.objects.filter(customer=self.request.user.customer)
-#        return SupportTicket.objects.none
-#    
-#    def perform_create(self, serializer):
-#        if hasattr(self.request.user, 'customer'):
-#            serializer.save(customer=self.request.user.customer)
-#
-#
-#class AcceptTicketView(generics.UpdateAPIView):
-#    queryset = SupportTicket.objects.filter(status='pending')
-#    serializer_class = SupportTicketSerializer
-#
-#    def perform_update(self, serializer):
-#         if hasattr(self.request.user, 'admin') and self.request.user.admin.department == 'customer_support':
-#            serializer.save(
-#                status='accepted',
-#                accepted_by=self.request.user.admin
-#            )
-#           
-#            ConversationDM.objects.create(
-#                staff=self.request.user.admin,
-#                cust=serializer.instance.customer,
-#                ticket=serializer.instance,
-#                conversation_type='support'
-#            )

@@ -33,12 +33,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
-ALLOWED_HOSTS = []
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins
-=======
 ALLOWED_HOSTS = ['*']
->>>>>>> neil
 
 
 # Application definition
@@ -55,13 +50,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
-<<<<<<< HEAD
+
     'channels',
     'corsheaders',   #to link the front
-=======
     'chat',
-    'channels',
->>>>>>> neil
 ]
 
 MIDDLEWARE = [
@@ -120,7 +112,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'travel_db',
         'USER': 'postgres',
-        'PASSWORD':  'neil071005',
+        'PASSWORD':  'merouane',
         'HOST': 'localhost',
         'PORT': '5432'
     }

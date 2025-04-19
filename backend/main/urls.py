@@ -25,8 +25,6 @@ urlpatterns = [
     path('my_profile/',view=views.MyProfile.as_view(),name='my-profile'),
 
     path('view_profile/<str:id>/',view=views.viewProfile,name='view-profile'),
-<<<<<<< HEAD
-
 
     #path('add_hotel/',view=views.addHotel,name='add-hotel'),
     #path('all_hotels/',view=views.allHotels,name='all-hotels'), 
@@ -41,9 +39,7 @@ urlpatterns = [
 
 
     path('get_user_info/',view=views.get_user_info,name='get-user-info'),
-=======
-    path('purchased_trips/',view=views.ListPurchasedTrips.as_view(),name='purchased-trips'),
->>>>>>> neil
+    #path('purchased_trips/',view=views.ListPurchasedTrips.as_view(),name='purchased-trips'),
     
 
 

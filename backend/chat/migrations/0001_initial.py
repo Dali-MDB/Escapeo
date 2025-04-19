@@ -7,11 +7,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     initial = True
-
     dependencies = [
-        ('main', '0008_alter_groupchatconversation_participants_and_more'),
+   ('main', '__first__'),
     ]
-
     operations = [
         migrations.CreateModel(
             name='Thread',

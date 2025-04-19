@@ -1,5 +1,4 @@
 from rest_framework.exceptions import NotFound
-<<<<<<< HEAD
 from django.shortcuts import render
 from rest_framework.response import Response
 
@@ -25,7 +24,6 @@ class ListMessages(generics.ListAPIView):
     def get_queryset(self):
         conversation_id = self.kwargs.get("conversation_id")
         conversation = get_object_or_404(ConversationDM, id =conversation_id)
-=======
 from rest_framework.response import Response
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import APIView
@@ -51,7 +49,6 @@ class ListMessages(generics.ListAPIView):
     def get_queryset(self):
         conversation_id = self.kwargs.get("conversation_id")
         conversation = get_object_or_404(ConversationDM, id=conversation_id)
->>>>>>> neil
 
         user = self.request.user
         if user == conversation.staff.user or user == conversation.cust.user:
@@ -60,14 +57,9 @@ class ListMessages(generics.ListAPIView):
 
 
 class ListConversation(generics.ListAPIView):
-<<<<<<< HEAD
 
     serializer_class = ConversationDMSerializer
     permission_classes = [permissions.IsAuthenticated]
-=======
-    serializer_class = ConversationDMSerializer
-    permission_classes = [IsAuthenticated]
->>>>>>> neil
 
     def get_queryset(self):
         user = self.request.user
@@ -76,14 +68,12 @@ class ListConversation(generics.ListAPIView):
         elif hasattr(user, 'admin'):
             return ConversationDM.objects.filter(staff__user=user)
         return ConversationDM.objects.none()
-<<<<<<< HEAD
     
 
 class ListGroupMessages(generics.ListAPIView):
     
     serializer_class = MessageGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
-=======
 
 class CreatePrivateChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -114,27 +104,21 @@ class CreatePrivateChatAPIView(APIView):
 class ListGroupMessages(generics.ListAPIView):
     serializer_class = MessageGroupSerializer
     permission_classes = [IsAuthenticated]
->>>>>>> neil
 
     def get_queryset(self):
         conversation_id = self.kwargs.get("conversation_id")
         conversation = get_object_or_404(GroupChatConversation, id=conversation_id)
 
-<<<<<<< HEAD
         # Vérifie si l'utilisateur fait partie du groupe
         user = self.request.user
         if conversation.participants.filter(id=user.id).exists():
             return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
 
-=======
         if conversation.participants.filter(id=self.request.user.id).exists():
             return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
->>>>>>> neil
-        return MessageGroup.objects.none()
 
 
 class ListGroupConversations(generics.ListAPIView):
-<<<<<<< HEAD
    
     serializer_class = GroupChatConversationSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -145,7 +129,6 @@ class ListGroupConversations(generics.ListAPIView):
     
 
 
-=======
     serializer_class = GroupChatConversationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -184,7 +167,6 @@ class CreateGroupChatAPIView(APIView):
 
 # ----------------- Support Tickets ------------------
 
->>>>>>> neil
 class SupportTicketView(generics.ListCreateAPIView):
     serializer_class = SupportTicketSerializer
     permission_classes = [IsAuthenticated]
@@ -192,13 +174,9 @@ class SupportTicketView(generics.ListCreateAPIView):
     def get_queryset(self):
         if hasattr(self.request.user, 'customer'):
             return SupportTicket.objects.filter(customer=self.request.user.customer)
-<<<<<<< HEAD
-        return SupportTicket.objects.none
     
-=======
         return SupportTicket.objects.none()
 
->>>>>>> neil
     def perform_create(self, serializer):
         if hasattr(self.request.user, 'customer'):
             serializer.save(customer=self.request.user.customer)
@@ -207,32 +185,19 @@ class SupportTicketView(generics.ListCreateAPIView):
 class AcceptTicketView(generics.UpdateAPIView):
     queryset = SupportTicket.objects.filter(status='pending')
     serializer_class = SupportTicketSerializer
-<<<<<<< HEAD
 
-    def perform_update(self, serializer):
-         if hasattr(self.request.user, 'admin') and self.request.user.admin.department == 'customer_support':
-=======
-    permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
         if hasattr(self.request.user, 'admin') and self.request.user.admin.department == 'customer_support':
->>>>>>> neil
             serializer.save(
                 status='accepted',
                 accepted_by=self.request.user.admin
             )
-<<<<<<< HEAD
-           
-=======
->>>>>>> neil
             ConversationDM.objects.create(
                 staff=self.request.user.admin,
                 cust=serializer.instance.customer,
                 ticket=serializer.instance,
                 conversation_type='support'
-<<<<<<< HEAD
-            )
-=======
             )
 
 
@@ -246,4 +211,3 @@ class LatestSupportTicketAPIView(APIView):
                 serializer = SupportTicketSerializer(ticket)
                 return Response(serializer.data)
         return Response({})
->>>>>>> neil
