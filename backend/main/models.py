@@ -7,7 +7,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core import validators
 from django.core.exceptions import ValidationError
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
-from chat.models import Thread
 # ------------------------- Users -------------------------
 import uuid
 class User(AbstractUser):
@@ -65,7 +64,7 @@ class Customer(models.Model):
     ]
     favorite_currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USD')
 
-    purchased_trips = models.ManyToManyField('Trip', related_name="purchasers", blank=True)
+    #purchased_trips = models.ManyToManyField('Trip', related_name="purchasers", blank=True)
     favorite_trips = models.ManyToManyField('Trip', related_name="favorited_by", blank=True)
 
     class Meta:
@@ -74,6 +73,9 @@ class Customer(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Customer"
+    @property
+    def purchased_trips(self):
+        return Trip.objects.filter(purchasers=self)
 
 
 
@@ -600,7 +602,7 @@ class MessageBot(models.Model):
     
 
 
-#      ---------- TICKET FOR SUPPORT ----------
+"""#      ---------- TICKET FOR SUPPORT ----------
 class SupportTicket(models.Model):
     PENDING ='pending'
     ACCEPTED = 'accepted'
@@ -610,7 +612,7 @@ class SupportTicket(models.Model):
         (ACCEPTED, 'Accepted'),
         (REJECTED,'Rejected'),
     ]
-
+    
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200)
     description = models.TextField()
@@ -620,4 +622,4 @@ class SupportTicket(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-    
+    """
