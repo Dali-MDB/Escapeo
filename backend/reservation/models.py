@@ -26,6 +26,8 @@ class BaseReservation(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created_at']
+        
+
 
 
     def mark_as_paid(self):
@@ -55,6 +57,15 @@ class HotelReservation(BaseReservation):
     rooms = models.PositiveBigIntegerField(default=1)
     total_nights = models.PositiveIntegerField(editable=False)
     guests = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+
+    class Meta(BaseReservation.Meta):
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['check_out']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['hotel']),
+        ]
 
     def clean(self):
         # Validate dates
@@ -94,6 +105,14 @@ class TripReservation(BaseReservation):
     )
     date = models.DateTimeField()   
 
+    class Meta(BaseReservation.Meta):
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['date']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['trip']),
+        ]
+    
 
     @property
     def get_total_price(self):

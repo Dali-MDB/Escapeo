@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,pre_delete
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from reservation.models import HotelReservation, TripReservation
@@ -220,3 +220,60 @@ def handle_cancelled_trip_reservation(reservation: TripReservation, paid: bool, 
         message=message
     )
     
+
+
+'''
+
+#when reservations take more than 48h without being confirmed, they are deleted automatically, send notifications
+
+@receiver(pre_delete, sender=HotelReservation)
+def expired_hotel_reservation(sender, instance, **kwargs):
+    """
+    Notify user when a HotelReservation is deleted due to expiration (unpaid for 48h)
+    """
+    user = instance.user.user
+    hotel_info = f"hotel {instance.hotel.name} ({get_hotel_date_info(instance)})"
+    
+    message = (
+        f'Your reservation at {hotel_info} has expired due to payment not being completed '
+        f'within the allowed 48-hour period.\n'
+        'Please make a new reservation if you still want to book.'
+    )
+    
+    create_notification(
+        recipient=user,
+        notification_type='Reservation',
+        title='Hotel Reservation Expired',
+        message=message
+    )
+
+@receiver(pre_delete, sender=TripReservation)
+def expired_trip_reservation(sender, instance, **kwargs):
+    """
+    Notify user when a TripReservation is deleted due to expiration (unpaid for 48h)
+    """
+    user = instance.user.user
+    trip = instance.trip
+    date_info = get_trip_date_info(trip)
+    trip_info = f'trip "{trip.title}" ({date_info})'
+
+    message = (
+        f'Your reservation for {trip_info} has expired due to payment not being completed '
+        f'within the allowed 48-hour period.'
+    )
+
+    # If the trip reservation includes a hotel reservation
+    if getattr(instance, 'hotel_reservation', None):
+        hotel = instance.hotel_reservation.hotel
+        hotel_dates = get_hotel_date_info(instance.hotel_reservation)
+        message += f'\nThis included a hotel reservation at "{hotel.name}" ({hotel_dates}) which is now also cancelled.'
+
+    message += '\nPlease make a new reservation if you still want to book.'
+
+    create_notification(
+        recipient=user,
+        notification_type='Reservation',
+        title='Trip Reservation Expired',
+        message=message
+    )
+'''

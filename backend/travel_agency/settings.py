@@ -53,11 +53,12 @@ INSTALLED_APPS = [
     'chatbot',
     'reservation',
     'signals.apps.SignalsConfig',
-    
+    'Chat',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
     'drf_spectacular',    #swagger auto documentation
+    'django_celery_beat',
 
     'corsheaders',   #to link the front
 ]
@@ -185,6 +186,63 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,               # Blacklist old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+
+
+
+
+
+#CELERY SETTNGS
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+
+
+from celery.schedules import crontab
+
+
+CELERY_BEAT_SCHEDULE = {
+    'update_trip_status': {
+        'task': 'main.tasks.update_trip_status',
+        'schedule': crontab(hour=0, minute=30),  # Daily at 00:30
+        'options': {
+            'expires': 60 * 60 * 2,  # Expire after 2 hours
+        }
+    },
+    
+    'expire_unpaid_reservations': {
+        'task': 'main.tasks.expire_unpaid_reservations',
+        'schedule': crontab(minute=0, hour='*/6'),  # Every 6 hours
+        'options': {
+            'expires': 60 * 60,  # Expire after 1 hour
+        }
+    },
+    
+    'free_occupied_rooms': {
+        'task': 'main.tasks.free_occupied_rooms',
+        'schedule': crontab(minute=15, hour='*/2'),  # Every 2 hours, 15 mins offset
+        'options': {
+            'expires': 60 * 60,  # Expire after 1 hour
+        }
+    },
+    
+    'update_reservation_statuses': {
+        'task': 'main.tasks.update_reservation_statuses',
+        'schedule': crontab(hour=12, minute=30, day_of_month='*/2'),  # Every 2 days at 12:30
+        'options': {
+            'expires': 60 * 60 * 3,  # Expire after 3 hours
+        }
+    },
+}
+
+
+
 
 
 SPECTACULAR_SETTINGS = {        #for auto documentation

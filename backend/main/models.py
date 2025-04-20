@@ -202,6 +202,17 @@ class Trip(models.Model):
         help_text="Rating from 1 to 5 stars",
         db_default=3,
     )
+
+
+    STATUS_CHOICES =[
+        ('coming','Coming Soon'),
+        ('ongoing','Ongoing'),
+        ('done','Completed'),
+    ]
+
+    status = models.CharField(max_length=10,default='coming')
+
+
     departure_date = models.DateTimeField()
     return_date = models.DateTimeField(blank=True, null=True)
     is_one_way = models.BooleanField(default=False)
@@ -218,7 +229,12 @@ class Trip(models.Model):
                 name='unique_trip_signature'
             ),
         ]
-    
+        indexes = [
+            models.Index(fields=['is_one_way', 'departure_date']),
+            models.Index(fields=['is_one_way', 'return_date']),
+            models.Index(fields=['status']),
+        ]
+
     def clean(self):
         if self.return_date and self.departure_date >= self.return_date:
             raise ValidationError("Return date cannot be before the departure date.")
