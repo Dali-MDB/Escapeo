@@ -173,7 +173,7 @@ class Migration(migrations.Migration):
             name='HotelImages',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to=main.models.upload_tp_hotel_images)),
+                ('image', models.ImageField(upload_to=main.models.upload_to_hotel_images)),
                 ('uploaded_at', models.DateTimeField(auto_now_add=True)),
                 ('hotel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='main.hotel')),
             ],
