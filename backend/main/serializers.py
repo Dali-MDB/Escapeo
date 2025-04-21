@@ -267,4 +267,4 @@ class SupportTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportTicket
         fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
-        read_only_fields = ['status', 'created_at', 'accepted_by']
+        read_only_fields = ['created_at']
