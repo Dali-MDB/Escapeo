@@ -101,7 +101,7 @@ export default function Account() {
       </div>
 
       {/* Profile information */}
-      <div className="w-full rounded-2xl bg-[#FEF8F5] p-4 pb-0">
+      <div className="w-full rounded-2xl bg-[var(--bg-color)] p-4 pb-0">
         {[
           { name: "Name", value: profileData.full_name || "N/A" },
           { name: "Email", value: profileData.email || "N/A" },

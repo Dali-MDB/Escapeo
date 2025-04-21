@@ -27,7 +27,7 @@ const InputLogin = ({ type, name, value, onChange, placeholder }) => {
               onChange(e); // Pass the event to the parent
             }}
             required
-            rows={5}
+            rows={4}
             value={value}
             name={name} // Ensure the name attribute is set
           />
@@ -44,7 +44,7 @@ const InputLogin = ({ type, name, value, onChange, placeholder }) => {
             name={name} // Ensure the name attribute is set
           />
         )}
-        <label htmlFor={name} className={`label ${type === "text-area" ? "top-5" : "top-[50%]"}`}>
+        <label htmlFor={name} className={` w-fit ${type === "text-area" ? "top-0 label-fixed"  : "label top-[50%]"}`}>
           {placeholder}
         </label>
         {type === "password" && ( // Show toggle button only for password fields
@@ -90,16 +90,30 @@ const StyledWrapper = styled.div`
     transition: all 0.2s ease-in-out;
     pointer-events: none; /* Ensure the label doesn't interfere with input clicks */
   }
-
+  .label-fixed {
+   position: absolute;
+    left: 35%;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #eedac4;
+    padding: 0 5px;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    transition: all 0.2s ease-in-out;
+    pointer-events: none; /* Ensure the label doesn't interfere with input clicks */
+  }
   .input:focus ~ .label,
-  .input.filled ~ .label {
+  .input.filled ~ .label ,
+  .input:focus ~ .label-fixed,
+  .input.filled ~ .label-fixed 
+  {
     top: 0;
     font-size: 14px;
-    color: #ed881f;
+    color: [var(--secondary)];
   }
 
   .input:focus {
-    border-color: #ed881f;
+    border-color: [var(--secondary)];
   }
 
   .eye-button {
@@ -119,7 +133,7 @@ const StyledWrapper = styled.div`
   }
 
   .eye-button:hover {
-    color: #ed881f;
+    color: [var(--secondary)];
   }
 `;
 

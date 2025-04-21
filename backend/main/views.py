@@ -583,6 +583,7 @@ def viewProfile(request,id):
     profile_data = profile_ser.data
     profile_data.pop('user')
     profile_data['username'] = request.user.username
+    
     return Response(profile_data)
 
 

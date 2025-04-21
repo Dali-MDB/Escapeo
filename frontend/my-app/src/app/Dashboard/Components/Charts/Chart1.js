@@ -48,7 +48,7 @@ export default function Chart1() {
   }, []);
 
   return (
-    <div className=" px-4 flex flex-col gap-5 justify-center py-6 px-auto w-full rounded-2xl bg-[#FEF8F5]">
+    <div className=" px-4 flex flex-col gap-5 justify-center py-6 px-auto w-full rounded-2xl bg-[var(--bg-color)]">
       <h1 className="w-fit px-8 text-lg">Visitors analytics</h1>
       
     </div>

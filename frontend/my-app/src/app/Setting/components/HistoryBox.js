@@ -82,7 +82,7 @@ const ActionButtons = () => (
 );
 
 const HistoryBox = (props) => (
-  <div className="w-full py-6 px-4 gap-2 flex flex-row justify-center items-center bg-[#FEF8F5] rounded-xl">
+  <div className="w-full py-6 px-4 gap-2 flex flex-row justify-center items-center bg-[var(--bg-color)] rounded-xl">
     <LogoSection {...props} />
     {props.choice === "Flights" ? (
       <FlightInfo {...props} />

@@ -5,7 +5,7 @@ const generateDeviceData = () => {
     return [
         { id: 'Desktop', label: 'Desktop', color:"#235784", value: Math.floor(Math.random() * 5000) + 1000 },
         { id: 'Mobile', label: 'Mobile',   color:"#6577F3", value: Math.floor(Math.random() * 5000) + 1000 },
-        { id: 'Tablet', label: 'Tablet',   color:"#ED881F", value: Math.floor(Math.random() * 5000) + 1000 },
+        { id: 'Tablet', label: 'Tablet',   color:"[var(--secondary)]", value: Math.floor(Math.random() * 5000) + 1000 },
         { id: 'Others', label: 'Others',   color:"#8FD0EF", value: Math.floor(Math.random() * 5000) + 1000 },
     
     ];

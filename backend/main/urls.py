@@ -39,7 +39,7 @@ urlpatterns = [
 
 
     path('get_user_info/',view=views.get_user_info,name='get-user-info'),
-    #path('purchased_trips/',view=views.ListPurchasedTrips.as_view(),name='purchased-trips'),
+    path('purchased_trips/',view=views.ListPurchasedTrips.as_view(),name='purchased-trips'),
     
 
 

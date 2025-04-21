@@ -9,7 +9,7 @@ import MyBarChart3 from "../Components/Charts/BarChart3";
 export default function Home() {
   return (
     <div className=" w-full flex flex-col gap-6">
-      <div className="w-full h-96 p-8 flex flex-col justify-center gap-3 rounded-xl bg-[#FEF8F5] items-center">
+      <div className="w-full h-96 p-8 flex flex-col justify-center gap-3 rounded-xl bg-[var(--bg-color)] items-center">
         <h1 className="text-left py-2 w-full text-2xl font-semibold">
           Visitors Analytics
         </h1>
@@ -24,7 +24,7 @@ export default function Home() {
         ].map((el, index) => (
           <div
             key={index}
-            className="w-full p-8 flex flex-col justify-center gap-3 rounded-xl bg-[#FEF8F5] items-center"
+            className="w-full p-8 flex flex-col justify-center gap-3 rounded-xl bg-[var(--bg-color)] items-center"
           >
             <span className="w-full flex justify-between items-center">
               <h1 className="w-full text-2xl font-bold">{el.value}</h1>
@@ -38,7 +38,7 @@ export default function Home() {
       </div>
       <div className="w-full grid grid-cols-[2fr_1fr] grid-rows-2 gap-4 p-0">
         {/* Left Section - Geo Chart */}
-        <div className="col-span-1 row-span-2 py-10 px-8  w-full overflow-hidden flex flex-col justify-center gap-3 rounded-xl bg-[#FEF8F5] items-center">
+        <div className="col-span-1 row-span-2 py-10 px-8  w-full overflow-hidden flex flex-col justify-center gap-3 rounded-xl bg-[var(--bg-color)] items-center">
           <h1 className="text-left py-2 w-full text-2xl font-semibold">
             Top Countries
           </h1>
@@ -47,7 +47,7 @@ export default function Home() {
         </div>
 
         {/* Right Section - Top Half */}
-        <div className="col-span-1 p-8 row-span-1 rounded-xl w-full flex flex-col bg-[#FEF8F5] justify-center items-center">
+        <div className="col-span-1 p-8 row-span-1 rounded-xl w-full flex flex-col bg-[var(--bg-color)] justify-center items-center">
         <h1 className="text-left py-2 w-full text-2xl font-semibold">
             Top Content
           </h1>
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         {/* Right Section - Bottom Half */}
-        <div className="col-span-1 row-span-1 p-8 rounded-xl w-full flex bg-[#FEF8F5] justify-center items-center">
+        <div className="col-span-1 row-span-1 p-8 rounded-xl w-full flex bg-[var(--bg-color)] justify-center items-center">
           <MyPieChart />
         </div>
       </div>

@@ -48,7 +48,7 @@ const BigTopicDiv = (props) => {
   const [opened, setOpened] = useState(false);
   return opened || !props.oneIsOpen ? (
     <div className="w-full flex flex-col justify-center items-center ">
-      <div className="w-full bg-[#FEF8F5] rounded-xl p-6 flex flex-row justify-between items-center">
+      <div className="w-full bg-[var(--bg-color)] rounded-xl p-6 flex flex-row justify-between items-center">
         <h1 className="text-xl font-bold">{props.topic}</h1>
         
           <button

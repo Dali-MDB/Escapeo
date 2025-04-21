@@ -136,7 +136,7 @@ export default function MoreInfo() {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full font-bold py-4 text-lg rounded-md bg-[#ED881F] text-black"
+          className="w-full font-bold py-4 text-lg rounded-md bg-[var(--secondary)] text-black"
         >
           Submit
         </button>

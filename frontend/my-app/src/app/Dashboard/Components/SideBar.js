@@ -18,7 +18,7 @@ export default function SideBar() {
 ];
 
   return (
-    <div className="w-1/3 text-lg h-fit font-semibold bg-[#FEF8F5] p-6 gap-6  rounded-2xl flex flex-col justify-center items-center text-left">
+    <div className="w-1/5 text-lg h-fit font-semibold bg-[var(--bg-color)] p-6 gap-6  rounded-2xl flex flex-col justify-center items-center text-left">
       {tabs.map((el, index) => {
         
         
@@ -32,7 +32,7 @@ export default function SideBar() {
           key={index}
           href={el.path}
           className={`w-full h-full px-4 py-4 rounded-xl flex gap-5 items-center justify-between ${
-            tab === el.path ? "bg-[#235784] shadow-[0_7px_10px_0px_rgba(0,0,0,0.2)] text-white" : "bg-gray-300"
+            tab === el.path ? "bg-[var(--primary)] shadow-[0_7px_10px_0px_rgba(0,0,0,0.2)] text-white" : "bg-gray-300"
           } rounded-lg `}
         >
           <span className="w-full flex flex-row justify-start gap-5 text-left items-center">{el.icon} {el.name}</span>

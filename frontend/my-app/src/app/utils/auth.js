@@ -21,10 +21,13 @@ export async function getMyProfile() {
       throw new Error(errorData.detail || "Failed to fetch profile");
     }
 
+    const Profile = await response.json();
+
     return {
       success: true,
-      profile: await response.json(),
+      profile: Profile,
       token: token,
+      isAdmin: (Profile.years_of_experience ? true : false),
     };
   } catch (error) {
     console.error("Profile fetch error:", error);
@@ -112,18 +115,18 @@ export const fetchFlights = async (searchParams) => {
     if (!response.ok) {
       const errorData = await response.json();
       return {
-          error: errorData.message || "Unknown error",
-          results: [],
-          status: "error",
+        error: errorData.message || "Unknown error",
+        results: [],
+        status: "error",
       };
-  }
-  
-  
+    }
+
+
 
     return response;
   } catch (error) {
     console.error("Flight search error:", error);
-   }
+  }
 };
 
 export async function login(email, password) {
@@ -307,19 +310,19 @@ export const authFetch = async (url, options = {}) => {
 export const fetchAllFlights = async () => {
   try {
     const response = await fetch(`${API_URL}/all_trips/`);
-    
+
     if (!response.ok) {
       // Try to get error details from response
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.message || 
+        errorData.message ||
         `Server error: ${response.status} ${response.statusText}`
       );
     }
 
     const data = await response.json();
     return data;
-    
+
   } catch (error) {
     console.error('Fetch flights error:', error);
     // Return a consistent error structure
@@ -330,3 +333,25 @@ export const fetchAllFlights = async () => {
     };
   }
 };
+
+export const fetchFavourites = async () => {
+  try {
+    const token = localStorage.getItem('accessToken')
+    const response = await fetch(`http://127.0.0.1:8000/favorites/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    
+    const favourites = await response.json()
+    const success = response.ok
+    return {
+      favourites, success, token
+
+    }
+  } catch (err) {
+    alert(err)
+  }
+}

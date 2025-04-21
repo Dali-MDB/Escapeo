@@ -4,9 +4,10 @@ import React from "react";
 import Link from "next/link";
 
 
-const PackageCard = (props) => {
+
+export default function FlightBox(props){
   return (
-    <div className="group relative rounded-[50px] w-72 min-h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
+    <div className="group relative rounded-xl w-72  h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
       {/* Background Image */}
       <div
         className="absolute inset-0 rounded-[50px] bg-cover bg-center"
@@ -26,11 +27,10 @@ const PackageCard = (props) => {
         </div>
 
         {/* Description and Price */}
-        <div className="flex justify-between items-center w-full gap-2">
+        <div className="flex justify-end items-center w-full gap-2">
           <p className="w-full">{props.description}</p>
-          <div className="flex flex-col items-end justify-center w-1/3">
-            <span className="text-lg opacity-50 line-through">{`$ ${props.oldPrice}`}</span>
-            <span className="text-xl text-white">{`$ ${props.newPrice}`}</span>
+          <div className="flex flex-col items-center justify-end w-1/2">
+            <span className="text-md text-white w-fit text-[#000]">{`${props.price || "500"} $`}</span>
           </div>
         </div>
       </div>
@@ -46,4 +46,3 @@ const PackageCard = (props) => {
   );
 };
 
-export default PackageCard;

@@ -100,7 +100,7 @@ export default function Login() {
             <input type="checkbox" id="remember" />
             <label htmlFor="remember">Remember me</label>
           </div>
-          <Link href="/Log/Forgot" className="text-[#ED881F] text-sm">
+          <Link href="/Log/Forgot" className="text-[var(--secondary)] text-sm">
             Forgot Password?
           </Link>
         </div>
@@ -108,7 +108,7 @@ export default function Login() {
         {/* Login Button */}
         <button
           type="submit"
-          className="w-full text-lg font-bold py-4 rounded-md bg-[#ED881F] text-white"
+          className="w-full text-lg font-bold py-4 rounded-md bg-[var(--secondary)] text-white"
           disabled={isLoading} // Disable button while loading
         >
           {isLoading ? "Logging in..." : "Login"}
@@ -119,7 +119,7 @@ export default function Login() {
       <div className="w-full text-center">
         <p>
           Don't have an account?
-          <Link href="/Sign/Sign_up" className="text-[#ED881F] px-2">
+          <Link href="/Sign/Sign_up" className="text-[var(--secondary)] px-2">
             Sign up
           </Link>
         </p>
@@ -141,7 +141,7 @@ export default function Login() {
         ].map((item, index) => (
           <button
             key={index}
-            className="flex items-center justify-center gap-2 border-2 border-[#ED881F] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:bg-[#ED881F] hover:text-white transition"
+            className="flex items-center justify-center gap-2 border-2 border-[var(--secondary)] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:bg-[var(--secondary)] hover:text-white transition"
           >
             {item.icon}
           </button>

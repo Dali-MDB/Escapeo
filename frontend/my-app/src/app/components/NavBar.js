@@ -13,6 +13,9 @@ import { navLinks } from "../data/data";
 import { useAuth } from '../context/AuthContext'; // Import useAuth
 import { useForm } from "../context/FormContext";
 import { getMyProfile } from "../utils/auth";
+import { Heart } from "lucide-react";
+
+
 import { AsyncCallbackSet } from "next/dist/server/lib/async-callback-set";
 const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 
@@ -42,8 +45,9 @@ const RightSectionCon = ({ clicked, setClicked }) => {
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [isAdmin, setIsAdmin] = useState(false);  
   useEffect(() => {
+
     async function fetchProfile() {
       try {
         const response = await getMyProfile();
@@ -64,6 +68,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
             profile_picture: '/JohnDoe.jpg',
           };
           setProfileData(transformedData);
+          setIsAdmin(response.isAdmin);
         } else {
           setError(response.error);
         }
@@ -103,14 +108,16 @@ const RightSectionCon = ({ clicked, setClicked }) => {
   return (
     <div className="w-full z-20 flex justify-end items-center">
       <div className="w-1/2 flex flex-row items-center">
-        <div className="flex w-full items-center justify-end gap-3">
+        {
+          
+          !isAdmin && <div className="flex w-full items-center justify-end gap-3">
           <Link href='/Setting/Favourite' className="flex justify-between gap-x-2 items-center">
-            <Image src={heart} alt="Favorites" height={30} width={30} />
+            {Heart && <Heart size={20} color="white" />}
             <span className="hidden 2xl:flex">Favorites</span>
           </Link>
           <span className="hidden 2xl:flex">|</span>
         </div>
-        <div className="flex w-full cursor-pointer items-center justify-end gap-3">
+        }<div className="flex w-full cursor-pointer items-center justify-end gap-3">
           <div className="flex justify-around items-center relative">
             <Image 
               src={profileData?.profile_picture || "/public/JohnDoe.jpg"} 
@@ -132,11 +139,11 @@ const RightSectionCon = ({ clicked, setClicked }) => {
             </div>
           </div>
 
-          <Link href="/Setting/Account" className="hidden 2xl:flex xl:text-lg">
+          <Link href={isAdmin ? "Dashboard/Profile" :"/Setting/Account"} className="hidden 2xl:flex xl:text-lg">
             {profileData?.username || "User"}
           </Link>
 
-          {clicked && <ProfileCard />}
+          {clicked && <ProfileCard isAdmin={isAdmin} profile={profileData} />}
         </div>
       </div>
     </div>
@@ -182,7 +189,7 @@ export default function NavBar() {
   };
 
   return (
-    <div className="w-[90%] h-24 sticky left-[5%] top-[5%] bg-[#235784] text-white flex px-10 flex-row z-50 rounded-full justify-between items-center shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]">
+    <div className="w-[90%] h-24 sticky left-[5%] top-[5%] bg-[var(--primary)] text-white flex px-10 flex-row z-50 rounded-full justify-between items-center shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]">
       <LeftSection path={path} />
       <CenterSection />
       {isAuthenticated ? (

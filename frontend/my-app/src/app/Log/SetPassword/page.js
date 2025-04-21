@@ -38,7 +38,7 @@ export default function SetPassword() {
           </button>
         </div>
 
-        <button type="submit" className="w-full font-bold py-2 rounded-md bg-[#ED881F] text-white">
+        <button type="submit" className="w-full font-bold py-2 rounded-md bg-[var(--secondary)] text-white">
           Reset Password
         </button>
       </form>
@@ -46,7 +46,7 @@ export default function SetPassword() {
       <div className="w-3/4 text-center">
         <p>
           Remember your password?
-          <Link href="/Login" className="text-[#ED881F] px-2">Login</Link>
+          <Link href="/Login" className="text-[var(--secondary)] px-2">Login</Link>
         </p>
       </div>
     </>

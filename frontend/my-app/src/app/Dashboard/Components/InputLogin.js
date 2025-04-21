@@ -81,7 +81,7 @@ const StyledWrapper = styled.div`
     border-radius: 8px;
     background: transparent;
     outline: none;
-    color:#FEF8F5;
+    color: [var(--bg-color)];
     transition: border-color 0.2s ease-in-out;
   }
 
@@ -90,7 +90,7 @@ const StyledWrapper = styled.div`
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    background-color: white;
+    background-color: [var(--bg-color)];
     padding: 0 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);
@@ -102,7 +102,7 @@ const StyledWrapper = styled.div`
     position: absolute;
     left: 12px;
     top:-30%;
-    background-color: #FEF8F5;
+    background-color: [var(--bg-color)];
     padding: 3px 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);
@@ -115,12 +115,12 @@ const StyledWrapper = styled.div`
    {
     top: 0;
     font-size: 14px;
-    color: #ed881f;
+    color: [var(--secondary)];
  
   }
 
   .input:focus {
-    border-color: #ed881f;
+    border-color: [var(--secondary)];
     color:rgba(0,0,0,0.8)
   }
   .input.filled{
@@ -144,7 +144,7 @@ const StyledWrapper = styled.div`
   }
 
   .eye-button:hover {
-    color: #ed881f;
+    color: [var(--secondary)];
   }
 `;
 

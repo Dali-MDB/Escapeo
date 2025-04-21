@@ -7,14 +7,16 @@ import InputLogin from "../Components/InputLogin";
 import CustomDropdown from "../Components/DropDown";
 import { useTrip } from "../context/tripContext";
 import { set } from "date-fns";
-import FlightBox from "../Components/flightBox";
-import PackageCard from "@/app/components/PackageCard";
-
+import FlightBox from "../Components/FlightBox";
 
 
 // Move all components outside the main function
 
 const FlightOptionsSection = ({ formData, handleChange }) => {
+
+
+
+
   const toggleOneWay = () => {
     handleChange({
       target: {
@@ -32,8 +34,8 @@ const FlightOptionsSection = ({ formData, handleChange }) => {
           type="button"
           onClick={toggleOneWay}
           className={`px-4 py-2 rounded-lg transition-colors ${formData.is_one_way
-              ? "bg-[#035280] text-white"
-              : "bg-transparent text-gray-800"
+            ? "bg-[#035280] text-white"
+            : "bg-transparent text-gray-800"
             }`}
         >
           One-way flight
@@ -49,7 +51,7 @@ const FlightOptionsSection = ({ formData, handleChange }) => {
             placeholder="Return Date"
             required={!formData.is_one_way}
           />
-<InputLogin
+          <InputLogin
             type="time"
             name="return_time"
             value={formData.return_time || new Date()}
@@ -310,6 +312,26 @@ const FormActions = ({ handleSubmit, setFormData }) => {
 
 
 
+const FlightsAdded = ({ flights }) => {
+  return (
+  
+  <div className=" text-white  rounded-xl w-full rounded-lg flex flex-col items-center justify-center">
+    {flights.length > 0 ? (
+      <div className="grid grid-cols-3 gap-x-4 gap-y-8 w-full justify-items-center">
+        {flights.filter(flight => flight.transport === "car").map((flight, index) => (
+        <FlightBox key={index} link={"#"} backgroundImage={flight.images[0]} title={flight.title} description={flight.description} price={flight.departure_places[0]?.price} />
+        ))}
+
+      </div>
+    ) : (
+      <p>No related flights available.</p>
+    )}
+
+  </div>
+  )
+}
+
+
 
 // Main component
 export default function Trips() {
@@ -343,188 +365,176 @@ export default function Trips() {
 
 
 
-// Update your handleSubmit to include images
-async function handleSubmit(e) {
-  e.preventDefault();
+  // Update your handleSubmit to include images
+  async function handleSubmit(e) {
+    e.preventDefault();
 
-  try {
-    const token = localStorage.getItem("accessToken");
-    const formDataToSend = new FormData();
+    try {
+      const token = localStorage.getItem("accessToken");
+      const formDataToSend = new FormData();
 
-    // Validate departure_places
-    const hasInvalidDeparture = formData.departure_places.some(place =>
-      !place.location || !place.capacity || !place.price
-    );
+      // Validate departure_places
+      const hasInvalidDeparture = formData.departure_places.some(place =>
+        !place.location || !place.capacity || !place.price
+      );
 
-    if (hasInvalidDeparture) {
-      alert("Please fill all fields for departure places");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Append simple form data
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key !== "uploaded_images" && key !== "departure_places") {
-        formDataToSend.append(key, value);
+      if (hasInvalidDeparture) {
+        alert("Please fill all fields for departure places");
+        setIsSubmitting(false);
+        return;
       }
-    });
 
-    formData.uploaded_images.forEach((image, index) => {
-      formDataToSend.append(`uploaded_images[${index}]`, image);
-    });
+      // Append simple form data
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== "uploaded_images" && key !== "departure_places") {
+          formDataToSend.append(key, value);
+        }
+      });
 
-    // Append departure places as JSON string
-    formDataToSend.append("departure_places", JSON.stringify(formData.departure_places));
+      formData.uploaded_images.forEach((image, index) => {
+        formDataToSend.append(`uploaded_images[${index}]`, image);
+      });
 
-
-    
-console.log(token)
-
-    const res = await fetch(`${API_URL}/add_trip/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formDataToSend,
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Failed to create trip.");
-    }
-
-    alert("Trip created successfully!");
-    setFormData(INITIAM_FORM_STATE); // reset form
-
-  } catch (err) {
-    console.error(err);
-    setError(err.message);
-    alert("Something went wrong: " + err.message);
-  } 
-}
-
-const handleChange = (e) => {
-  const { name, value, type, checked } = e.target;
-  setFormData(prev => ({
-    ...prev,
-    [name]: type === "checkbox" ? checked : value
-  }));
-};
-const addDeparturePlace = () => {
-  setFormData(prev => ({
-    ...prev,
-    departure_places: [...prev.departure_places, { location: "", capacity: 1, price: 0 }]
-  }));
-};
-
-const removeDeparturePlace = (index) => {
-  setFormData(prev => ({
-    ...prev,
-    departure_places: prev.departure_places.filter((_, i) => i !== index)
-  }));
-};
-const handleDepartureChange = (index, e) => {
-  const { name, value } = e.target;
-  const updatedDepartures = [...formData.departure_places];
-  updatedDepartures[index][name] = name === "capacity" || name === "price"
-    ? Number(value)
-    : value;
-  setFormData(prev => ({
-    ...prev,
-    departure_places: updatedDepartures
-  }));
-};
-
-const [flights, setFlights] = useState([]);
-
-useEffect(() => {
-
-  async function fetchRelatedFlights() {
-
-    const response = await fetch(`${API_URL}/all_trips/`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to fetch related flights.");
-    }
-    
-    return response.json();
+      // Append departure places as JSON string
+      formDataToSend.append("departure_places", JSON.stringify(formData.departure_places));
 
 
-  }
-  fetchRelatedFlights()
-    .then(data => {
-      setFlights(data);
-    })
-    .catch(err => {
+
+      console.log(token)
+
+      const res = await fetch(`${API_URL}/add_trip/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formDataToSend,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to create trip.");
+      }
+
+      alert("Trip created successfully!");
+      setFormData(INITIAM_FORM_STATE); // reset form
+
+    } catch (err) {
       console.error(err);
       setError(err.message);
-    });
-   
+      alert("Something went wrong: " + err.message);
+    }
+  }
 
-  
-}, []);
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+  const addDeparturePlace = () => {
+    setFormData(prev => ({
+      ...prev,
+      departure_places: [...prev.departure_places, { location: "", capacity: 1, price: 0 }]
+    }));
+  };
 
-return (
-  <div className="w-full min-h-screen flex justify-center  gap-4 mx-auto ">
-    <div className="bg-white text-white px-4 py-10 rounded-lg w-fit rounded-lg flex flex-col items-center justify-center"> 
-          {flights.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 w-full">
-                {flights.filter(flight => flight.transport === "car").map((flight, index) => (
-                  
-                  
-                    
-                  <PackageCard key={index} link={"#"} backgroundImage={flight.images[0]} title={flight.title} description={flight.description} oldPrice={flight.departure_places[0]?.price}  />
-                  ))}
-              
-            </div>
-          ) : (
-            <p>No related flights available.</p>
-          )}
+  const removeDeparturePlace = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      departure_places: prev.departure_places.filter((_, i) => i !== index)
+    }));
+  };
+  const handleDepartureChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedDepartures = [...formData.departure_places];
+    updatedDepartures[index][name] = name === "capacity" || name === "price"
+      ? Number(value)
+      : value;
+    setFormData(prev => ({
+      ...prev,
+      departure_places: updatedDepartures
+    }));
+  };
 
+  const [flights, setFlights] = useState([]);
+
+  useEffect(() => {
+
+    async function fetchRelatedFlights() {
+
+      const response = await fetch(`${API_URL}/all_trips/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch related flights.");
+      }
+
+      return response.json();
+
+
+    }
+    fetchRelatedFlights()
+      .then(data => {
+        setFlights(data);
+      })
+      .catch(err => {
+        console.error(err);
+        setError(err.message);
+      });
+
+
+
+  }, []);
+
+  return (
+    <div className="w-full min-h-screen flex justify-center gap-6 mx-auto ">
+
+      <div className="bg-[var(--bg-color)] w-full rounded-xl py-6 px-4 flex flex-col justify-center items-start">
+        <h1 className="text-2xl font-bold mx-4 mb-8">Flights Added</h1>
+        <FlightsAdded flights={flights} />
+      </div>
+      <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-[45%]">
+        <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <FlightInformationSection
+            formData={formData}
+            handleChange={handleChange}
+          />
+
+          <TripDetailsSection
+            formData={formData}
+            handleChange={handleChange}
+            TRIP_TYPES={TRIP_TYPES}
+            PRICE_CATEGORIES={PRICE_CATEGORIES}
+            EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
+            TRANSPORT_TYPES={TRANSPORT_TYPES}
+          />
+          <GuideSelectionSection guides={guides} formData={formData} handleChange={handleChange} />
+          <DepartureInformationSection
+            formData={formData}
+            handleChange={handleChange}
+            handleDepartureChange={handleDepartureChange}
+            addDeparturePlace={addDeparturePlace}
+            removeDeparturePlace={removeDeparturePlace}
+          />
+
+          <DestinationInformationSection
+            formData={formData}
+            handleChange={handleChange}
+            DESTINATION_TYPES={DESTINATION_TYPES}
+          />
+
+          <ImageUploadSection formData={formData} handleImageUpload={handleImageUpload} handleImageDelete={handleImageDelete} />
+          <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
+        </form>
+      </div>
     </div>
-
-    <div className="bg-white rounded-xl shadow-md p-6 w-1/2">
-      <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <FlightInformationSection
-          formData={formData}
-          handleChange={handleChange}
-        />
-
-        <TripDetailsSection
-          formData={formData}
-          handleChange={handleChange}
-          TRIP_TYPES={TRIP_TYPES}
-          PRICE_CATEGORIES={PRICE_CATEGORIES}
-          EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
-          TRANSPORT_TYPES={TRANSPORT_TYPES}
-        />
-        <GuideSelectionSection guides={guides}  formData={formData} handleChange={handleChange} />
-        <DepartureInformationSection
-          formData={formData}
-          handleChange={handleChange}
-          handleDepartureChange={handleDepartureChange}
-          addDeparturePlace={addDeparturePlace}
-          removeDeparturePlace={removeDeparturePlace}
-        />
-
-        <DestinationInformationSection
-          formData={formData}
-          handleChange={handleChange}
-          DESTINATION_TYPES={DESTINATION_TYPES}
-        />
-
-        <ImageUploadSection formData={formData} handleImageUpload={handleImageUpload} handleImageDelete={handleImageDelete} />
-        <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
-      </form>
-    </div>
-  </div>
-);
+  );
 }

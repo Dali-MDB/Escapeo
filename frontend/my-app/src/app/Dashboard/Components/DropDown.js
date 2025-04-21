@@ -65,7 +65,7 @@ const StyledWrapper = styled.div`
   }
 
   .selected {
-    background-color: white;
+    background-color: [var(--bg-color)];
     padding: 14px 12px 6px;
     border: 1px solid rgba(0, 0, 0, 0.3);
     border-radius: 8px;
@@ -88,7 +88,7 @@ const StyledWrapper = styled.div`
     left: 12px;
     top: 0%;
     transform: translateY(-50%);
-    background-color: white;
+    background-color: [var(--bg-color)];
     padding: 0 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);
@@ -99,14 +99,14 @@ const StyledWrapper = styled.div`
   .label.active {
     top: 0;
     font-size: 14px;
-    color: #ed881f;
+    color: [var(--secondary)];
     transform: translateY(-50%);
   }
 
    .options {
     position: absolute;
     width: 100%;
-    background-color: white;
+    background-color: [var(--bg-color)];
     border-radius: 5px;
     margin-top: 5px;
     overflow: hidden;
@@ -125,16 +125,16 @@ const StyledWrapper = styled.div`
     
     &:hover {
       background-color: #235784;
-      color: white;
+      color: [var(--bg-color)];
     }
   }
 
   .selected-option {
-    background-color: white;
+    background-color: [var(--bg-color)];
   }
 
   .select.open .selected {
-    border-color: white;
+    border-color: [var(--bg-color)];
   }
 
   /* Rest of your styles remain the same */

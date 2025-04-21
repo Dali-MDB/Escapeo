@@ -182,7 +182,7 @@ const PersonCard = (props) => {
           className="rounded-full w-full h-full "
         />
       </div>
-      <div className=" mt-[-20%] px-5 py-28 flex justify-center items-center w-full h-full bg-[#235784] text-white rounded-xl">
+      <div className=" mt-[-20%] px-5 py-28 flex justify-center items-center w-full h-full bg-[var(--primary)] text-white rounded-xl">
         <div className="w-full  text-center h-1/2 z-0 flex flex-col gap-2">
           <h1 className="text-[40px]">{props.name}</h1>
           <h3 className="text-xs">{props.role}</h3>

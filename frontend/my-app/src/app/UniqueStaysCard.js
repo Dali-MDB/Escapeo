@@ -4,7 +4,7 @@ const UniqueStayCard = (props) => {
   const { bgImg, hotelName, country, red, price, date } = props;
 
   return (
-    <div className="h-full transition-all duration-200 ease-in shadow-[0px_0px_10px_7px_rgba(0,0,0,0.25)] hover:shadow-none rounded-lg overflow-hidden bg-[#FEF8F5] w-full flex flex-col justify-start items-center pb-6">
+    <div className="h-full transition-all duration-200 ease-in shadow-[0px_0px_10px_7px_rgba(0,0,0,0.25)] hover:shadow-none rounded-lg overflow-hidden bg-[var(--bg-color)] w-full flex flex-col justify-start items-center pb-6">
       {/* Image Section */}
       <div
         className="w-full relative min-h-64 my-0 px-auto bg-cover bg-center bg-no-repeat"
@@ -22,7 +22,7 @@ const UniqueStayCard = (props) => {
         {/* Discount, Price, and Button */}
         <div className="w-[95%] h-[80%] mx-auto flex flex-col justify-center gap-4 items-center">
           {/* Discount Badge */}
-          <div className="w-fit py-1 px-3 text-xs text-white bg-[#235784] rounded-full">
+          <div className="w-fit py-1 px-3 text-xs text-white bg-[var(--primary)] rounded-full">
             {red}% less than usual
           </div>
 
@@ -39,7 +39,7 @@ const UniqueStayCard = (props) => {
           </div>
 
           {/* Check Deal Button */}
-          <button className="w-full rounded-lg py-2 font-semibold bg-[#ED881F] text-white hover:bg-[#D97A1A] transition-colors duration-200">
+          <button className="w-full rounded-lg py-2 font-semibold bg-[var(--secondary)] text-white hover:bg-[#D97A1A] transition-colors duration-200">
             Check Deal
           </button>
         </div>

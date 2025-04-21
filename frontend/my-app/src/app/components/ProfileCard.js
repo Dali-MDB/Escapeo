@@ -8,14 +8,25 @@ import arrow from "/public/arrow.png";
 import support from "/public/Support.png";
 import Logout from "/public/logout.png";
 import { logout } from "../utils/auth";
+import { MessageCircle , Settings , User ,History , Calendar , LayoutDashboard } from "lucide-react";
 
-export default function ProfileCard() {
-  const menuItems = [
-    { title: "My account", link: "/Setting/Account", icon: vector },
-    { title: "History", link: "/Setting/History", icon: card },
-    { title: "Settings", link: "/Setting/Account", icon: settings },
+export default function ProfileCard({isAdmin , profile}) { 
+  const menuItemsCustomers = [
+    { title: "My account", link: "/Setting/Account", icon: User },
+    { title: "History", link: "/Setting/History", icon: History },
+    { title: "Settings", link: "/Setting/Account", icon: Settings },
   ];
 
+  const menuItemsAdmins = [
+    { title: "Admin Dashboard", link: "/Dashboard/Home", icon: LayoutDashboard },
+    { title: "My Account", link: "/Dashboard/Profile", icon: User },
+    { title: "Calendar", link: "/Dashboard/Calendar", icon: Calendar },
+    { title: "Chat", link: "/Dashboard/Messages", icon: MessageCircle },
+
+  ];
+
+
+  const menuItems = isAdmin ? menuItemsAdmins : menuItemsCustomers;
   const secondaryItems = [
     { title: "Support", link: "/Setting/Help", icon: support },
   ];
@@ -37,12 +48,12 @@ export default function ProfileCard() {
       <div className="bg-[#4B6382] rounded-md py-5 flex flex-col items-center">
         {/* Profile Section */}
         <div className="w-[80%] flex gap-4 items-center pb-6 border-b border-gray-300">
-          <Link href={"/Setting/Account"} className="flex gap-2">
+          <Link href={isAdmin ? "/Dashboard/Profile" : "/Setting/Account"} className="flex gap-2">
             <div className="rounded-full flex justify-center items-center">
-              <Image src={img} height={50} width={50} alt="Profile Image" priority />
+              {profile.profile_picture ? <Image src={profile.profile_picture} height={50} width={50} alt="Profile Image" priority /> : <User size={50} color="white" />}
             </div>
             <div className="flex flex-col items-start">
-              <h1 className="font-bold text-lg text-white">John Doe</h1>
+              <h1 className="font-bold text-lg text-white">{profile.username || "John Doe"}</h1>
               <h5 className="text-sm text-gray-200">Online</h5>
             </div>
           </Link>
@@ -58,7 +69,7 @@ export default function ProfileCard() {
               aria-label={item.title}
             >
               <span className="flex items-center gap-3">
-                <Image src={item.icon} width={20} height={20} alt={item.title} />
+                {item.icon && <item.icon size={20} />}
                 {item.title}
               </span>
               <Image src={arrow} className="h-2" height={2} width={5} alt="arrow" />
@@ -68,7 +79,11 @@ export default function ProfileCard() {
 
         {/* Support & Logout */}
         <div className="w-3/4 pt-6 flex flex-col gap-4">
-          {secondaryItems.map((item, index) => (
+          {
+          
+          
+          
+          !isAdmin && secondaryItems.map((item, index) => (
             <Link
               href={item.link}
               key={index}

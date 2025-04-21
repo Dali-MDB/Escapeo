@@ -28,7 +28,7 @@ export default function Forgot() {
           {/* Remember me & Forgot Password */}
         
           {/* Login Button */}
-          <button type="submit" className="w-full font-bold py-4 text-lg rounded-md bg-[#ED881F] text-black">
+          <button type="submit" className="w-full font-bold py-4 text-lg rounded-md bg-[var(--secondary)] text-black">
             <Link href={'/Log/Verify'}>Submit</Link>
           </button>
         </form>
@@ -51,7 +51,7 @@ export default function Forgot() {
           ].map((item, index) => (
             <button
               key={index}
-              className="flex items-center justify-center gap-2 border-2 border-[#ED881F] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:text-white transition"
+              className="flex items-center justify-center gap-2 border-2 border-[var(--secondary)] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:text-white transition"
             >
               {item.icon}
             </button>

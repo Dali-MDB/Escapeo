@@ -3,13 +3,32 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Calendar() {
   const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: "", date: "" });
 
+
+  useEffect(() => {
+    // Fetch events from the server
+    const fetchEvents = async () => {
+      try {
+        const response = await localStorage.getItem("events");
+        const data = JSON.parse(response);
+        if (!data) {
+          console.log("No events found in local storage.");
+          return;
+        }
+        setEvents(data);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
   // Open form and set clicked date
   const handleDateClick = (arg) => {
     setNewEvent({ title: "", date: arg.dateStr });
@@ -24,6 +43,9 @@ export default function Calendar() {
         ...events,
         { title: newEvent.title, date: newEvent.date, id: Date.now() }
       ]);
+
+      const existingEvents = JSON.parse(localStorage.getItem("events")) || [];
+      localStorage.setItem("events", JSON.stringify([...existingEvents, { title: newEvent.title, date: newEvent.date, id: Date.now() }]));
       setShowForm(false);
       setNewEvent({ title: "", date: "" }); // Reset form
     }
@@ -33,6 +55,10 @@ export default function Calendar() {
   const handleEventClick = (clickInfo) => {
     if (confirm(`Delete event ${clickInfo.event.title} ?`)) {
       setEvents(events.filter(event => event.id !== parseInt(clickInfo.event.id)));
+      const existingEvents = JSON.parse(localStorage.getItem("events")) || [];
+      const updatedEvents = existingEvents.filter(event => event.id !== parseInt(clickInfo.event.id));
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
+      clickInfo.event.remove();
     }
   };
 

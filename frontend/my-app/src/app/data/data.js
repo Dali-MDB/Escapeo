@@ -28,37 +28,37 @@ export const departicon = (
 );
 
 export const dotItcon = (
-<svg xmlns="http://www.w3.org/2000/svg" width={28} height={28} viewBox="0 0 16 16">
-	<circle cx={8} cy={8} r={4} fill="#000"></circle>
-</svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={28} height={28} viewBox="0 0 16 16">
+    <circle cx={8} cy={8} r={4} fill="#000"></circle>
+  </svg>
 )
 
 export const arrowIconUp = (
-<svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 48 48">
-	<defs>
-		<path id="ipOUpC0" d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4S4 12.954 4 24s8.954 20 20 20"></path>
-	</defs>
-	<g fill="none" stroke="#000" strokeWidth={4}>
-		<use href="#ipOUpC0" clipRule="evenodd"></use>
-		<use href="#ipOUpC0" strokeLinejoin="round"></use>
-		<path strokeLinecap="round" strokeLinejoin="round" d="m33 27l-9-9l-9 9"></path>
-	</g>
-</svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 48 48">
+    <defs>
+      <path id="ipOUpC0" d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4S4 12.954 4 24s8.954 20 20 20"></path>
+    </defs>
+    <g fill="none" stroke="#000" strokeWidth={4}>
+      <use href="#ipOUpC0" clipRule="evenodd"></use>
+      <use href="#ipOUpC0" strokeLinejoin="round"></use>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m33 27l-9-9l-9 9"></path>
+    </g>
+  </svg>
 )
 
 export const arrowIconDown = (
-<svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 48 48">
-	<g fill="none" stroke="#000" strokeLinejoin="round" strokeWidth={4}>
-		<path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4S4 12.954 4 24s8.954 20 20 20Z"></path>
-		<path strokeLinecap="round" d="m33 21l-9 9l-9-9"></path>
-	</g>
-</svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 48 48">
+    <g fill="none" stroke="#000" strokeLinejoin="round" strokeWidth={4}>
+      <path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4S4 12.954 4 24s8.954 20 20 20Z"></path>
+      <path strokeLinecap="round" d="m33 21l-9 9l-9-9"></path>
+    </g>
+  </svg>
 )
 
 export const hide = (
-<svg xmlns="http://www.w3.org/2000/svg" width={38} height={38} viewBox="0 0 24 24">
-	<path fill="#000" d="m9 16.4l-3.875 3.9q-.3.3-.7.3t-.7-.3t-.3-.712t.3-.713L7.6 15H6q-.425 0-.712-.287T5 14t.288-.712T6 13h4q.425 0 .713.288T11 14v4q0 .425-.288.713T10 19t-.712-.288T9 18zM16.4 9H18q.425 0 .713.288T19 10t-.288.713T18 11h-4q-.425 0-.712-.288T13 10V6q0-.425.288-.712T14 5t.713.288T15 6v1.6l3.875-3.9q.3-.3.7-.3t.7.3t.3.712t-.3.713z"></path>
-</svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={38} height={38} viewBox="0 0 24 24">
+    <path fill="#000" d="m9 16.4l-3.875 3.9q-.3.3-.7.3t-.7-.3t-.3-.712t.3-.713L7.6 15H6q-.425 0-.712-.287T5 14t.288-.712T6 13h4q.425 0 .713.288T11 14v4q0 .425-.288.713T10 19t-.712-.288T9 18zM16.4 9H18q.425 0 .713.288T19 10t-.288.713T18 11h-4q-.425 0-.712-.288T13 10V6q0-.425.288-.712T14 5t.713.288T15 6v1.6l3.875-3.9q.3-.3.7-.3t.7.3t.3.712t-.3.713z"></path>
+  </svg>
 )
 
 
@@ -268,41 +268,20 @@ export const reviews = [
   },
 ];
 
+import { FlightClass,FlightOutlined,  Hotel } from "@mui/icons-material";
+
+
 export const navLinks = [
   {
     title: "Find Flights",
     link: "/Flights",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 512 512"
-        aria-label="Find Flights"
-      >
-        <path
-          fill="currentColor"
-          d="M407.72 208c-2.72 0-14.44.08-18.67.31l-57.77 1.52L198.06 48h-62.81l74.59 164.61l-97.31 1.44L68.25 160H16.14l20.61 94.18c.15.54.33 1.07.53 1.59a.26.26 0 0 1 0 .15a15 15 0 0 0-.53 1.58L15.86 352h51.78l45.45-55l96.77 2.17L135.24 464h63l133-161.75l57.77 1.54c4.29.23 16 .31 18.66.31c24.35 0 44.27-3.34 59.21-9.94C492.22 283 496 265.46 496 256c0-30.06-33-48-88.28-48m-71.29 87.9"
-        />
-      </svg>
-    ),
+    icon: (<FlightOutlined className="rotate-90 " />),
   },
   {
     title: "Find Stays",
     link: "/Hotels",
     icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 512 512"
-        aria-label="Find Stays"
-      >
-        <path
-          fill="currentColor"
-          d="M432 230.7a79.4 79.4 0 0 0-32-6.7H112a79.5 79.5 0 0 0-32 6.69A80.09 80.09 0 0 0 32 304v112a16 16 0 0 0 32 0v-8a8.1 8.1 0 0 1 8-8h368a8.1 8.1 0 0 1 8 8v8a16 16 0 0 0 32 0V304a80.09 80.09 0 0 0-48-73.3M376 80H136a56 56 0 0 0-56 56v72a4 4 0 0 0 5.11 3.84A95.5 95.5 0 0 1 112 208h4.23a4 4 0 0 0 4-3.55A32 32 0 0 1 152 176h56a32 32 0 0 1 31.8 28.45a4 4 0 0 0 4 3.55h24.46a4 4 0 0 0 4-3.55A32 32 0 0 1 304 176h56a32 32 0 0 1 31.8 28.45a4 4 0 0 0 4 3.55h4.2a95.5 95.5 0 0 1 26.89 3.85A4 4 0 0 0 432 208v-72a56 56 0 0 0-56-56"
-        />
-      </svg>
+      <Hotel />
     ),
   },
 ];
@@ -581,32 +560,65 @@ export const destPop = [
   { bgImg: "/baku.jpg", location: "Baku, Azerbaijan" },
 ];
 
+{/**
+  const PRICE_CATEGORIES = [
+    { value: "economy", label: "Economy" },
+    { value: "business", label: "Business" },
+    { value: "first", label: "First Class" },
+    // Add other valid options from your backend
+  ];
+
+  const DESTINATION_TYPES = [
+    { value: "city", label: "City" },
+    { value: "beach", label: "Beach" },
+    { value: "mountain", label: "Mountain" }, // Add other valid options from your backend
+    { value: "island", label: "Island" },
+    { value: "cruise", label: "Cruise" },
+  ];
+
+  const TRANSPORT_TYPES = [
+    { value: "car", label: "Car" }, // Add other valid options from your backend
+    { value: "bus", label: "Bus" },
+    { value: "air-plane", label: "Airplane" },
+    { value: "cruise", label: "Cruise" },
+  ];
+
+  const EXPERIENCE_LEVELS = [
+
+    { value: "adventure", label: 'Adventure' },
+    { value: "cultural", label: 'Cultural' },
+    { value: "eco     ", label: 'Eco' },
+    { value: "wellness", label: 'Wellness' },
+    { value: "romantic", label: 'Romantic' },
+    { value: "festival", label: 'Festival' },
+
+  ];
+  const TRIP_TYPES = [
+    { value: "standard",         label: "Standard" },
+    { value: "all_inclusive",    label: "All Inclusive" },
+    { value: "group",            label: "Group" },
+    { value: "solo",             label: "Solo" },
+    { value: "road_trip",        label: "Road Trip" },
+    // Add other valid options from your backend
+  ];
+ */}
+""
+"All Inclusive"
+"Group"
+"Solo"
+"Road Trip"
 export const filters = [
-  { label: "Filter 1", borderColor: "border-red-500" },
-  { label: "Filter 2", borderColor: "border-blue-500" },
-  { label: "Filter 3", borderColor: "border-green-500" },
-  { label: "Filter 4", borderColor: "border-yellow-500" },
-  { label: "Filter 5", borderColor: "border-purple-500" },
-  { label: "Filter 6", borderColor: "border-pink-500" },
-  { label: "Filter 7", borderColor: "border-gray-500" },
-  { label: "Filter 8", borderColor: "border-orange-500" },
-  { label: "Filter 9", borderColor: "border-red-500" },
-  { label: "Filter 10", borderColor: "border-blue-500" },
-  { label: "Filter 11", borderColor: "border-green-500" },
-  { label: "Filter 12", borderColor: "border-yellow-500" },
-  { label: "Filter 13", borderColor: "border-purple-500" },
-  { label: "Filter 14", borderColor: "border-pink-500" },
-  { label: "Filter 15", borderColor: "border-gray-500" },
-  { label: "Filter 16", borderColor: "border-orange-500" },
-  { label: "Filter 17", borderColor: "border-red-500" },
-  { label: "Filter 18", borderColor: "border-blue-500" },
-  { label: "Filter 19", borderColor: "border-green-500" },
-  { label: "Filter 20", borderColor: "border-yellow-500" },
-  { label: "Filter 21", borderColor: "border-purple-500" },
-  { label: "Filter 22", borderColor: "border-pink-500" },
-  { label: "Filter 23", borderColor: "border-gray-500" },
-  { label: "Filter 24", borderColor: "border-orange-500" },
-  { label: "Filter 25", borderColor: "border-red-500" },
+  { label: "", borderColor: "border-gray-500" },
+  { label: "", borderColor: "border-orange-500" },
+  { label: "", borderColor: "border-red-500" },
+  { label: "", borderColor: "border-blue-500" },
+  { label: "", borderColor: "border-green-500" },
+  { label: "", borderColor: "border-yellow-500" },
+  { label: "", borderColor: "border-purple-500" },
+  { label: "", borderColor: "border-pink-500" },
+  { label: "", borderColor: "border-gray-500" },
+  { label: "", borderColor: "border-orange-500" },
+  { label: "", borderColor: "border-red-500" },
 ];
 
 export const stays = [
@@ -617,7 +629,7 @@ export const stays = [
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:false
+    isFavourite: false
   },
   {
     bgImg: "/hotelRoom2.png",
@@ -626,7 +638,7 @@ export const stays = [
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:true
+    isFavourite: true
   },
   {
     bgImg: "/hotelPool.jpg",
@@ -635,15 +647,15 @@ export const stays = [
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:false
-  },{
+    isFavourite: false
+  }, {
     bgImg: "/hotelRoom.jpg",
     hotelName: "Mövenpick Hotel. Doha",
     country: "Qatar",
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:true
+    isFavourite: true
   },
   {
     bgImg: "/hotelRoom2.png",
@@ -652,7 +664,7 @@ export const stays = [
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:true
+    isFavourite: true
   },
   {
     bgImg: "/hotelPool.jpg",
@@ -661,7 +673,7 @@ export const stays = [
     red: "18",
     price: "$63",
     date: "Apr 14 - apr 24",
-    isFavourite:true
+    isFavourite: true
   },
 ];
 

@@ -17,7 +17,7 @@ export default function History() {
           { title: "Ask Melio", buttonTitle: "Show chatbot", Link: "#" },
           { title: "Write us a request", buttonTitle: "Contact Form", Link: "../../ContactForm" },
           { title: "Speak with our Support team", buttonTitle: "Direct Messaging", Link: "./Chat" },
-        ].map((el,index)=><div className="w-full bg-[#FEF8F5] py-6 rounded-xl px-6 flex flex-row justify-between items-center" key={index}>
+        ].map((el,index)=><div className="w-full bg-[var(--bg-color)] py-6 rounded-xl px-6 flex flex-row justify-between items-center" key={index}>
 
         <h1 className="text-2xl font-bold">{el.title}</h1>
         <Link href={el.Link} className="border-[1px] w-[18%] py-3 text-xl text-center font-medium border-black rounded-lg">{el.buttonTitle}</Link>

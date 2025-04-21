@@ -29,13 +29,13 @@ export default function Forgot() {
             <div className="flex gap-2">
               <label htmlFor="remember">
               Didn’t receive a code?{" "}
-                <Link href="/Login" className="text-[#ED881F] px-0">
+                <Link href="/Login" className="text-[var(--secondary)] px-0">
                 Resend
                 </Link>{" "}
               </label>
             </div>
           </div>
-          <button type="submit" className="w-full text-lg font-bold py-4 rounded-md bg-[#ED881F] text-black">
+          <button type="submit" className="w-full text-lg font-bold py-4 rounded-md bg-[var(--secondary)] text-black">
             Verify
           </button>
         </form>

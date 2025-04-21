@@ -134,7 +134,7 @@ export default function Sign_up() {
             className={`w-full font-bold py-4 text-lg rounded-md ${
               passwordError || !formData.password || !formData.confirm_password || formData.password !== formData.confirm_password
                 ? "bg-gray-400"
-                : "bg-[#ED881F]"
+                : "bg-[var(--secondary)]"
             } text-black`}
             disabled={
               passwordError || !formData.password || !formData.confirm_password || formData.password !== formData.confirm_password
@@ -151,7 +151,7 @@ export default function Sign_up() {
             Already have an account?
             <Link
               href="/Log/Login"
-              className="text-[#ED881F] px-2 hover:underline"
+              className="text-[var(--secondary)] px-2 hover:underline"
             >
               Login
             </Link>
@@ -183,7 +183,7 @@ export default function Sign_up() {
             <button
               key={index}
               onClick={() => handleSocialLogin(item.provider)}
-              className="flex items-center justify-center gap-2 border-2 border-[#ED881F] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:bg-[#ED881F] hover:text-white transition"
+              className="flex items-center justify-center gap-2 border-2 border-[var(--secondary)] w-full px-5 py-4 text-xl rounded-md text-black font-medium hover:bg-[var(--secondary)] hover:text-white transition"
             >
               {item.icon}
             </button>

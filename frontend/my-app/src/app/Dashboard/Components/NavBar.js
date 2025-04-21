@@ -45,7 +45,7 @@ export default function Navbar() {
 
   return (
     <div
-      className={`w-[90%]   h-24 sticky left-[5%] top-[5%]  bg-[#235784] text-black flex px-10 flex-row z-50 rounded-full justify-between items-center shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]`}
+      className={`w-[90%]   h-24 sticky left-[5%] top-[5%]  bg-[var(--primary)] text-black flex px-10 flex-row z-50 rounded-full justify-between items-center shadow-[0_4px_4px_1px_rgba(0,0,0,0.3)]`}
     >
       <LeftSection />
       <RightSectionCon />
