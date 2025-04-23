@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 User = get_user_model()
 #from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from .serializers import RequestPasswordResetCodeSerializer,ConfirmResetCodeSerializer
+from django.contrib.auth.hashers import check_password
 
 #---------------------Profiles-----------------------------------
 class MyAccount(APIView):
@@ -28,6 +29,18 @@ class MyAccount(APIView):
         # Track updates and errors
         updates = {}
         errors = {}
+        # Password confirmation
+        password = data.get('password', None)
+        if not password:
+            return Response(
+                {'error': 'Password confirmation required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not check_password(password, user.password):
+            return Response(
+                {'error': 'Incorrect password'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         # Email update
         if 'email' in data:
