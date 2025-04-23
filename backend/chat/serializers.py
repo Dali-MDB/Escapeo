@@ -29,6 +29,30 @@ from rest_framework import serializers
 from .models import Conversation, GroupConversation, Message, SupportTicket, DirectConversation
 from main.models import User  
 
+
+
+from channels_redis.serializers import MsgPackSerializer
+import uuid
+import msgpack
+
+class UUIDSerializer(MsgPackSerializer):
+    def encode(self, obj):
+        # Convert UUIDs to strings before serialization
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        return super().encode(obj)
+
+    def decode(self, data):
+        obj = super().decode(data)
+        # Convert UUID strings back to UUID objects if needed
+        if isinstance(obj, str):
+            try:
+                return uuid.UUID(obj)
+            except ValueError:
+                pass
+        return obj
+
+
 class UserBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
