@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'main',
+    'backend.main',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
@@ -208,3 +208,5 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour='*/1'),  # Every hour
     },
 }
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.travel_agency.settings')
