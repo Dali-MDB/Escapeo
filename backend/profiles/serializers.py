@@ -202,3 +202,6 @@ class ConfirmResetCodeSerializer(serializers.Serializer):
         self.user.save()
         # Delete only the used code
         self.reset_code.delete()
+
+
+

@@ -37,8 +37,9 @@ class UserSerializer(serializers.ModelSerializer):
             ):
                 return False
             return True
-
-        if not is_strong_password(password):
+        
+    
+        if not is_strong_password(password) :
             raise serializers.ValidationError({'password': 'The password you have provided is too weak.'})
 
         return data

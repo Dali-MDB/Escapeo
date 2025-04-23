@@ -1,13 +1,12 @@
+from main.serializers import UserSerializer
 from django.shortcuts import render
 from django.core.files.storage import default_storage
 from rest_framework.decorators import APIView,api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-from main.serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 User = get_user_model()
 #from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from .serializers import RequestPasswordResetCodeSerializer,ConfirmResetCodeSerializer
@@ -23,16 +22,57 @@ class MyAccount(APIView):
 
    
     def put(self, request):
-        ser = UserSerializer(data = request.data)
-        if ser.is_valid():
-            ser.save()  
-            context = {
-                'success': 'Your profile has been updated successfully',
-                'profile': ser.data
+        user = request.user
+        data = request.data
+        
+        # Track updates and errors
+        updates = {}
+        errors = {}
+
+        # Email update
+        if 'email' in data:
+            email = str(data['email']).strip()
+            if email and User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                errors['email'] = "Email already taken"
+            else:
+                updates['email'] = email if email else None
+
+        # Username update
+        if 'username' in data:
+            username = str(data['username']).strip()
+            if username and User.objects.filter(username=username).exclude(pk=user.pk).exists():
+                errors['username'] = "Username taken"
+            else:
+                updates['username'] = username if username else None
+
+        # Phone number update
+        if 'phone_number' in data:
+            phone = str(data['phone_number']).strip()
+            
+            if phone and User.objects.filter(phone_number=phone).exclude(pk=user.pk).exists():
+                errors['phone_number'] = "Phone number in use"
+            else:
+                updates['phone_number'] = phone if phone else None
+
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Apply updates
+        for field, value in updates.items():
+            setattr(user, field, value)
+
+        
+        user.save()
+        return Response({
+            'success': True,
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'phone_number': user.phone_number
             }
-            return Response(context, status=status.HTTP_200_OK)
-        else:
-            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+        })
+        
+    
 
 
 
