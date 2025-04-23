@@ -11,7 +11,10 @@ urlpatterns = [
     path('',include('main.urls')),
     path('chatbot/',include('chatbot.urls')),
     path('reservation/',include('reservation.urls')),
+    path('profile/',include('profiles.urls')),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('docs/', SpectacularSwaggerView.as_view(url_name='schema')),
-    re_path(r"^(?P<path>.*)$",path_not_found ),  
+    path('docs/', SpectacularSwaggerView.as_view(url_name='schema')), 
 ]+  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+urlpatterns += [re_path(r"^(?P<path>.*)$",path_not_found )]

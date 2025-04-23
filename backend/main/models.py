@@ -41,7 +41,7 @@ class Customer(models.Model):
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
     birthdate = models.DateField(null=True,blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/customers', default='customer/profile.png')
+    profile_picture = models.ImageField(upload_to='profile_pictures/customers', default='profile_pictures/profile.png')
 
     loyalty_points = models.PositiveIntegerField(default=0, validators=[validators.MaxValueValidator(500)])
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Wallet Balance
@@ -83,7 +83,7 @@ class Admin(models.Model):
     country = models.CharField(max_length=100,default=" ",null=True,blank=True)
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
-    profile_picture = models.ImageField(upload_to='profile_pictures/admins', default='admins/profile.png')
+    profile_picture = models.ImageField(upload_to='profile_pictures/admins', default='profile_pictures/profile.png')
 
     years_of_experience = models.PositiveIntegerField(default=0)
     join_date = models.DateField(auto_now_add=True)

@@ -37,6 +37,8 @@ class GroupConversation(Conversation):
     """Group conversation related to a trip"""
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='group_conversation')
     participants = models.ManyToManyField(User,related_name='my_chats')
+
+
     
     def save(self, *args, **kwargs):
         self.is_group = True
@@ -49,7 +51,7 @@ class GroupConversation(Conversation):
         return True  # Successfully added
         
     def __str__(self):
-        return f"Group: {self.name} (Trip: {self.trip})"
+        return f"Group chat for Trip: {self.trip}"
     
 
 

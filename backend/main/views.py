@@ -36,7 +36,7 @@ def register(request):
         refresh = RefreshToken.for_user(customer.user)
 
         Notification.objects.create(
-            recipient=request.user,
+            recipient=customer.user,
             type='Security',
             title='Welcome to Our Travel Platform!',
             message='Your account has been successfully created. We are excited to have you onboard!',

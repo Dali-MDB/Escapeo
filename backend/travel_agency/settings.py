@@ -54,11 +54,13 @@ INSTALLED_APPS = [
     'reservation',
     'signals.apps.SignalsConfig',
     'Chat',
+    'profiles',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
     'drf_spectacular',    #swagger auto documentation
     'django_celery_beat',
+    'channels', 
 
     'corsheaders',   #to link the front
 ]
