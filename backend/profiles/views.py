@@ -60,6 +60,7 @@ from .serializers import RequestPasswordResetCodeSerializer, ConfirmResetCodeSer
 class RequestPasswordResetCodeView(APIView):
     def post(self, request):
         serializer = RequestPasswordResetCodeSerializer(data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Reset code sent to your email."})

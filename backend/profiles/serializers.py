@@ -135,6 +135,9 @@ class RequestPasswordResetCodeSerializer(serializers.Serializer):
         if not User.objects.filter(email=value).exists():
             raise serializers.ValidationError("User with this email does not exist.")
         return value
+    
+    def validate(self, attrs):
+        return super().validate(attrs)
 
     def save(self):
         email = self.validated_data['email']
