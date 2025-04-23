@@ -1228,8 +1228,11 @@ class PrivateChatConsumer(BaseChatConsumer):
                 await self.handle_typing(data)
             elif action == 'read':
                 await self.handle_read(data)
+            elif action == 'edit':  # Add edit handler
+                await self.handle_edit(data)
             else:
                 await self.send_error(f"Unknown action: {action}", code="invalid_action")
+            
                 
         except json.JSONDecodeError:
             await self.send_error("Invalid message format", code="invalid_format")
@@ -1358,6 +1361,122 @@ class PrivateChatConsumer(BaseChatConsumer):
         except Exception as e:
             print(f"Error marking message read: {e}")
             return False
+
+
+
+
+    """
+    async def handle_edit(self, data):
+        
+        try:
+            message_id_str = data.get("message_id")  # Always received as string
+            new_content = data.get("new_content")
+
+        # Validate inputs
+            if not message_id_str:
+                await self.send_error("Missing message_id", code="invalid_data")
+                return
+            if not new_content or not isinstance(new_content, str):
+                await self.send_error("Invalid message content", code="invalid_data")
+                return
+            if len(new_content) > 2000:
+                await self.send_error("Message too long (max 2000 chars)", code="message_too_long")
+                return
+
+        # Update message (pass string ID to DB method)
+            success = await self._update_message_db(message_id_str, new_content)
+            if not success:
+                await self.send_error("Message not found or not authorized", code="edit_failed")
+                return
+
+        # Broadcast edit (using original string ID)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.message_edited",
+                    "message_id": message_id_str,  # Keep as string
+                    "new_content": new_content,
+                    "sender_id": str(self.user.id),
+                    "timestamp": timezone.now().isoformat()
+                }
+            )
+
+        except Exception as e:
+            await self.send_error(f"Server error: {str(e)}", code="server_error")
+    """
+
+    async def handle_edit(self, data):
+        """Handle message editing with string IDs"""
+        try:
+            message_id_str = data.get("message_id")
+            new_content = data.get("new_content")
+
+            print(f"Attempting to edit message {message_id_str}")  # Debug log
+
+            # Validate inputs
+            if not message_id_str:
+                await self.send_error("Missing message_id", code="invalid_data")
+                return
+            if not new_content:
+                await self.send_error("Missing new_content", code="invalid_data")
+                return
+
+            # Update message
+            success = await self._update_message_db(message_id_str, new_content)
+            if not success:
+                await self.send_error("Message not found or not authorized", code="edit_failed")
+                return
+
+        # Broadcast edit
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.message_edited",
+                    "message_id": message_id_str,
+                    "new_content": new_content,
+                    "sender_id": str(self.user.id),
+                    "timestamp": timezone.now().isoformat()
+                }
+            )
+        except Exception as e:
+            print(f"Edit error: {str(e)}")  # Debug log
+            await self.send_error(f"Edit error: {str(e)}", code="server_error")
+
+    @database_sync_to_async
+    def _update_message_db(self, message_id_str, new_content):
+        """Update message using string ID"""
+        try:
+        # Convert string ID to integer for database query
+            message_id = int(message_id_str)
+        
+            message = Message.objects.get(
+                id=message_id,  # Database uses integer ID
+                sender=self.user,  # Only allow sender to edit
+                conversation=self.conversation
+            )
+            message.content = new_content
+            message.save()
+            return True
+        except (ValueError, Message.DoesNotExist, ValidationError) as e:
+            print(f"Edit failed: {str(e)}")  # Debug logging
+            return False
+
+    async def chat_message_edited(self, event):
+        """Handle edited message event with string IDs"""
+        await self.send(text_data=json.dumps({
+        "type": "message_edited",
+        "message_id": event["message_id"],  # String ID
+        "new_content": event["new_content"],
+        "sender_id": event["sender_id"],  # String ID
+        "timestamp": event["timestamp"]
+    }))
+
+
+
+
+
+
+
 
     async def disconnect(self, close_code):
         
@@ -1671,6 +1790,71 @@ class GroupChatConsumer(BaseChatConsumer):
             'user': await self.get_user_data(),
             'is_typing': data.get('is_typing', False)
         })
+
+
+
+    async def handle_delete(self, data):
+        try:
+            message_id_str = data.get("message_id")
+        
+        # Validate input
+            if not message_id_str:
+                await self.send_error("Missing message_id", code="invalid_input")
+                return
+
+        # Convert to integer (since your Message model uses IntegerField)
+            try:
+                message_id = int(message_id_str)
+            except ValueError:
+                await self.send_error("Invalid message ID format", code="invalid_id")
+                return
+
+        # Delete message
+            success = await self._delete_message_db(message_id)
+            if not success:
+                await self.send_error("Message not found or not authorized", code="delete_failed")
+                return
+
+        # Broadcast deletion
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.message_deleted",
+                    "message_id": message_id_str,  # Keep as string for consistency
+                    "deleted_by": str(self.user.id),
+                    "timestamp": timezone.now().isoformat()
+                }
+            )
+
+        except Exception as e:
+            await self.send_error(f"Server error: {str(e)}", code="server_error")
+
+    async def chat_message_deleted(self, event):
+        """Handle deleted message event"""
+        await self.send(text_data=json.dumps({
+            "type": "message_deleted",
+            "message_id": event["message_id"],
+            "deleted_by": event["deleted_by"],
+            "timestamp": event["timestamp"]
+        }))
+
+    @database_sync_to_async
+    def _delete_message_db(self, message_id):
+        """Internal method to delete message"""
+        try:
+            message = Message.objects.get(
+                id=message_id,
+                sender=self.user,  # Only allow sender to delete
+                conversation=self.conversation
+            )
+            message.delete()
+            return True
+        except (Message.DoesNotExist, ValidationError):
+            return False
+
+
+
+    
     """
     async def handle_edit(self, data):
         message_id = data.get("message_id")
@@ -1723,6 +1907,7 @@ class GroupChatConsumer(BaseChatConsumer):
             "sender_id": event["sender_id"],
             "timestamp": event["timestamp"],
         })
+    """
     """
     async def handle_edit(self, data):
         try:
@@ -1777,7 +1962,7 @@ class GroupChatConsumer(BaseChatConsumer):
             })
 
     async def chat_message_edited(self, event):
-        """Keep everything as strings here"""
+       
         await self.send_json({
             "type": "message_edited",
             "message_id": event["message_id"],  # Already string
@@ -1785,6 +1970,59 @@ class GroupChatConsumer(BaseChatConsumer):
             "sender_id": event["sender_id"],  # Already string
             "timestamp": event["timestamp"]
         })
+    """
+
+
+    async def handle_edit(self, data):
+        try:
+            message_id_str = data.get("message_id")  # Get as string
+            new_content = data.get("new_content")
+
+            # Validate inputs
+            if not message_id_str or not new_content:
+                await self.send_error("Missing message_id or content", code="invalid_input")
+                return
+
+            # Convert to integer (since your message_id is an integer in DB)
+            try:
+                message_id = int(message_id_str)
+            except ValueError:
+                await self.send_error("Invalid message ID format", code="invalid_id")
+                return
+
+            # Update message
+            success = await self._update_message_db(message_id, new_content)
+            if not success:
+                await self.send_error("Message not found or not authorized", code="edit_failed")
+                return
+
+            # Broadcast edit (using original string ID)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.message_edited",
+                    "message_id": message_id_str,  # Keep as string for consistency
+                    "new_content": new_content,
+                    "sender_id": str(self.user.id),
+                    "timestamp": timezone.now().isoformat()
+                }
+            )
+
+        except Exception as e:
+            await self.send_error(f"Server error: {str(e)}", code="server_error")
+
+    async def chat_message_edited(self, event):
+        """Handle edited message event"""
+        await self.send(text_data=json.dumps({
+            "type": "message_edited",
+            "message_id": event["message_id"],
+            "new_content": event["new_content"],
+            "sender_id": event["sender_id"],
+            "timestamp": event["timestamp"]
+        }))
+
+
+######################################################
 
 
     async def broadcast_presence(self, status):
@@ -1873,9 +2111,10 @@ class GroupChatConsumer(BaseChatConsumer):
             return None
     """
 
+    """
     @database_sync_to_async
     def _update_message_db(self, message_uuid, new_content):
-        """Internal method using UUID objects"""
+        
         try:
             message = Message.objects.get(
                 id=message_uuid,
@@ -1887,6 +2126,24 @@ class GroupChatConsumer(BaseChatConsumer):
             return True
         except (Message.DoesNotExist, ValidationError):
             return False
+    """
+
+
+    @database_sync_to_async
+    def _update_message_db(self, message_id, new_content):
+        """Internal method using integer ID"""
+        try:
+            message = Message.objects.get(
+                id=message_id,
+                sender=self.user,  # Ensure ownership
+                conversation=self.conversation
+            )
+            message.content = new_content
+            message.save()
+            return True
+        except (Message.DoesNotExist, ValidationError):
+            return False
+
 
 
     async def disconnect(self, close_code):
