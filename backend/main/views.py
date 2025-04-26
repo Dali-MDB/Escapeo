@@ -444,6 +444,21 @@ class tripDetails(APIView):
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
     
 
+
+@api_view(['POST'])
+@permission_classes([TripPermission])
+def associate_hotel_to_trip(request,trip_id):
+    permission = TripPermission()
+    trip = get_object_or_404(Trip,id=trip_id)
+    permission.has_object_permission(request,None,trip)
+    hotel = get_object_or_404(Hotel,id=request.data.get('hotel_id'))
+    trip.hotel = hotel
+    trip.save()
+    return Response({'success':'the hotel has been associated successfully to this trip'},status=status.HTTP_202_ACCEPTED)
+
+
+
+
 @api_view(['POST'])
 @permission_classes([TripPermission])
 def addTripImages(request, id):
@@ -754,6 +769,7 @@ def TripsFiltering(request):
         query &= Q(destination_type__in=destination_types)
     if transports:
         query &= Q(transport__in=transports)
+    query &= Q(status = 'coming')
     
     trips = Trip.objects.filter(query)
 

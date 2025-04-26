@@ -231,6 +231,7 @@ class DepartureTripSerializer(serializers.ModelSerializer):
     
 
 class TripSerializer(serializers.ModelSerializer):
+    hotel = HotelSerializer(read_only=True)
     sold_tickets = serializers.IntegerField(write_only=True)
     images = TripImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
@@ -249,7 +250,7 @@ class TripSerializer(serializers.ModelSerializer):
             'destination', 'destination_type', 'transport',
             'discount', 'created_by', 'stars_rating',
             'departure_date', 'return_date', 'is_one_way',
-            'images', 'uploaded_images', 'deleted_images', 'departure_places'
+            'images', 'uploaded_images', 'deleted_images', 'departure_places','hotel','status'
         ]
 
     def validate(self, validated_data):
