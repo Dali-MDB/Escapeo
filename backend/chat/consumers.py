@@ -1125,7 +1125,9 @@ from django.db.models import Q
 from .models import DirectConversation, Message, GroupConversation
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken, TokenError
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from urllib.parse import parse_qs
 
 User = get_user_model()
 
@@ -1167,8 +1169,58 @@ class BaseChatConsumer(AsyncWebsocketConsumer):
 
 class PrivateChatConsumer(BaseChatConsumer):
 
-    async def connect(self):
+   # async def connect(self):
         # Extract JWT token from headers
+    #    self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
+     #   self.user = await self.authenticate_user()
+      #  
+       # if not self.user or not self.user.is_authenticated:
+        #    await self.close(code=4001)  # Unauthorized
+         #   return
+
+        #self.conversation = await self.get_authorized_conversation()
+        #if not self.conversation:
+         #   await self.close(code=4003)  # Forbidden
+          #  return
+
+        #self.room_group_name = f"private_{self.conversation_id}"
+        #await self.set_user_online()
+        #await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        #await self.accept()
+        #await self.broadcast_presence('online')
+
+    #@database_sync_to_async
+    #def authenticate_user(self):
+     #   """Validate JWT token and return user"""
+      #  try:
+       #     headers = dict(self.scope["headers"])
+        #    if b'authorization' in headers:
+         #       token = headers[b'authorization'].decode().split()[1]
+          #      access_token = AccessToken(token)
+           #     return User.objects.get(id=access_token['user_id'])
+        #except Exception as e:
+         #   print(f"Authentication error: {e}")
+          #  return None
+    #@database_sync_to_async
+    #def get_authorized_conversation(self):
+     #   """Get conversation with UUIDs converted to string"""
+      #  conversation = DirectConversation.objects.filter(
+       #     Q(id=self.conversation_id),
+        #    Q(customer=self.user) | Q(admin=self.user),
+         #   is_active=True
+        #).select_related('customer', 'admin', 'ticket').first()
+        #if conversation:
+         #   conversation.id = str(conversation.id)
+          #  if conversation.ticket:
+           #     conversation.ticket.id = str(conversation.ticket.id)
+            #if conversation.customer:
+             #   conversation.customer.id = str(conversation.customer.id)
+            #if conversation.admin:
+             #   conversation.admin.id = str(conversation.admin.id)
+        #return conversation
+
+    async def connect(self):
+        # Extract JWT token from headers or URL
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
         self.user = await self.authenticate_user()
         
@@ -1190,15 +1242,39 @@ class PrivateChatConsumer(BaseChatConsumer):
     @database_sync_to_async
     def authenticate_user(self):
         """Validate JWT token and return user"""
+        token = self._get_token_from_headers() or self._get_token_from_query()
+
+        if not token:
+            return None
+
         try:
-            headers = dict(self.scope["headers"])
-            if b'authorization' in headers:
-                token = headers[b'authorization'].decode().split()[1]
-                access_token = AccessToken(token)
-                return User.objects.get(id=access_token['user_id'])
-        except Exception as e:
+            access_token = AccessToken(token)
+            user = User.objects.get(id=access_token['user_id'])
+            return user
+        except (TokenError, User.DoesNotExist) as e:
             print(f"Authentication error: {e}")
             return None
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return None
+
+    def _get_token_from_headers(self):
+        """Extract JWT token from the Authorization header"""
+        headers = dict(self.scope["headers"])
+        auth_header = headers.get(b'authorization', b'').decode()
+        if auth_header.lower().startswith('bearer '):
+            return auth_header[7:].strip()
+        return None
+
+    def _get_token_from_query(self):
+        """Extract JWT token from the URL query string"""
+        query_string = self.scope.get("query_string", b"").decode()
+        params = parse_qs(query_string)
+        token_list = params.get('token')
+        if token_list:
+            return token_list[0].strip()
+        return None
+
     @database_sync_to_async
     def get_authorized_conversation(self):
         """Get conversation with UUIDs converted to string"""
@@ -1671,11 +1747,15 @@ from django.utils import timezone
 from channels.db import database_sync_to_async
 from .models import GroupConversation, Message
 from django.contrib.auth import get_user_model
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 User = get_user_model()
 
 class GroupChatConsumer(BaseChatConsumer):
-    
+    """"
     async def connect(self):
         self.group_id = self.scope['url_route']['kwargs']['group_id']
         self.user = self.scope['user']
@@ -1699,6 +1779,83 @@ class GroupChatConsumer(BaseChatConsumer):
         await self.set_user_online()
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+    """
+    async def connect(self):
+    # Step 1: Accept the WebSocket connection before sending any messages
+        await self.accept()
+
+    # Step 2: Extract the token from the WebSocket URL or headers
+        token = self._extract_token()
+        if not token:
+            await self._close_with_error("No token provided", code=4001)
+            return
+
+    # Step 3: Authenticate the user using the token
+        try:
+            self.user = await self.authenticate_user(token)
+            if not self.user:
+                await self._close_with_error("Invalid token", code=4001)
+                return
+        except Exception as e:
+            await self._close_with_error(f"Authentication failed: {str(e)}", code=4001)
+            return
+
+    # Step 4: Validate group access
+        self.group_id = self.scope['url_route']['kwargs']['group_id']
+        self.conversation = await self.get_authorized_conversation()
+
+        if not self.conversation:
+            await self.send_error("Access denied to group", code="no_access")
+            await self.close(code=4003)
+            return
+
+    # Step 5: Finalize connection setup
+        self.room_group_name = f"group_{self.group_id}"
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.set_user_online()
+
+    def _extract_token(self):
+        """Extract JWT from headers or query string (fallback)"""
+        headers = dict(self.scope.get("headers", {}))
+    
+        # First, check for Authorization header
+        if b'authorization' in headers:
+            auth_header = headers[b'authorization'].decode()
+            if auth_header.startswith('Bearer '):
+                return auth_header.split(' ')[1]
+    
+    # If no Authorization header, check the query string for token
+        query_string = self.scope.get('query_string', b'').decode()
+        if 'token=' in query_string:
+            token = query_string.split('token=')[1].split('&')[0]  # Get token from query string
+            return token
+    
+        return None
+
+    @database_sync_to_async
+    def authenticate_user(self, token):
+        """Validate JWT and return user"""
+        try:
+            auth = JWTAuthentication()
+            validated_token = auth.get_validated_token(token)
+            return auth.get_user(validated_token)
+        except (InvalidToken, TokenError) as e:
+            print(f"JWT validation failed: {e}")
+            return None
+
+    @database_sync_to_async
+    def get_authorized_conversation(self):
+        """Check if user belongs to the group"""
+        return GroupConversation.objects.filter(
+            id=self.group_id,
+            participants__id=self.user.id  # Explicit membership check
+        ).first()
+
+    async def _close_with_error(self, message, code=4000):
+        """Safely close connection with error (pre-accept)"""
+        await self.send_error(message, code="auth_error")
+        await self.close(code=code)
+
 
     @database_sync_to_async
     def get_authorized_conversation(self):
