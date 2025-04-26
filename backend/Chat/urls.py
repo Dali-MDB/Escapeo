@@ -1,12 +1,55 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
+from django.urls import path
+from .views import (
+    DirectConversationListView,
+    DirectMessageListView,
+    CreateDirectConversationView,
+    
+    GroupConversationListView,
+    GroupMessageListView,
+    CreateGroupConversationView,
 
-router = DefaultRouter()
-router.register(r'direct-conversations', views.DirectConversationViewSet, basename='direct-conversation')
-router.register(r'group-conversations', views.GroupConversationViewSet, basename='group-conversation')
-router.register(r'support-tickets', views.SupportTicketViewSet, basename='support-ticket')
+    SupportTicketListView,
+    SupportTicketDetailView,
+    AcceptTicketView,
+    WebSocketInfoView
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # ==================== Direct Messaging ====================
+    path('direct-conversations/', #
+         DirectConversationListView.as_view(), 
+         name='direct-conversation-list'),
+    path('direct-conversations/<int:conversation_id>/messages/', 
+         DirectMessageListView.as_view(), 
+         name='direct-message-list'),
+    path('direct-conversations/create/', 
+         CreateDirectConversationView.as_view(), 
+         name='direct-conversation-create'),
+
+    # ==================== Group Chat ====================
+    path('group-conversations/', #
+         GroupConversationListView.as_view(), 
+         name='group-conversation-list'),
+    path('group-conversations/<int:conversation_id>/messages/',# 
+         GroupMessageListView.as_view(), 
+         name='group-message-list'),
+    path('group-conversations/create/<int:trip_id>/', #
+         CreateGroupConversationView.as_view(), 
+         name='group-conversation-create'),
+
+    # ==================== Support Tickets ====================
+    path('support-tickets/', 
+         SupportTicketListView.as_view(), 
+         name='support-ticket-list'),#
+    path('support-tickets/<int:id>/', #
+         SupportTicketDetailView.as_view(), 
+         name='support-ticket-detail'),#
+    path('support-tickets/<int:id>/accept/', 
+         AcceptTicketView.as_view(), 
+         name='support-ticket-accept'),#
+
+    # ==================== WebSocket Info ====================
+    path('ws-info/', 
+         WebSocketInfoView.as_view(), 
+         name='websocket-info'),
 ]

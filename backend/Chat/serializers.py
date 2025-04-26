@@ -1,91 +1,107 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from .models import (
-    Conversation, DirectConversation, GroupConversation, 
-    Message, SupportTicket
-)
-from main.serializers import UserSerializer
-User = get_user_model()
+from .models import Conversation, GroupConversation, Message, SupportTicket, DirectConversation
+from main.models import User  
 
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    sender_details = UserSerializer(source='sender', read_only=True)
-    
+from channels_redis.serializers import MsgPackSerializer
+import uuid
+import msgpack
+
+class UUIDSerializer(MsgPackSerializer):
+    def encode(self, obj):
+        # Convert UUIDs to strings before serialization
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        return super().encode(obj)
+
+    def decode(self, data):
+        obj = super().decode(data)
+        # Convert UUID strings back to UUID objects if needed
+        if isinstance(obj, str):
+            try:
+                return uuid.UUID(obj)
+            except ValueError:
+                pass
+        return obj
+
+
+class UserBriefSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Message
-        fields = ['id', 'conversation', 'sender', 'sender_details', 'content', 
-                 'timestamp', 'read']
-        read_only_fields = ['sender', 'timestamp']
-    
-    def create(self, validated_data):
-        # Set sender to current user
-        validated_data['sender'] = self.context['request'].user
-        return super().create(validated_data)
-
+        model = User
+        fields = ['id', 'username', 'email', 'is_online']
 
 class DirectConversationSerializer(serializers.ModelSerializer):
-    customer_details = UserSerializer(source='customer', read_only=True)
-    admin_details = UserSerializer(source='admin', read_only=True)
-    last_message = serializers.SerializerMethodField()
+    customer = UserBriefSerializer()
+    admin = UserBriefSerializer()
     unread_count = serializers.SerializerMethodField()
     
     class Meta:
         model = DirectConversation
-        fields = ['id', 'customer', 'customer_details', 'admin', 'admin_details', 
-                 'is_active', 'created_at', 'updated_at', 'last_message', 'unread_count']
-    
-    def get_last_message(self, obj):
-        last_msg = obj.messages.last()
-        if last_msg:
-            return {
-                'content': last_msg.content,
-                'timestamp': last_msg.timestamp,
-                'sender': last_msg.sender.username
-            }
-        return None
-    
+        fields = [
+            'id', 'customer', 'admin', 
+            'created_at', 'updated_at', 'is_active',
+            'unread_count', 'ticket'
+        ]
+        read_only_fields = fields  
+
     def get_unread_count(self, obj):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return 0
-        
-        return obj.messages.filter(read=False).exclude(sender=request.user).count()
-
+        if request and request.user.is_authenticated:
+            return obj.messages.filter(read=False).exclude(sender=request.user).count()
+        return 0
 
 class GroupConversationSerializer(serializers.ModelSerializer):
-    trip_name = serializers.ReadOnlyField(source='trip.title')
-    participants_details = UserSerializer(source='participants', many=True, read_only=True)
-    last_message = serializers.SerializerMethodField()
+    participants = UserBriefSerializer(many=True)
+    trip_title = serializers.CharField(source='trip.title', read_only=True)
     
     class Meta:
         model = GroupConversation
-        fields = ['id', 'trip', 'trip_name', 'participants', 
-                 'participants_details', 'created_at', 'updated_at', 
-                 'last_message']
-    
-    def get_last_message(self, obj):
-        last_msg = obj.messages.last()
-        if last_msg:
-            return {
-                'content': last_msg.content,
-                'timestamp': last_msg.timestamp,
-                'sender': last_msg.sender.username
-            }
-        return None
+        fields = [
+            'id', 'trip', 'trip_title', 'participants',
+            'created_at', 'updated_at'
+        ]
+    def get_recent_messages(self, obj):
+        messages = obj.messages.order_by('-timestamp')[:10]
+        messages = reversed(messages)
+        return MessageSerializer(messages, many=True, context=self.context).data
 
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = UserBriefSerializer()
+    is_own = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Message
+        fields = [
+            'id', 'conversation', 'sender',
+            'content', 'timestamp', 'read', 'is_own'
+        ]
+        read_only_fields = fields  
+
+    def get_is_own(self, obj):
+        request = self.context.get('request')
+        return request and obj.sender == request.user
 
 class SupportTicketSerializer(serializers.ModelSerializer):
-    customer_details = UserSerializer(source='customer', read_only=True)
-    admin_details = UserSerializer(source='admin', read_only=True)
+    customer = UserBriefSerializer(read_only=True)
+    accepted_by = UserBriefSerializer(read_only=True, source='admin')
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    conversation_id = serializers.SerializerMethodField()
     
     class Meta:
         model = SupportTicket
-        fields = ['id', 'customer', 'customer_details', 'subject', 'description',
-                 'created_at', 'updated_at', 'status', 'admin', 'admin_details']
-        read_only_fields = ['customer', 'admin', 'status']
-    
-    def create(self, validated_data):
-        # Set customer to current user
-        validated_data['customer'] = self.context['request'].user
-        return super().create(validated_data)
+        fields = [
+            'id', 'subject', 'description',
+            'status', 'status_display', 'created_at',
+            'customer', 'accepted_by', 'conversation_id'
+        ]
+        read_only_fields = [
+            'created_at', 'status_display',
+            'customer', 'conversation_id'
+        ]
+
+    def get_conversation_id(self, obj):
+        if hasattr(obj, 'directconversation'):
+            return obj.directconversation.id
+        return None

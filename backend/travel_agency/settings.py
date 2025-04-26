@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'chatbot',
     'reservation',
     'signals.apps.SignalsConfig',
-    'Chat',
+    'chat',
     'profiles',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -101,6 +101,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'travel_agency.wsgi.application'
+
+
+
+ASGI_APPLICATION = "travel_agency.routing.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Database

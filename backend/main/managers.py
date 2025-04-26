@@ -1,7 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
+from django.apps import apps
 
-
-class User(BaseUserManager):
+class UserManager(BaseUserManager):
     def create_user(self, email, username, phone_number, password=None, **extra_fields):
         """Create and return a regular user with the given details."""
         if not email:
@@ -26,8 +26,12 @@ class User(BaseUserManager):
         """Create and return a superuser with admin privileges."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-
-        return self.create_user(email,username , phone_number, password, **extra_fields)
+        
+        user = self.create_user(email,username , phone_number, password, **extra_fields)
+        Admin = apps.get_model('main', 'Admin')
+        Admin.objects.create(user=user)
+        return user
+        
     
 
 

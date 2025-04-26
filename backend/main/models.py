@@ -7,6 +7,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
+from .managers import UserManager
 
 # ------------------------- Users -------------------------
 import uuid
@@ -16,10 +17,12 @@ class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True)  # Explicitly define username
     phone_number = models.CharField(max_length=15, unique=True)
 
-    is_admin = models.BooleanField(default=False)
+
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(null=True, blank=True)
     
 
-    #objects = 
+    objects = UserManager()
     USERNAME_FIELD = "email"  # Authenticate using email
     REQUIRED_FIELDS = ["username", "phone_number"]  # Only these are required when creating a user
 

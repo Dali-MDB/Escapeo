@@ -37,8 +37,6 @@ class GroupConversation(Conversation):
     """Group conversation related to a trip"""
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='group_conversation')
     participants = models.ManyToManyField(User,related_name='my_chats')
-
-
     
     def save(self, *args, **kwargs):
         self.is_group = True
@@ -46,19 +44,19 @@ class GroupConversation(Conversation):
 
     def join(self,joiner):
         if self.participants.filter(id=joiner.id).exists():
-            return False  # Already in the group
+            return False 
         self.participants.add(joiner)
-        return True  # Successfully added
+        return True  
         
     def __str__(self):
-        return f"Group chat for Trip: {self.trip}"
+        return f"Group: {self.name} (Trip: {self.trip})"
     
 
 
 
 
 class Message(models.Model):
-    """Message model for all conversation types"""
+   
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
@@ -73,7 +71,7 @@ class Message(models.Model):
 
 
 class SupportTicket(models.Model):
-    """Ticket system for customer support requests"""
+   
     TICKET_STATUS = (
         ('open', 'Open'),
         ('claimed', 'Claimed by Admin'),
@@ -92,12 +90,13 @@ class SupportTicket(models.Model):
         return f"Ticket #{self.id}: {self.subject} ({self.status})"
     
     def claim(self, admin):
-        """Admin claims the ticket"""
+    
         if self.status == 'open':
-            self.admin = admin
+            self.admin = admin  # admin should be a User instance
             self.status = 'claimed'
             self.save()
-            # Create or update the direct conversation
+
+        # Create a conversation if it doesn't exist
             conversation, created = DirectConversation.objects.get_or_create(
                 ticket=self,
                 defaults={
@@ -110,8 +109,11 @@ class SupportTicket(models.Model):
                 conversation.admin = admin
                 conversation.is_active = True
                 conversation.save()
-            return True
-        return False
+
+            return True  # Claiming was successful
+
+        return False  # Already claimed or closed
+
     
     def close(self):
         """Close the ticket and related conversation"""
@@ -119,4 +121,3 @@ class SupportTicket(models.Model):
         self.save()
         # Mark conversation as inactive
         DirectConversation.objects.filter(ticket=self).update(is_active=False)
-
