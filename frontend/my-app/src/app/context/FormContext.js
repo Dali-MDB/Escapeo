@@ -32,8 +32,10 @@ export function FormProvider({ children }) {
     password: "",
   });
 
+  const [tripSelected , setTripSelected] = useState(0);
+
   return (
-    <FormContext.Provider value={{ formData, setFormData , loginData , setLoginData }}>
+    <FormContext.Provider value={{ formData, setFormData , loginData , setLoginData ,tripSelected , setTripSelected }}>
       {children}
     </FormContext.Provider>
   );

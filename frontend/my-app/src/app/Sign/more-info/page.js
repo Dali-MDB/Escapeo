@@ -30,10 +30,10 @@ export default function MoreInfo() {
       } else {
         // Handle specific errors from the backend
         if (!response.ok) {
-          alert("User already exists");
-          router.push("/Sign/Sign_up")
-        }  else {
-          alert("Sign-up failed. Please try again.");
+           
+        router.push("/Sign/Sign_up")
+        
+        alert("Sign-up failed. Please try again."+ response.error);
         }
       }
     } catch (error) {

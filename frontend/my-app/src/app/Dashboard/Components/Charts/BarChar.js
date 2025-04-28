@@ -21,7 +21,6 @@ const MyBarChart = () => {
             console.log('Data loaded:', newData);
         }, 1500);
     }, []);
-
     return (
         <div style={{ height: '400px', width: '100%',position:'relative' }}>
             {isLoading ? (

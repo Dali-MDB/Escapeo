@@ -8,9 +8,9 @@ import arrow from "/public/arrow.png";
 import support from "/public/Support.png";
 import Logout from "/public/logout.png";
 import { logout } from "../utils/auth";
-import { MessageCircle , Settings , User ,History , Calendar , LayoutDashboard } from "lucide-react";
+import { MessageCircle, Settings, User, History, Calendar, LayoutDashboard } from "lucide-react";
 
-export default function ProfileCard({isAdmin , profile}) { 
+export default function ProfileCard({ isAdmin, profile }) {
   const menuItemsCustomers = [
     { title: "My account", link: "/Setting/Account", icon: User },
     { title: "History", link: "/Setting/History", icon: History },
@@ -31,7 +31,7 @@ export default function ProfileCard({isAdmin , profile}) {
     { title: "Support", link: "/Setting/Help", icon: support },
   ];
 
-  
+
 
   return (
     <div
@@ -47,14 +47,14 @@ export default function ProfileCard({isAdmin , profile}) {
 
       <div className="bg-[#4B6382] rounded-md py-5 flex flex-col items-center">
         {/* Profile Section */}
-        <div className="w-[80%] flex gap-4 items-center pb-6 border-b border-gray-300">
-          <Link href={isAdmin ? "/Dashboard/Profile" : "/Setting/Account"} className="flex gap-2">
-            <div className="rounded-full flex justify-center items-center">
-              {profile.profile_picture ? <Image src={profile.profile_picture} height={50} width={50} alt="Profile Image" priority /> : <User size={50} color="white" />}
-            </div>
+        <div className="w-[80%] flex gap-4  items-center pb-6 border-b border-gray-300">
+          <Link href={isAdmin ? "/Dashboard/Profile" : "/Setting/Account"} className="flex gap-4 items-center">
+            <div className="rounded-full   overflow-hidden max-h-12 max-w-12 border border-[var(--primary)]">
+              <Image width={150} height={150} alt="a" unoptimized src={`http://127.0.0.1:8000${profile.profile_picture}`}
+              /></div>
             <div className="flex flex-col items-start">
-              <h1 className="font-bold text-lg text-white">{profile.username || "John Doe"}</h1>
-              <h5 className="text-sm text-gray-200">Online</h5>
+              <h1 className="font-bold text-xl text-white">{profile.username || "John Doe"}</h1>
+              <h5 className="text-md text-gray-200">Online</h5>
             </div>
           </Link>
         </div>
@@ -80,36 +80,36 @@ export default function ProfileCard({isAdmin , profile}) {
         {/* Support & Logout */}
         <div className="w-3/4 pt-6 flex flex-col gap-4">
           {
-          
-          
-          
-          !isAdmin && secondaryItems.map((item, index) => (
-            <Link
-              href={item.link}
-              key={index}
-              className="flex justify-between items-center w-full "
-              aria-label={item.title}
-            >
-              <span className="flex items-center gap-3">
-                <Image src={item.icon} width={20} height={20} alt={item.title} />
-                {item.title}
-              </span>
+
+
+
+            !isAdmin && secondaryItems.map((item, index) => (
+              <Link
+                href={item.link}
+                key={index}
+                className="flex justify-between items-center w-full "
+                aria-label={item.title}
+              >
+                <span className="flex items-center gap-3">
+                  <Image src={item.icon} width={20} height={20} alt={item.title} />
+                  {item.title}
+                </span>
                 <Image src={arrow} className="h-2" height={2} width={5} alt="arrow" />
-            </Link>
-          ))}
-        </div>       
-         <div className="w-3/4 pt-6 flex flex-col gap-4">
-            <button
-              onClick={logout}
-              className="flex justify-between items-center w-full "
-              aria-label="Logout"
-            >
-              <span className="flex items-center gap-3">
-                <Image src={Logout} width={20} height={20} alt={"Logout"} />
-                Logout
-              </span>
-             </button>
-          
+              </Link>
+            ))}
+        </div>
+        <div className="w-3/4 pt-6 flex flex-col gap-4">
+          <button
+            onClick={logout}
+            className="flex justify-between items-center w-full "
+            aria-label="Logout"
+          >
+            <span className="flex items-center gap-3">
+              <Image src={Logout} width={20} height={20} alt={"Logout"} />
+              Logout
+            </span>
+          </button>
+
         </div>
       </div>
     </div>

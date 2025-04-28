@@ -1,9 +1,69 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import Pusher from 'pusher-js';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { API_URL } from '@/app/utils/constants';
 import { getMyProfile } from '@/app/utils/auth';
+import { CallReceivedRounded, Description } from '@mui/icons-material';
+import InputLogin from '@/app/Dashboard/Components/InputLogin.js'
+import { tokens } from '@/app/Dashboard/theme';
+import { Cross, Heart } from 'lucide-react';
+
+const FormTicket = ({ setClicked, handleSubmit, setFormTicket, formTicket }) => (
+    <form className='w-full px-2 rounded-xl relative bg-[var(--bg-color)] flex flex-col justify-start items-end gap-4 py-4 text-black min-h-64' onSubmit={handleSubmit}>
+        <div className='w-full text-lg flex justify-between'>
+            <h3>Add a Ticket</h3>
+            <Cross size={20} fill='var(--primary)' onClick={() => {
+                setClicked(false)
+            }} className='rotate-[45deg]' />
+        </div>
+        <InputLogin type={"text"} name={"subject"} placeholder={'Enter the subject of your ticket...'} onChange={(e) => {
+            e.preventDefault();
+            setFormTicket(prev => ({ ...prev, subject: e.target.value }))
+        }} value={formTicket['subject']}
+        />
+        <InputLogin type={"text"} name={"subject"} placeholder={'Enter the Description of your ticket...'} onChange={(e) => {
+            e.preventDefault();
+            setFormTicket(prev => ({ ...prev, description: e.target.value }))
+        }} value={formTicket['description']}
+        />
+        <button type='submit' onClick={handleSubmit} className='w-1/2 text-[var(--bg-color)] rounded-xl p-4 text-lg font-semibold bg-[var(--primary)]'>Submit</button>
+    </form>
+)
+
+const ConversationBox = ({ conversation, isSelected, onClick }) => {
+    return (
+        <div
+            className={`w-full cursor-pointer text-lg font-bold p-4 rounded-xl border-[0.5px] ${isSelected ? 'bg-gray-200 dark:bg-gray-700' : ''
+                }`}
+            onClick={onClick}
+        >
+            {conversation.admin.username}
+        </div>
+    );
+};
+
+const NoTokenEl = ({ handleSubmit, setFormTicket, formTicket }) => {
+    const [clicked, setClicked] = useState(false);
+
+    return (
+        <div className='relative w-full flex flex-col justify-center items-center gap-6'>
+            {!clicked ?
+                <button
+                    className='w-1/2 text-[var(--bg-color)] rounded-xl p-4 text-lg font-semibold bg-[var(--primary)]'
+                    onClick={() => { setClicked(prev => !prev) }}
+                >
+                    New Token
+                </button> :
+                <FormTicket
+                    handleSubmit={handleSubmit}
+                    setClicked={setClicked}
+                    setFormTicket={setFormTicket}
+                    formTicket={formTicket}
+                />
+            }
+        </div>
+    )
+}
 
 export default function Messages() {
     const [messages, setMessages] = useState([]);
@@ -11,215 +71,381 @@ export default function Messages() {
     const [message, setMessage] = useState("");
     const [user, setUser] = useState(null);
     const [conversationId, setConversationId] = useState(null);
+
+    useEffect(() => {
+        setConversationId(localStorage.getItem('lastSelectedCustomerConversationId') || null);
+    }, []);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState("");
+    const [tickets, setTickets] = useState([]);
+    const messagesEndRef = useRef(null);
+    const [socket, setSocket] = useState(null);
+    const [wsInfo, setWsInfo] = useState(null);
 
-    // Setup Pusher
-    /*useEffect(() => {
-        const pusher = new Pusher('4b8aedc65def2e33fdf6', {
-            cluster: 'eu',
-            forceTLS: true
-        });
+    const [formTicket, setFormTicket] = useState({
+        subject: '', description: ''
+    });
 
-        if (conversationId) {
-            const channel = pusher.subscribe(`conversation-${conversationId}`);
-            channel.bind('new-message', (data) => {
-                setMessages(prev => [...prev, data]);
+    const getSocketInfo = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_URL}/chat/ws-info/`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
+            });
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching WebSocket info:', error);
+            return null;
+        }
+    }, []);
+    const initWebSocket = useCallback(async (conversationId) => {
+        if (!conversationId) return;
+
+        try {
+            const info = await getSocketInfo();
+            if (!info) throw new Error("Failed to get WebSocket info");
+
+            setWsInfo(info);
+            const token = localStorage.getItem("accessToken");
+            const wsUrl = `${info.direct_chat.url.replace('<conversation_id>', conversationId)}?token=${token}`;
+            const newSocket = new WebSocket(wsUrl);
+
+            newSocket.onopen = () => {
+                setSocket(newSocket);
+                console.log('WebSocket connected');
+            };
+
+            newSocket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                      if(data.type === "message"){  setMessages(prev => {const currentMessages = Array.isArray(prev) ? prev : [];
+                            
+                        // Check if message already exists
+                        if (!currentMessages.some(msg => msg.id === data.id)) {
+                            const updatedMessages = [...currentMessages, {
+                                id: data.id,
+                                message: data.content,
+                                sender: data.sender,
+                                timestamp: data.timestamp
+                            }];
+                            
+                            localStorage.setItem(`chatMessages-${conversationId}`, JSON.stringify(updatedMessages));
+                            return updatedMessages;
+                        }
+                        return currentMessages;
+                    });}
+                    
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
+                }
+            };
+
+            newSocket.onerror = (error) => {
+                setError("WebSocket connection error");
+            };
+
+            newSocket.onclose = (event) => {
+                if (event.code !== 1000) {
+                    setError("WebSocket disconnected unexpectedly");
+                }
+            };
+
+            return newSocket;
+        } catch (error) {
+            console.error('WebSocket initialization error:', error);
+            setError("Failed to initialize WebSocket");
+            return null;
+        }
+    }, [getSocketInfo]);
+
+    // Add this to both admin and customer components
+    useEffect(() => {
+        if (socket) {
+            console.log('Socket status:', {
+                readyState: socket.readyState,
+                url: socket.url,
+                protocol: socket.protocol
             });
 
-            return () => {
-                channel.unbind_all();
-                channel.unsubscribe();
-                pusher.disconnect();
-            };
-        }
-    }, [conversationId]);
-*/
-    // Fetch user and conversations
-    useEffect(() => {
-        async function fetchtchTickets() {
-            try {
-                const responseUser = await getMyProfile();
-                setUser(responseUser.profile);
-
-                const response = await fetch(`${API_URL}/tickets/`, {
-                    headers: {
-                        'Authorization': `Bearer ${responseUser.token}`
-                    },
-                });
-
-                if (!response.ok) {
-                    setError('Failed to fetch tickets');
-                    return;
-                }
-
-                const data = await response.json();
-                setTickets(data);
-            } catch (err) {
-                setError(err.message);
+            // 0: CONNECTING, 1: OPEN, 2: CLOSING, 3: CLOSED
+            if (socket.readyState === 1) {
+                console.log('WebSocket is properly connected');
             }
         }
-
-        fetchtchTickets();
-    },[])
-
-    /*// Fetch messages for the current conversation
-    useEffect(() => {
-
-        async function fetchMessages() {
-            try {
-                const responseUser = await getMyProfile();
-                const response = await fetch(`${API_URL}/messages/${conversationId}/`, {
-                    headers: {
-                        'Authorization': `Bearer ${responseUser.token}`
-                    },
-                });
-
-                
-                if (!response.ok) {
-                    console.log('Failed to fetch messages' , response);
-                }else{
-                const data = await response.json();
-                setMessages(data);}
-            } catch (err) {
-                setError(err.message);
-            }
-        }
-
-        fetchMessages();
-    }, [conversationId]);
-
-    async function createConversation() {
+    }, [socket]);
+    async function fetchTickets() {
         try {
+            setLoading(true);
             const responseUser = await getMyProfile();
-            const response = await fetch(`${API_URL}/create-conversation/`, {
-                method: 'POST',
+            setUser(responseUser.profile);
+
+            const response = await fetch(`${API_URL}/chat/support-tickets/`, {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${responseUser.token}`
                 },
-                body: JSON.stringify({
-                    cust: responseUser.profile.id,
-                    user: responseUser.profile
-                })
             });
-
-            if (!response.ok) {
-                setError('Failed to create conversation');
-            }
 
             const data = await response.json();
-            setConversations(prev => [...prev, data]);
+            setTickets(data);
+            setLoading(false);
         } catch (err) {
             setError(err.message);
         }
     }
 
-    async function sendMessage(e) {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!message.trim() || !conversationId || !user) return;
+        setLoading(true);
+        const response = await fetch(`${API_URL}/chat/support-tickets/`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify(formTicket),
+        });
 
+        if (!response.ok) {
+            setError('Failed to create ticket');
+            setLoading(false);
+            return;
+        }
+
+        const data = await response.json();
+        setLoading(false);
+        alert('Request Sent');
+
+        // Reset form
+        setFormTicket({ subject: '', description: '' });
+
+        // Fetch updated conversations
+        fetchConversations();
+    }
+
+    const fetchConversations = useCallback(async () => {
         try {
-            const responseUser = await getMyProfile();
-            const response = await fetch(`${API_URL}/messages/`, {
-                method: 'POST',
+            const response = await fetch(`${API_URL}/chat/direct-conversations/`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${responseUser.token}`
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 },
-                body: JSON.stringify({
-                    conversation: conversationId,
-                    content: message,
-                    sender: user.id
-                })
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to send message');
+            if (response.ok) {
+                const data = await response.json();
+                setConversations(data);
+            } else {
+                setError('Failed to fetch conversations');
+            }
+        } catch (err) {
+            setError('Error fetching conversations: ' + err.message);
+        }
+    }, []);
+
+    const fetchConversationMessages = useCallback(async (id) => {
+        if (!id) return;
+
+        try {
+
+            // First load cached messages if they exist
+            const cachedMessages = localStorage.getItem(`chatMessages-${id}`);
+            if (cachedMessages) {
+                const parsedMessages = JSON.parse(cachedMessages);
+                setMessages(parsedMessages);
+            } else {
+                // If no cached messages, initialize with empty array
+                setMessages([]);
             }
 
-            setMessage("");
+            // Then fetch fresh messages from API
+            const response = await fetch(`${API_URL}/chat/direct-conversations/${id}/messages/`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.length > 0) {
+                    setMessages(prev=>{
+                        const currentIds = prev.map(msg=>msg.id)
+                        const newMessgs = data.filter(msg=>!currentIds.includes(msg.id))
+                        return [...prev , ...newMessgs]
+                    });
+                    // Update cache with latest messages from API
+                    localStorage.setItem(`chatMessages-${id}`, JSON.stringify(data));
+                }
+            } else {
+                console.error('Failed to fetch messages:', response.status);
+            }
         } catch (err) {
-            setError(err.message);
+            console.error('Error fetching messages:', err);
         }
-    }
-*/
-    const ConversationBox = ({ conversation }) => {
-        return (
-            <div
-                className={`p-3 rounded-lg cursor-pointer ${
-                    'bg-blue-500 text-white'
-                    }`}
-            >
-                <p className="font-medium">Staff Chat</p>
-            </div>
-        );
-    };
+    }, []);
+
+    const selectConversation = useCallback((id) => {
+        setConversationId(id);
+        localStorage.setItem('lastSelectedCustomerConversationId', id);
+    }, []);
+    const sendMessage = useCallback(async () => {
+        if (!message.trim() || !conversationId || !socket) return;
+
+        const tempId = Date.now();
+        const tempMessage = {
+            id: tempId,
+            message: message,
+            sender: { username: "you" , id:wsInfo?.user?.id }, // Temporary sender info
+            timestamp: new Date().toISOString(),
+            isTemp: true
+
+        };
+
+        
+
+       // setMessages(prev => [...prev, tempMessage]);
+        setMessage("");
+
+        try {
+
+            const messageData = {
+                "action": "send",
+                'message': message,
+            };
+
+            console.log(JSON.stringify(messageData))
+            socket.send(JSON.stringify(messageData));
+
+        } catch (err) {
+            console.error("Send error:", err);
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+        }
+    }, [message, conversationId, socket, wsInfo, conversations]);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // Initialize data
+    useEffect(() => {
+        fetchConversations();
+
+    }, [fetchConversations]);
+
+    // Setup connection for selected conversation
+    useEffect(() => {
+        let currentSocket = null;
+
+        const setupWebSocket = async () => {
+            if (conversationId) {
+                // Fetch messages for the selected conversation
+                await fetchConversationMessages(conversationId);
+
+                // Initialize WebSocket connection
+                currentSocket = await initWebSocket(conversationId);
+            }
+        };
+
+        setupWebSocket();
+
+        // Cleanup function
+        return () => {
+            if (currentSocket) {
+                currentSocket.close();
+            }
+        };
+    }, [conversationId, fetchConversationMessages, initWebSocket]);
 
     if (error) return <div>Error: {error}</div>;
-
+    console.log(messages)
     return (
-        <div className="w-full min-h-[40vh] rounded-xl flex">
+        <div className="w-full min-h-[40vh] rounded-xl flex gap-6">
             {/* Sidebar */}
-            <div className="w-1/3 rounded-xl bg-zinc-100 dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
+            <div className="w-1/2 rounded-xl bg-[var(--bg-color)] dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Conversations</h2>
-                    
                 </div>
-                <div className="space-y-2">
-                    
+                <div className="space-y-2 flex flex-col-reverse gap-2 justify-center items-start">
+                    <NoTokenEl
+                        formTicket={formTicket}
+                        setFormTicket={setFormTicket}
+                        handleSubmit={handleSubmit}
+                    />
+
+                    {conversations.map((conversation) => (
+                        <ConversationBox
+                            key={conversation.id}
+                            conversation={conversation}
+                            isSelected={conversationId === conversation.id}
+                            onClick={() => selectConversation(conversation.id)}
+                        />
+                    ))}
                 </div>
             </div>
 
-            {/* Chat area 
-            <div className="w-2/3 flex flex-col">
-                <>
-                        <div className="flex-1 p-4 overflow-y-auto">
-                            {messages.length === 0 ? (
-                                <div className="flex items-center justify-center h-full">
-                                    <p className="text-gray-500">No messages yet</p>
-                                </div>
-                            ) : (
-                                messages.map((msg) => (
+            {/* Chat Area */}
+            <div className='w-full rounded-xl bg-[var(--bg-color)] flex flex-col items-center justify-between'>
+                {/* Messages Container - Fixed height with scroll */}
+                <div className='w-full h-[400px] overflow-y-auto py-4 px-6 flex flex-col-reverse rounded-t-xl'>
+                    {conversationId ? (
+                        messages.length ? (
+                            // We use flex-col-reverse to pin to bottom by default
+                            <div className='flex flex-col space-y-2'>
+                                {messages.map((msg) => (
                                     <div
                                         key={msg.id}
-                                        className={`mb-3 ${
-                                            msg.sender === user?.id ? 'text-right' : 'text-left'
-                                        }`}
-                                    >
-                                        <div
-                                            className={`inline-block p-3 rounded-lg ${
-                                                msg.sender === user?.id
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'bg-zinc-200 dark:bg-zinc-700'
+                                        className={`w-full px-3 py-2 rounded-xl ${msg.sender.id === wsInfo?.user?.id
+                                            ? 'bg-[var(--primary)] text-[var(--bg-color)] ml-auto max-w-[80%]'
+                                            : 'bg-gray-200 dark:bg-gray-700 mr-auto max-w-[80%]'
                                             }`}
-                                        >
-                                            {msg.content}
-                                        </div>
+                                    >
+                                        <p>{msg.message}</p>
+                                        <p className="text-xs opacity-70 mt-1">
+                                            {new Date(msg.timestamp).toLocaleTimeString()}
+                                        </p>
                                     </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/*<form onSubmit={sendMessage} className="p-4 border-t">
-                            <div className="flex gap-2">
-                                <input
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="Type a message..."
-                                    className="flex-1 p-2 border rounded"
-                                />
-                                <button
-                                    type="submit"
-                                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                                >
-                                    Send
-                                </button>
+                                ))}
+                                <div ref={messagesEndRef} />
                             </div>
-                        </form>
-                    </>
-                
-            </div>*/}
+                        ) : (
+                            <div className='h-full flex items-center justify-center'>
+                                <p>No messages yet</p>
+                            </div>
+                        )
+                    ) : (
+                        <div className='h-full flex items-center justify-center'>
+                            <p>Select a conversation to start chatting</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Message Input */}
+                {conversationId && (
+                    <div className="w-full p-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex gap-2">
+                            <input
+                                type='text'
+                                className='w-full border rounded-xl px-4'
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                                placeholder="Type a message..."
+                            />
+                            <button
+                                className='w-fit flex justify-center items-center rounded-xl p-4 bg-[var(--primary)] text-lg text-[var(--bg-color)]'
+                                onClick={sendMessage}
+                                disabled={!message.trim() || !socket}
+                            >
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

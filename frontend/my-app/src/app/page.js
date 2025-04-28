@@ -11,7 +11,7 @@ import NavBar from "./components/NavBar";
 import Template from './template';
 import Footer from "./components/Footer";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 export default function Home() {
 {/**
   // app/page.js (or any other page)
@@ -22,9 +22,8 @@ export default function Home() {
       </Template>
     );
   } */}
-  
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
 
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
 
   return (
     <div className="bg-[#EEDAC4] px-0 pt-10 m-0 w-full">

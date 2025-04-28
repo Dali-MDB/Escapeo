@@ -6,7 +6,161 @@ import MyBarChart from "../Components/Charts/BarChar";
 import MyPieChart from "../Components/Charts/PieChart";
 import MyBarChart2 from "../Components/Charts/BarChart2";
 import MyBarChart3 from "../Components/Charts/BarChart3";
+import { useEffect, useState } from "react";
+import { API_URL } from "@/app/utils/constants";
 export default function Home() {
+  const [visitMonth, setVisitMonth] = useState(null)
+  const [visitDay, setVisitDay] = useState(null)
+  const [visitYear, setVisitYear] = useState(null)
+  const [topDest, setTopDest] = useState(null)
+  const [top5Dest, setTop5Dest] = useState(null)
+  const [mostVisitPaths, setMostVisitPaths] = useState(null)
+  const [stats, setStats] = useState({ top_countries: Array(0), visitors_today: 0, visitors_this_month: 0, bounce_rate: '0%', avg_duration_seconds: 0 })
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/stats/visitors/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setStats(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetchVisitorsMonthly = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/visitors/monthly/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setVisitMonth(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetchVisitorsDaily = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/visitors/daily/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setVisitDay(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetchVisitorsYearly = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/visitors/yearlyy/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setVisitYear(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetchDest = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/top_destinations/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setTopDest(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetch5Dest = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/top_5_destinations/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setTop5Dest(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+    const fetchVisitedPaths = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/panel/most_visited_paths/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setMostVisitPaths(data); // <<< ici
+        } else {
+          console.log("Error fetching stats");
+        }
+      } catch (error) {
+        alert(error);
+      }
+    };
+
+    fetchStatistics()
+    fetchVisitorsMonthly()
+    fetchVisitorsDaily()
+    fetchVisitorsYearly()
+    fetchDest()
+    fetch5Dest()
+    fetchVisitedPaths()
+  }, []);
+
+
   return (
     <div className=" w-full flex flex-col gap-6">
       <div className="w-full h-96 p-8 flex flex-col justify-center gap-3 rounded-xl bg-[var(--bg-color)] items-center">
@@ -15,12 +169,16 @@ export default function Home() {
         </h1>
         <MyBarChart />
       </div>
+      {/**
+       * top_countries: Array(0), visitors_today: 0, visitors_this_month: 0, bounce_rate: '0%', avg_duration_seconds: 0
+       */}
       <div className=" flex flex-row  justify-center  px-auto w-full gap-1 rounded-xl ">
+
         {[
-          { value: "18.6K", title: "Unique Visitors", percent: "10%" },
-          { value: "55.9K", title: "Total Pageviews", percent: "10%" },
-          { value: "54%", title: "Bounce Rate", percent: "10%" },
-          { value: "2m 56s", title: "Visit Duration", percent: "10%" },
+          { value: stats.visitors_today, title: "Unique Visitors", percent: "0%" },
+          { value: stats.visitors_this_month, title: "Total Pageviews", percent: "0%" },
+          { value: stats.bounce_rate, title: "Bounce Rate", percent: "0%" },
+          { value: stats.avg_duration_seconds, title: "Visit Duration", percent: "0%" },
         ].map((el, index) => (
           <div
             key={index}
@@ -48,10 +206,10 @@ export default function Home() {
 
         {/* Right Section - Top Half */}
         <div className="col-span-1 p-8 row-span-1 rounded-xl w-full flex flex-col bg-[var(--bg-color)] justify-center items-center">
-        <h1 className="text-left py-2 w-full text-2xl font-semibold">
+          <h1 className="text-left py-2 w-full text-2xl font-semibold">
             Top Content
           </h1>
-          
+
           <MyBarChart3 />
         </div>
 

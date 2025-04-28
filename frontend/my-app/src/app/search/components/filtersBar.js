@@ -3,6 +3,7 @@
 import { useSearch } from "@/app/context/SearchContext";
 import { useState } from "react";
 import { arrowIconDown, arrowIconUp } from "@/app/data/data";
+import { useRouter } from "next/navigation";
 
 const FilterEl = ({ filterTitle, content }) => {
   const [open, setOpen] = useState(false);
@@ -38,6 +39,9 @@ const RatingButton = ({ rate, active, onClick }) => {
   );
 };
 
+
+
+// Updated CheckboxOption component to handle checked state properly
 const CheckboxOption = ({ id, label, checked, onChange, value }) => {
   return (
     <div className="w-full flex items-center gap-4 py-2">
@@ -45,8 +49,8 @@ const CheckboxOption = ({ id, label, checked, onChange, value }) => {
         id={id}
         type="checkbox"
         checked={checked}
-        onChange={() => onChange(value)}
-        className="w-5 h-5 accent-orange-500  rounded border-gray-300 focus:ring-orange-500"
+        onChange={(e) => onChange(value, e.target.checked)}
+        className="w-5 h-5 accent-orange-500 rounded border-gray-300 focus:ring-orange-500"
       />
       <label htmlFor={id} className="text-lg font-medium cursor-pointer">
         {label}
@@ -56,59 +60,71 @@ const CheckboxOption = ({ id, label, checked, onChange, value }) => {
 };
 
 export default function FiltersBar() {
-  const { filters, setFilters } = useSearch();
+  const router = useRouter();
+  const { 
+    filters, 
+    setFilters ,
+    executeSearch, 
+    searchData,
+    updateArrayFilter,
+    updatePriceRange,
+    PRICE_CATEGORIES,
+    DESTINATION_TYPES,
+    TRANSPORT_TYPES,
+    EXPERIENCE_LEVELS,
+    TRIP_TYPES
+  } = useSearch();
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = await executeSearch({
+      // Only pass basic search parameters
+      departure_city: searchData.departure_city,
+      destination: searchData.destination,
+      departure_date: searchData.departure_date,
+      return_date: searchData.return_date,
+      is_one_way: searchData.is_one_way
+    });
+    if (success) {
+      router.push('/search/flight');
+    }
   };
 
   const handleRatingChange = (rating) => {
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      rating: prev.rating === rating ? null : rating,
+      min_stars: prev.min_stars === rating ? 0 : rating,
+      max_stars: 5
     }));
   };
 
-  const handleTypeChange = (filter, value) => {
-    setFilters((prev) => {
-      const currentValues = prev[filter] || [];
-      return {
-        ...prev,
-        [filter]: currentValues.includes(value)
-          ? currentValues.filter((v) => v !== value)
-          : [...currentValues, value],
-      };
-    });
-  };
+  
 
-  const formatMinutesToTime = (minutes) => {
-    const safeMinutes = Number.isFinite(minutes)
-      ? Math.max(0, Math.min(minutes, 1439))
-      : 720;
-    const hours = Math.floor(safeMinutes / 60);
-    const mins = safeMinutes % 60;
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
-  };
-
+  // Get filter options from context constants
   const filterOptions = {
-    tripTypes: ["Standard", "All inclusive", "Group", "Solo", "Road Trip"],
-    experienceTypes: [
-      "Adventure",
-      "Cultural",
-      "Eco     ",
-      "Wellness",
-      "Romantic",
-      "Festival",
-    ],
-    destinationTypes: ["City", "Beach", "Mountain", "Island", "Cruise"],
-    transportType: ["Car", "Bus", "Air plane", "Cruise"],
+    tripTypes: TRIP_TYPES || [],
+    experienceTypes: EXPERIENCE_LEVELS || [],
+    destinationTypes: DESTINATION_TYPES || [],
+    transportTypes: TRANSPORT_TYPES || []
+  };
+
+  // Handler for checkbox changes
+  const handleCheckboxChange = (filterKey, value, isChecked) => {
+    updateArrayFilter(filterKey, value, isChecked);
   };
 
   return (
     <div className="w-full md:w-1/4 px-4 py-6 border-r flex flex-col bg-gray-100 rounded-lg h-fit sticky top-4">
-      <h2 className="text-2xl font-semibold mb-6">Filters</h2>
+      <div className="w-full flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Filters</h2>
+        <button 
+          className="rounded-xl p-2 bg-[var(--primary)] text-[var(--bg-color)]" 
+          onClick={handleSubmit}
+        >
+          Apply filters
+        </button>
+      </div>
+
       {[
         {
           filterTitle: "Price",
@@ -117,46 +133,21 @@ export default function FiltersBar() {
               <input
                 type="range"
                 min="0"
-                max="1000"
-                step="10"
-                value={filters.priceRange?.[1] || 500}
+                max="10000"
+                step="100"
+                value={filters.priceRange?.[1] || 5000}
                 onChange={(e) =>
-                  handleFilterChange("priceRange", [
-                    0,
-                    parseInt(e.target.value),
+                  updatePriceRange([
+                    filters.priceRange?.[0] || 0,
+                    parseInt(e.target.value)
                   ])
                 }
                 className="w-full range-input"
               />
               <div className="flex justify-between items-center">
-                 <span className="text-lg font-medium">
-                  ${filters.priceRange?.[1] || 500}
-                </span>
-               </div>
-            </div>
-          ),
-        },
-        {
-          filterTitle: "Departure Time",
-          content: (
-            <div className="w-full py-4 flex flex-col gap-4">
-              <input
-                type="range"
-                min="0"
-                max="1439"
-                step="30"
-                value={filters.departureTimeRange?.[1] || 720}
-                onChange={(e) =>
-                  handleFilterChange("departureTimeRange", [
-                    0,
-                    parseInt(e.target.value),
-                  ])
-                }
-                className="w-full range-input"
-              />
-              <div className="flex justify-between items-center">
+                <span>${filters.priceRange?.[0] || 0}</span>
                 <span className="text-lg font-medium">
-                  {formatMinutesToTime(filters.departureTimeRange?.[1])}
+                  ${filters.priceRange?.[1] || 5000}
                 </span>
               </div>
             </div>
@@ -170,7 +161,7 @@ export default function FiltersBar() {
                 <RatingButton
                   key={rating}
                   rate={rating}
-                  active={filters.rating === rating}
+                  active={filters.min_stars === rating}
                   onClick={handleRatingChange}
                 />
               ))}
@@ -183,72 +174,76 @@ export default function FiltersBar() {
             <div className="w-full py-2 flex flex-col gap-2">
               {filterOptions.tripTypes.map((type, index) => (
                 <CheckboxOption
-                  key={type}
+                  key={type.value}
                   id={`trip-type-${index}`}
-                  label={type}
-                  value={type}
-                  checked={filters.tripType?.includes(type)}
-                  onChange={(value) => handleTypeChange("tripType", value)}
+                  label={type.label}
+                  value={type.value}
+                  checked={filters.trip_types?.includes(type.value)}
+                  onChange={(value, checked) => 
+                    handleCheckboxChange("trip_types", value, checked)
+                  }
                 />
               ))}
             </div>
           ),
         },
         {
-            filterTitle: "Experience Type",
-            content: (
-              <div className="w-full py-2 flex flex-col gap-2">
-                {filterOptions.experienceTypes.map((type, index) => (
-                  <CheckboxOption
-                    key={type}
-                    id={`experience-type-${index}`}
-                    label={type}
-                    value={type}
-                    checked={filters.experienceType?.includes(type)}
-                    onChange={(value) =>
-                      handleTypeChange("experienceType", value)
-                    }
-                  />
-                ))}
-              </div>
-            ),
-          },{
-            filterTitle: "Destination Type",
-            content: (
-              <div className="w-full py-2 flex flex-col gap-2">
-                {filterOptions.destinationTypes.map((type, index) => (
-                  <CheckboxOption
-                    key={type}
-                    id={`destination-type-${index}`}
-                    label={type}
-                    value={type}
-                    checked={filters.destinationType?.includes(type)}
-                    onChange={(value) =>
-                      handleTypeChange("destinationType", value)
-                    }
-                  />
-                ))}
-              </div>
-            ),
-          },,{
-            filterTitle: "Transport Type",
-            content: (
-              <div className="w-full py-2 flex flex-col gap-2">
-                {filterOptions.transportType.map((type, index) => (
-                  <CheckboxOption
-                    key={type}
-                    id={`transport-type-${index}`}
-                    label={type}
-                    value={type}
-                    checked={filters.transportType?.includes(type)}
-                    onChange={(value) =>
-                      handleTypeChange("transportType", value)
-                    }
-                  />
-                ))}
-              </div>
-            ),
-          },
+          filterTitle: "Experience Type",
+          content: (
+            <div className="w-full py-2 flex flex-col gap-2">
+              {filterOptions.experienceTypes.map((type, index) => (
+                <CheckboxOption
+                  key={type.value}
+                  id={`experience-type-${index}`}
+                  label={type.label}
+                  value={type.value}
+                  checked={filters.experiences?.includes(type.value)}
+                  onChange={(value, checked) => 
+                    handleCheckboxChange("experiences", value, checked)
+                  }
+                />
+              ))}
+            </div>
+          ),
+        },
+        {
+          filterTitle: "Destination Type",
+          content: (
+            <div className="w-full py-2 flex flex-col gap-2">
+              {filterOptions.destinationTypes.map((type, index) => (
+                <CheckboxOption
+                  key={type.value}
+                  id={`destination-type-${index}`}
+                  label={type.label}
+                  value={type.value}
+                  checked={filters.destination_types?.includes(type.value)}
+                  onChange={(value, checked) => 
+                    handleCheckboxChange("destination_types", value, checked)
+                  }
+                />
+              ))}
+            </div>
+          ),
+        },
+        {
+          filterTitle: "Transport Type",
+          content: (
+            <div className="w-full py-2 flex flex-col gap-2">
+              {filterOptions.transportTypes.map((type, index) => (
+                <CheckboxOption
+                  key={type.value}
+                  id={`transport-type-${index}`}
+                  label={type.label}
+                  value={type.value}
+                  checked={filters.transports?.includes(type.value)}
+                  onChange={(value, checked) => 
+                    handleCheckboxChange("transports", value, checked)
+                  }
+                />
+              ))}
+            </div>
+          ),
+        }
       ].map((el, index) => (
         <FilterEl key={`filter-${index}`} {...el} />
       ))}

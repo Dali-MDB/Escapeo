@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
         try {
           const newToken = await refreshAccessToken(); // Try to refresh the token
           if (newToken) {
-            setIsAuthenticated(true); // Token refreshed successfully
+            setIsAuthenticated(false); // Token refreshed successfully
           } else {
             setIsAuthenticated(false); // No valid token, log out
           }

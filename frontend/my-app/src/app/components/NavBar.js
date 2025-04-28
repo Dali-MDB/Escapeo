@@ -12,13 +12,14 @@ import heart from "/public/heartWhite.png";
 import { navLinks } from "../data/data";
 import { useAuth } from '../context/AuthContext'; // Import useAuth
 import { useForm } from "../context/FormContext";
-import { getMyProfile } from "../utils/auth";
+import { getMyProfile, logout } from "../utils/auth";
 import { Heart } from "lucide-react";
-
-
+import { Notifications, NotificationsActive } from "@mui/icons-material";
+import { FaCircle } from "react-icons/fa";
 import { AsyncCallbackSet } from "next/dist/server/lib/async-callback-set";
 const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
-
+import { API_URL } from "../utils/constants";
+import { useRouter } from "next/router";
 // Left Section Component
 const LeftSection = ({ path }) => {
   return (
@@ -27,9 +28,8 @@ const LeftSection = ({ path }) => {
         {navLinks.map(({ title, link, icon }, index) => (
           <div
             key={index}
-            className={`z-30 flex flex-col justify-center h-full items-center relative ${
-              path === link ? "shadow-[inset_0_-5px_white]" : ""
-            }`}
+            className={`z-30 flex flex-col justify-center h-full items-center relative ${path === link ? "shadow-[inset_0_-5px_white]" : ""
+              }`}
           >
             <Link href={link} className="flex items-center gap-2 cursor-pointer">
               <span>{icon}</span>
@@ -41,44 +41,76 @@ const LeftSection = ({ path }) => {
     </div>
   );
 };
-const RightSectionCon = ({ clicked, setClicked }) => {
-  const [profileData, setProfileData] = useState(null);
+const RightSectionCon = ({ clicked, setClicked , isAuthenticated }) => {
+  const [profileData, setProfileData] = useState({
+    username: "",
+    email: "",
+    full_name: "",
+    phone_number: 0,
+    address: null,
+    date_of_birth: null,
+    profile_picture: "", // Default image
+  });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);  
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [count ,setCount] = useState(0)
+
+  const fetchNotificationsUnreadCount = async () => {
+    
+    try {
+        const response = await fetch(`${API_URL}/notifications/unread-count/`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        })
+        if (response.ok) {
+            const data = await response.json()
+
+            console.log("fetch of unread count successful")
+            setCount(data.unread_count)
+
+        } else {
+            throw new Error("error fetching unread notification count")
+        }
+    } catch (err) {
+        alert("Error: " + err)
+    }
+
+}
+
+async function fetchProfile() {
+  try {
+    const response = await getMyProfile();
+    if (response.success) {
+      console.log(response.profile)
+      const transformedData = {
+        username: response.profile.user.username,
+        profile_picture: response.profile.profile_picture,
+      };
+      setProfileData(transformedData);
+      setIsAdmin(response.isAdmin);
+    } else {
+      setError(response.error);
+    }
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+}
+
   useEffect(() => {
 
-    async function fetchProfile() {
-      try {
-        const response = await getMyProfile();
-        if (response.success) {
-          const transformedData = {
-            username: response.profile.username,
-            email: response.profile.email,
-            full_name:
-              response.profile.first_name && response.profile.last_name
-                ? `${response.profile.first_name} ${response.profile.last_name}`
-                : response.profile.username,
-            phone_number: response.profile.phone_number,
-            address:
-              response.profile.city && response.profile.country
-                ? `${response.profile.city}, ${response.profile.country}`
-                : null,
-            date_of_birth: response.profile.birthdate,
-            profile_picture: '/JohnDoe.jpg',
-          };
-          setProfileData(transformedData);
-          setIsAdmin(response.isAdmin);
-        } else {
-          setError(response.error);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+   
+    if(isAuthenticated){
+    
+    fetchNotificationsUnreadCount()
     fetchProfile();
+    }else{
+      const router  = useRouter()
+      router.push('/')
+    }
   }, []);
 
   if (isLoading) {
@@ -108,28 +140,36 @@ const RightSectionCon = ({ clicked, setClicked }) => {
   return (
     <div className="w-full z-20 flex justify-end items-center">
       <div className="w-1/2 flex flex-row items-center">
-        {
-          
-          !isAdmin && <div className="flex w-full items-center justify-end gap-3">
-          <Link href='/Setting/Favourite' className="flex justify-between gap-x-2 items-center">
+
+
+        <div className="flex w-full items-center justify-end gap-3">
+          {!isAdmin && <Link href='/Setting/Favourite' className="flex justify-between gap-x-2 items-center">
             {Heart && <Heart size={20} color="white" />}
             <span className="hidden 2xl:flex">Favorites</span>
+          </Link>}
+          <Link href='/Notification' className="flex relative justify-between gap-x-2 items-center">
+
+            {
+             
+             
+             count >0 &&
+             <FaCircle size={10} color="var(--secondary)" className={`absolute top-0 right-0 `} />
+              
+            
+            }
+            
+            <Notifications size={20} color="white" />
           </Link>
-          <span className="hidden 2xl:flex">|</span>
+
         </div>
-        }<div className="flex w-full cursor-pointer items-center justify-end gap-3">
-          <div className="flex justify-around items-center relative">
-            <Image 
-              src={profileData?.profile_picture || "/public/JohnDoe.jpg"} 
-              alt="Profile" 
-              height={40} 
-              width={40} 
-              className="rounded-full"
-            />
+        <div className="flex w-full cursor-pointer items-center justify-end gap-2 mx-2">
+          <div className="flex overflow-hidden justify-around items-center relative">
+            <div className="rounded-full overflow-hidden h-10 w-10">
+              <Image width={150} height={150} alt="a" unoptimized src={`http://127.0.0.1:8000${profileData.profile_picture}`}
+              /></div>
             <div
-              className={`w-[15px] h-[15px] rounded-full flex justify-center items-center absolute right-0 bottom-0 ${
-                clicked ? "bg-[#4B6382]" : `bg-[#A68868]`
-              }`}
+              className={`w-[15px] h-[15px] rounded-full flex justify-center items-center absolute right-0 bottom-0 ${clicked ? "bg-[#4B6382]" : `bg-[#A68868]`
+                }`}
               onClick={() => setClicked(!clicked)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -139,7 +179,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
             </div>
           </div>
 
-          <Link href={isAdmin ? "Dashboard/Profile" :"/Setting/Account"} className="hidden 2xl:flex xl:text-lg">
+          <Link href={isAdmin ? "Dashboard/Profile" : "/Setting/Account"} className="hidden 2xl:flex xl:text-lg">
             {profileData?.username || "User"}
           </Link>
 
@@ -152,7 +192,7 @@ const RightSectionCon = ({ clicked, setClicked }) => {
 
 // Right Section for Unauthenticated Users
 const RightSectionUnCon = () => {
-  return (  
+  return (
     <div className="w-full z-20 flex justify-end items-center">
       <div className="w-1/2 font-bold flex flex-row justify-evenly text-center items-center">
         <Link href={'/Log/Login'} className="w-full h-full rounded-md p-2">Login</Link>
@@ -164,8 +204,8 @@ const RightSectionUnCon = () => {
 
 // Main NavBar Component
 export default function NavBar() {
-  const { isAuthenticated  } = useAuth(); // Get user data
-  const {formData} = useForm()
+  const { isAuthenticated } = useAuth(); // Get user data
+  const { formData } = useForm()
   const [clicked, setClicked] = useState(false);
   const path = usePathname(); // Always call usePathname
 
@@ -193,7 +233,7 @@ export default function NavBar() {
       <LeftSection path={path} />
       <CenterSection />
       {isAuthenticated ? (
-        <RightSectionCon clicked={clicked} setClicked={setClicked} user={formData} />
+        <RightSectionCon clicked={clicked} isAuthenticated={isAuthenticated} setClicked={setClicked} user={formData} />
       ) : (
         <RightSectionUnCon />
       )}

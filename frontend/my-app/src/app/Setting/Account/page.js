@@ -4,9 +4,19 @@ import { useEffect, useState, useRef } from "react";
 import { modify, plus } from "../data";
 import { getMyProfile, updateMyProfile } from "../../utils/auth";
 import { API_URL } from "../../utils/constants";
+import { transcode } from "buffer";
+import Image from "next/image";
 
 export default function Account() {
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState({
+    username: "",
+    email: "",
+    full_name: "",
+    phone_number: 0,
+    address: null,
+    date_of_birth: null,
+    profile_picture: "", // Default image
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -20,8 +30,8 @@ export default function Account() {
         if (response.success) {
           // Transform the data to match your display fields
           const transformedData = {
-            username: response.profile.username,
-            email: response.profile.email,
+            username: response.profile.user.username,
+            email: response.profile.user.email,
             full_name:
               response.profile.first_name && response.profile.last_name
                 ? `${response.profile.first_name} ${response.profile.last_name}`
@@ -32,10 +42,12 @@ export default function Account() {
                 ? `${response.profile.city}, ${response.profile.country}`
                 : null,
             date_of_birth: response.profile.birthdate,
-            profile_picture: '/JohnDoe.jpg', // Default image
+            profile_picture: response.profile.profile_picture, // Default image
             // Add any other fields you need
           };
           setProfileData(transformedData);
+          console.log(localStorage.getItem('accessToken'))
+          console.log(profileData.profile_picture)
         } else {
           setError(response.error);
         }
@@ -78,21 +90,13 @@ export default function Account() {
     <div className="w-full py-0 px-2 flex flex-col gap-14">
       {/* Profile picture section (keep your existing code) */}
       <div className="bg-[url('/coverProfile.jpg')] flex justify-end items-end w-full h-56 rounded-2xl z-0 relative">
-        <div className="rounded-full w-64 h-64 p-3 mx-auto mb-[-120px] bg-[#EEDAC4] flex justify-center object-contain items-center">
-        <div
-    className="w-full h-full rounded-full"
-    style={{
-      backgroundImage: `url('/JohnDoe.jpg')`,
-      backgroundPosition: "center",
-      backgroundSize: "cover",
-    }}
-  ></div>
+        <div className="rounded-full overflow-hidden  w-64 h-64 p-3 mx-auto mb-[-120px] bg-[#EEDAC4] flex justify-center object-contain items-center">
+         <div className="w-full h-full overflow-hidden rounded-full flex justify-center items-start object-fill">
+          <Image width={500} height={500} alt="a" unoptimized src={`http://127.0.0.1:8000${profileData.profile_picture}`}
+          /></div>
         </div>
       </div>
-      {console.log(
-        `${API_URL}/media/profile_pictures/${
-          profileData.profile_picture || "JohnDoe.jpg"
-        }`
+      {console.log(`${profileData.profile_picture}`
       )}
       {/* Username display */}
       <div className="w-full z-10 flex gap-2 flex-col text-center mt-16 text-black">
@@ -105,8 +109,7 @@ export default function Account() {
         {[
           { name: "Name", value: profileData.full_name || "N/A" },
           { name: "Email", value: profileData.email || "N/A" },
-          { name: "Phone Number", value: profileData.phone_number || "N/A" },
-          { name: "Address", value: profileData.address || "N/A" },
+           { name: "Address", value: profileData.address || "N/A" },
           { name: "Date of Birth", value: profileData.date_of_birth || "N/A" },
         ].map((el, index) => (
           <div

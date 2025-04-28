@@ -2,7 +2,6 @@
 
 import NavBar from "../components/NavBar";
 
-import FlightBox from "../Dashboard/Components/FlightBox";
 import { useEffect, useState } from "react";
 
 import { API_URL } from "@/app/utils/constants";
@@ -15,9 +14,17 @@ import {
   filtersIcon,
   BigOffers,
 } from "../data/data";
-import FlightCard from "../components/FlightCard";
+import FlightBox from "../components/FlightBox";
 import FlightSearch from "../components/searchBox";
+
 import { Description } from "@mui/icons-material";
+import Link from "next/link";
+import { useForm } from "../context/FormContext";
+import Image from "next/image";
+
+
+
+
 
 const Hero = () => (
   <div className="w-full  h-[60vh] sm:h-[80vh] mt-24  lg:h-screen relative   mx-auto  py-5 flex flex-col  justify-start lg:justify-center items-center  ">
@@ -49,7 +56,7 @@ const FilterButton = ({ value, label, borderColor, onToggle, isInitiallySelected
       id={label}
       onClick={handleClick}
       className={`px-4 w-full py-2 rounded-full  shadow-[2px_-3px_10px_rgba(0,0,0,0.4)] 
-        ${isSelected ? "bg-[#035280] text-white" : `bg-[var(--bg-color)] border-4 ${borderColor}` } 
+        ${isSelected ? "bg-[#035280] text-white" : `bg-[var(--bg-color)] border-4 ${borderColor}`} 
         `}
     >
       {label}
@@ -125,56 +132,56 @@ const FilterSection = ({ setFiltersSet, filtersSet }) => {
       <div className="flex w-[80%] mx-auto justify-center gap-2 flex-row ">
 
         {
-        
-        
-        EXPERIENCE_LEVELS.map((filter, index) => ( <FilterButton
-        key={index}
-        value={filter.value}
-        label={filter.label}
-        borderColor={filter.borderColor}
-        isInitiallySelected={filtersSet.some(
-          (f) => f.filter === filter.value && f.value === filter.label
-        )}
-        onToggle={handleFilterClick}
-      />))}
+
+
+          EXPERIENCE_LEVELS.map((filter, index) => (<FilterButton
+            key={index}
+            value={filter.value}
+            label={filter.label}
+            borderColor={filter.borderColor}
+            isInitiallySelected={filtersSet.some(
+              (f) => f.filter === filter.value && f.value === filter.label
+            )}
+            onToggle={handleFilterClick}
+          />))}
       </div>
 
       {/* Second row - 9 buttons */}
       <div className="flex justify-center mx-auto gap-2 flex-row w-[90%]">
-        {PRICE_CATEGORIES.map((filter, index) =>( <FilterButton
-        key={index}
-        value={filter.value}
-        label={filter.label}
-        borderColor={filter.borderColor}
-        isInitiallySelected={filtersSet.some(
-          (f) => f.filter === filter.value && f.value === filter.label
-        )}
-        onToggle={handleFilterClick}
-      />))}
-        {DESTINATION_TYPES.map((filter, index) => ( <FilterButton
-        key={index}
-        value={filter.value}
-        label={filter.label}
-        borderColor={filter.borderColor}
-        isInitiallySelected={filtersSet.some(
-          (f) => f.filter === filter.value && f.value === filter.label
-        )}
-        onToggle={handleFilterClick}
-      />))}
+        {PRICE_CATEGORIES.map((filter, index) => (<FilterButton
+          key={index}
+          value={filter.value}
+          label={filter.label}
+          borderColor={filter.borderColor}
+          isInitiallySelected={filtersSet.some(
+            (f) => f.filter === filter.value && f.value === filter.label
+          )}
+          onToggle={handleFilterClick}
+        />))}
+        {DESTINATION_TYPES.map((filter, index) => (<FilterButton
+          key={index}
+          value={filter.value}
+          label={filter.label}
+          borderColor={filter.borderColor}
+          isInitiallySelected={filtersSet.some(
+            (f) => f.filter === filter.value && f.value === filter.label
+          )}
+          onToggle={handleFilterClick}
+        />))}
       </div>
 
       {/* Third row - 8 buttons */}
       <div className="flex w-[80%] mx-auto px-20 justify-center gap-2 flex-row ">
-        {TRIP_TYPES.map((filter, index) => ( <FilterButton
-        key={index}
-        value={filter.value}
-        label={filter.label}
-        borderColor={filter.borderColor}
-        isInitiallySelected={filtersSet.some(
-          (f) => f.filter === filter.value && f.value === filter.label
-        )}
-        onToggle={handleFilterClick}
-      />))}
+        {TRIP_TYPES.map((filter, index) => (<FilterButton
+          key={index}
+          value={filter.value}
+          label={filter.label}
+          borderColor={filter.borderColor}
+          isInitiallySelected={filtersSet.some(
+            (f) => f.filter === filter.value && f.value === filter.label
+          )}
+          onToggle={handleFilterClick}
+        />))}
       </div>
     </div >
   );
@@ -234,11 +241,12 @@ const FlightsSection = ({ flights, valuesToShow, filters }) => {
         .map((flight, index) => (
           <FlightBox
             key={index}
-            link={"#"}
-            backgroundImage={flight.images[0]}
+            link={"/TripDetail"}
+            backgroundImage={flight?.images[0]?.image }
             title={flight.title}
             description={flight.description}
             price={flight.departure_places[0]?.price}
+            id={flight.id}
           />
         ))}
     </div>
@@ -248,36 +256,32 @@ const FlightsSection = ({ flights, valuesToShow, filters }) => {
 
 const Flights = () => {
   const [filtersSet, setFiltersSet] = useState([])
-
+  const [error, setError] = useState("")
   const [flights, setFlights] = useState([])
+
   useEffect(() => {
     async function fetchRelatedFlights() {
+      try {
+        const response = await fetch(`${API_URL}/all_trips/`, {
+          method: "GET",
+          
+        });
 
-      const response = await fetch(`${API_URL}/all_trips/`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch related flights.");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch related flights.");
+        }else{
+          const data = await response.json();
+      setFlights(data)
+        }
+      } catch (err) {
+        alert("error: " + err)
       }
-
-      return response.json();
-
+      
 
     }
     fetchRelatedFlights()
-      .then(data => {
-        console.log(data[0])
-        setFlights(data);
-      })
-      .catch(err => {
-        console.error(err);
-        setError(err.message);
-      });
+     
 
 
 

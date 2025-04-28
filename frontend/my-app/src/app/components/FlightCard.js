@@ -20,6 +20,6 @@ export default function FlightCard(props){
             <span className="text-xl text-white">{`$ ${props.newPrice}`}</span>
           </div>
         </div>
-        <button className="block w-full bg-[#F38B1E] px-4 py-3 rounded-xl text-black">Book flight</button>
+        <button className="block w-full bg-[#F38B1E] px-4 py-3 rounded-xl text-black" >Book flight</button>
       </div>)
 }

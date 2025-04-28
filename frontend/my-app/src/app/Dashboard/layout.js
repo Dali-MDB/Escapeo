@@ -23,7 +23,7 @@ export default function Layout({ children }) {
 
         const user = await res.json();
         // Replace this condition with your actual admin check
-        if (!user.years_of_experience) {
+        if (user.years_of_experience === null) {
 
            router.push('/');
            

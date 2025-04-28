@@ -67,22 +67,27 @@ export function TripProvider({ children }) {
     transport: TRANSPORT_TYPES[0].value,
     stars_rating: 3,
     departure_date: "",
-    return_date: "",
+    return_date: null,
     is_one_way: false,
     airlineCompany: "",
     departureTime: "",
-    arrivalTime: "",
+    arrivalTime: null,
     from: "",
-    departure_places: [{ location: "", capacity: 1, price: 0 }],
-    uploaded_images: [],
     guide: ""
   }
   const [formData, setFormData] = useState(INITIAM_FORM_STATE);
+  const [tripImages, setTripImages] = useState([])
+  const [departures, setDepartures] = useState([ { location: "", capacity: 0, price: 0, sold_tickets: 0  }])
 
 
-  const guides = [{ name:'John Doe', id:1 }, { name:'Jane Smith', id:2 }, { name:'Alice Johnson', id:3 }]
+  const [tripSelected, setTripSelected] = useState(0);
+
+  const guides = [{ name: 'John Doe', id: 1 }, { name: 'Jane Smith', id: 2 }, { name: 'Alice Johnson', id: 3 }]
   return (
-    <TripContext.Provider value={{ formData, INITIAM_FORM_STATE, setFormData, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES , guides }}>
+    <TripContext.Provider value={{
+      tripImages, setTripImages,
+      departures, setDepartures, formData, INITIAM_FORM_STATE, setFormData, setTripSelected, tripSelected, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES, guides
+    }}>
       {children}
     </TripContext.Provider>
   );

@@ -1,3 +1,6 @@
+'use client'
+
+import Link from "next/link";
 import {  planePaper  } from "../data/data";
 
 
@@ -35,7 +38,7 @@ const  hotelsImage  = '/hotelsImage.jpg'
               Find the best deals on flights to your dream destinations. Fast, easy, and affordable
               </p>              <button className="w-1/2 bg-[#F38B1E] rounded-md flex items-center justify-center p-2 text-white">
                           {planePaper}
-                          <span> show Flights</span>
+                          <Link href="/Flights"> show Flights</Link>
                 </button>
             </div>
           </div>
@@ -54,7 +57,7 @@ const  hotelsImage  = '/hotelsImage.jpg'
               </p>
               <button className="w-1/2 bg-[#F38B1E] rounded-md flex items-center justify-center p-2 text-white">
                           {planePaper}
-                          <span> show Stays</span>
+                          <Link href="/Stays"> show Stays</Link>
                 </button>
             </div>
           </div>

@@ -81,7 +81,7 @@ const StyledWrapper = styled.div`
     border-radius: 8px;
     background: transparent;
     outline: none;
-    color: [var(--bg-color)];
+    color: var(--primary);
     transition: border-color 0.2s ease-in-out;
   }
 
@@ -90,7 +90,7 @@ const StyledWrapper = styled.div`
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    background-color: [var(--bg-color)];
+    background-color: var(--bg-color);
     padding: 0 5px;
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);

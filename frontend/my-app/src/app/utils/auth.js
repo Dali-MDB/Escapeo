@@ -101,34 +101,6 @@ export async function updateMyProfile(updatedData) {
   }
 }
 
-export const fetchFlights = async (searchParams) => {
-  // Clean parameters - remove empty/undefined values
-  const cleanedParams = Object.fromEntries(
-    Object.entries(searchParams).filter(
-      ([_, value]) => value !== undefined && value !== null && value !== ""
-    )
-  );
-
-  try {
-    const queryString = new URLSearchParams(cleanedParams).toString();
-    const response = await fetch(`${API_URL}/search_trips/?${queryString}`);
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        error: errorData.message || "Unknown error",
-        results: [],
-        status: "error",
-      };
-    }
-
-
-
-    return response;
-  } catch (error) {
-    console.error("Flight search error:", error);
-  }
-};
-
 export async function login(email, password) {
   const res = await fetch(`${API_URL}/login/`, {
     method: "POST",
@@ -138,7 +110,7 @@ export async function login(email, password) {
 
   const textResponse = await res.text(); // Log raw response
 
-  try {
+  
     const data = JSON.parse(textResponse); // Try parsing JSON
     console.log("Parsed JSON Response:", data);
 
@@ -150,9 +122,7 @@ export async function login(email, password) {
     localStorage.setItem("refreshToken", data.refresh);
 
     return res;
-  } catch (error) {
-    alert(error);
-  }
+  
 }
 
 export async function signUp(formData) {

@@ -1,22 +1,63 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/app/utils/constants";
 import { getMyProfile } from "@/app/utils/auth";
 import InputLogin from "../Components/InputLogin";
 import CustomDropdown from "../Components/DropDown";
 import { useTrip } from "../context/tripContext";
-import { set } from "date-fns";
-import FlightBox from "../Components/FlightBox";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm } from "@/app/context/FormContext";
+import { data } from "../data";
 
+
+
+function FlightBox(props) {
+  const { setTripSelected } = useForm()
+  return (
+    <div className="group relative rounded-xl w-72  h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
+      {/* Background Image */}
+      <div className="absolute h-full w-full  rounded-[50px] overflow-hidden">
+        <Image width={290} height={290} alt="a" unoptimized src={`http://127.0.0.1:8000${props.backgroundImage}`}
+        /></div>
+
+      {/* Semi-transparent Overlay */}
+      <div className="absolute inset-0 overflow-hidden rounded-[50px] bg-black bg-opacity-20">
+      </div>
+
+      {/* Card Details */}
+      <div className="relative z-10 flex flex-col justify-evenly gap-10 items-center p-6 w-full">
+        {/* Title */}
+        <div className="flex justify-center items-end w-full px-8">
+          <p className="text-xl font-semibold text-center">{props.title}</p>
+        </div>
+
+        {/* Description and Price */}
+        <div className="flex justify-end items-center w-full gap-2">
+          <p className="w-full">{props.description}</p>
+          <div className="flex flex-col items-center justify-end w-1/2">
+            <span className="text-md text-white w-fit text-[#000]">{`${props.price || "500"} $`}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Button */}
+      <button onClick={() => {
+        setTripSelected(props.id)
+      }} className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-1/3 font-bold rounded-full bg-[#F38B1E] text-black  py-2 px-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
+        <Link href={"/TripDetail"}>See more</Link>
+      </button>
+
+      {/* Hover Effects */}
+      <div className="absolute inset-0 border-2 border-transparent rounded-[50px] transition-all duration-300 ease-out group-hover:border-[#008bf8] group-hover:shadow-[0_4px_18px_0_rgba(0,0,0,0.25)]"></div>
+    </div>
+  );
+};
 
 // Move all components outside the main function
 
 const FlightOptionsSection = ({ formData, handleChange }) => {
-
-
-
-
   const toggleOneWay = () => {
     handleChange({
       target: {
@@ -87,6 +128,7 @@ const FlightInformationSection = ({ formData, handleChange }) => {
             value={formData[field.name]}
             onChange={handleChange}
             placeholder={field.placeholder}
+
             required
           />
         ))}
@@ -125,9 +167,6 @@ const TripDetailsSection = ({ formData, handleChange, TRIP_TYPES, PRICE_CATEGORI
 const DepartureInformationSection = ({
   formData,
   handleChange,
-  handleDepartureChange,
-  addDeparturePlace,
-  removeDeparturePlace
 }) => {
   const departureFields = [
     { type: "date", name: "departure_date", placeholder: "Departure Date" },
@@ -138,61 +177,28 @@ const DepartureInformationSection = ({
     <div className="mb-6">
       <h2 className="text-xl font-semibold mb-4">Departure Information</h2>
       <div className="grid grid-cols-2 gap-4">
-        {departureFields.map(field => (
-          <InputLogin
-            key={field.name}
-            type={field.type}
-            name={field.name}
-            value={formData[field.name]}
-            onChange={handleChange}
-            placeholder={field.placeholder}
-            required
-          />
-        ))}
+
+        <InputLogin
+          type={"date"}
+          name={"departure_date"}
+          value={formData?.departure_date}
+          onChange={handleChange}
+          placeholder={"Departure Date"}
+          required
+        />
+        <InputLogin
+          type="time"
+          name="departureTime"
+          placeholder="Departure Time"
+          value={formData.departureTime}
+          onChange={handleChange}
+          required
+        />
+
       </div>
-      <h4 className="text-lg my-4">Places</h4>
-      {formData.departure_places.map((place, index) => (
-        <div key={index} className="flex items-center gap-4 mb-4">
-          <InputLogin
-            type="text"
-            name="location"
-            value={place.location || ""}
-            onChange={(e) => handleDepartureChange(index, e)}
-            placeholder="Location"
-            required
-          />
-          <InputLogin
-            type="number"
-            name="capacity"
-            value={place.capacity}
-            onChange={(e) => handleDepartureChange(index, e)}
-            placeholder="Capacity"
-            min={1}
-          />
-          <InputLogin
-            type="number"
-            name="price"
-            value={place.price}
-            onChange={(e) => handleDepartureChange(index, e)}
-            placeholder="Price"
-          />
-          <button
-            type="button"
-            onClick={() => removeDeparturePlace(index)}
-            className="text-red-500 hover:text-red-700"
-          >
-            Remove
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={addDeparturePlace}
-        className="px-4 py-2 rounded-lg bg-[#035280] text-white mt-2"
-      >
-        Add Departure Place
-      </button>
     </div>
+
+
   );
 };
 
@@ -231,9 +237,62 @@ const DestinationInformationSection = ({ formData, handleChange, DESTINATION_TYP
 }
 
 
-const ImageUploadSection = ({ formData, handleImageUpload, handleImageDelete }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-4">Trip Images</h2>
+const DeparturesSection = ({ departures, handleDepartureChange, removeDeparturePlace, addDeparturePlace }) => {
+  return (
+    <div className="w-full flex flex-col justify-center items-center gap-2">
+
+      <h4 className="text-xl w-full font-semibold mb-4">Departures</h4>
+
+      {departures.map((place, index) => (
+        <div key={index} className="flex items-center gap-4 mb-4">
+          <InputLogin
+            type="text"
+            name="location"
+            value={place.location || ""}
+            onChange={(e) => handleDepartureChange(index, e)}
+            placeholder="Location"
+            required
+          />
+          <InputLogin
+            type="number"
+            name="capacity"
+            value={place.capacity}
+            onChange={(e) => handleDepartureChange(index, e)}
+            placeholder="Capacity"
+            min={1}
+          />
+          <InputLogin
+            type="number"
+            name="price"
+            value={place.price}
+            onChange={(e) => handleDepartureChange(index, e)}
+            placeholder="Price"
+          />
+
+          <button
+            type="button"
+            onClick={() => removeDeparturePlace(index)}
+            className="text-red-500 hover:text-red-700"
+          >
+            Remove
+          </button>
+
+        </div>
+      ))}
+      <div className="w-full flex justify-center items-center ">
+        <button
+          onClick={addDeparturePlace}
+          className="px-4 py-2 rounded-xl bg-[var(--secondary)]  text-white "
+        >
+          Add Departure Place
+        </button>
+      </div>
+    </div>)
+}
+
+const ImageUploadSection = ({ tripImages, handleImageUpload, handleImageDelete, handleImagesDeparturesSubmit }) => (
+  <div className="my-6 flex flex-col w-full">
+    <h2 className="text-xl font-semibold mb-6">Trip Images</h2>
     <input
       type="file"
       multiple
@@ -241,8 +300,8 @@ const ImageUploadSection = ({ formData, handleImageUpload, handleImageDelete }) 
       accept="image/*"
       className="mb-4"
     />
-    <div className="flex flex-wrap gap-2">
-      {formData.uploaded_images.map((image, index) => (
+    <div className="flex my-2 gap-2">
+      {tripImages.length > 0 && tripImages.map((image, index) => (
         <div key={index} className="relative">
           <img
             src={URL.createObjectURL(image)}
@@ -254,15 +313,16 @@ const ImageUploadSection = ({ formData, handleImageUpload, handleImageDelete }) 
             onClick={() => handleImageDelete(index)}
             className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
           >
-            ×
+            x
           </button>
         </div>
       ))}
     </div>
+
+    <button onClick={handleImagesDeparturesSubmit} className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white disabled:bg-blue-300"
+    >Submit</button>
   </div>
 );
-
-
 
 const GuideSelectionSection = ({ guides, formData, handleChange }) => {
   if (formData.trip_type !== 'group') return null;
@@ -300,7 +360,6 @@ const FormActions = ({ handleSubmit, setFormData }) => {
         Cancel
       </button>
       <button
-        type="submit"
         onClick={handleSubmit}
         className="px-6 py-2 rounded-lg bg-[#035280] text-white disabled:bg-blue-300"
       >
@@ -310,24 +369,22 @@ const FormActions = ({ handleSubmit, setFormData }) => {
   )
 };
 
-
-
 const FlightsAdded = ({ flights }) => {
   return (
-  
-  <div className=" text-white  rounded-xl w-full rounded-lg flex flex-col items-center justify-center">
-    {flights.length > 0 ? (
-      <div className="grid grid-cols-3 gap-x-4 gap-y-8 w-full justify-items-center">
-        {flights.filter(flight => flight.transport === "car").map((flight, index) => (
-        <FlightBox key={index} link={"#"} backgroundImage={flight.images[0]} title={flight.title} description={flight.description} price={flight.departure_places[0]?.price} />
-        ))}
 
-      </div>
-    ) : (
-      <p>No related flights available.</p>
-    )}
+    <div className=" text-white  rounded-xl w-full rounded-lg flex flex-col items-center justify-center">
+      {flights ? (
+        <div className="grid grid-cols-3 gap-x-4 gap-y-8 w-full justify-items-center">
+          {flights.map((flight, index) => (
+            <FlightBox key={index} link={"#"} id={flight.id} backgroundImage={flight?.images[0]?.image} title={flight.title} description={flight.description} price={flight.departure_places[0]?.price} />
+          ))}
 
-  </div>
+        </div>
+      ) : (
+        <p>No related flights available.</p>
+      )}
+
+    </div>
   )
 }
 
@@ -335,91 +392,71 @@ const FlightsAdded = ({ flights }) => {
 
 // Main component
 export default function Trips() {
-  const { formData, setFormData, INITIAM_FORM_STATE, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES, guides } = useTrip();
+
+
+  const { tripImages, setTripImages,
+    departures, setDepartures, formData, setFormData, INITIAM_FORM_STATE, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES, guides } = useTrip();
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      uploaded_images: [...prev.uploaded_images, ...files]
-    }));
-  };
-
-  // Handle image deletion
-  const handleImageDelete = (index) => {
-    setFormData(prev => {
-      const newImages = [...prev.uploaded_images];
-      newImages.splice(index, 1);
-      return {
-        ...prev,
-        uploaded_images: newImages
-      };
-    });
-  };
-
-
-
-
-
-
+  const [readyToAddImages, setReadyToAddImages] = useState(false)
+  const [tripId, setTripId] = useState(null)
   // Update your handleSubmit to include images
+
+  async function fetchRelatedFlights() {
+
+    const response = await fetch(`${API_URL}/all_trips/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch related flights.");
+    }
+
+    const fligh = await response.json();
+
+
+    setFlights(fligh);
+
+
+
+  }
   async function handleSubmit(e) {
     e.preventDefault();
 
     try {
       const token = localStorage.getItem("accessToken");
-      const formDataToSend = new FormData();
 
-      // Validate departure_places
-      const hasInvalidDeparture = formData.departure_places.some(place =>
-        !place.location || !place.capacity || !place.price
-      );
-
-      if (hasInvalidDeparture) {
-        alert("Please fill all fields for departure places");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Append simple form data
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key !== "uploaded_images" && key !== "departure_places") {
-          formDataToSend.append(key, value);
-        }
-      });
-
-      formData.uploaded_images.forEach((image, index) => {
-        formDataToSend.append(`uploaded_images[${index}]`, image);
-      });
-
-      // Append departure places as JSON string
-      formDataToSend.append("departure_places", JSON.stringify(formData.departure_places));
-
-
-
-      console.log(token)
-
-      const res = await fetch(`${API_URL}/add_trip/`, {
+      console.log(JSON.stringify(formData))
+      const res = await fetch(`http://127.0.0.1:8000/add_trip/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: formDataToSend,
-      });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to create trip.");
+        body: JSON.stringify(formData)
+      })
+      if (res.ok) {
+        const data = await res.json();
+        console.log(data)
+        setFormData(INITIAM_FORM_STATE); // reset form
+
+        setTripId(data.trip_id)
+
+        setReadyToAddImages(true)
+
+      }
+      else {
+        throw new Error('failed')
       }
 
-      alert("Trip created successfully!");
-      setFormData(INITIAM_FORM_STATE); // reset form
 
     } catch (err) {
-      console.error(err);
       setError(err.message);
       alert("Something went wrong: " + err.message);
     }
@@ -433,108 +470,147 @@ export default function Trips() {
     }));
   };
   const addDeparturePlace = () => {
-    setFormData(prev => ({
-      ...prev,
-      departure_places: [...prev.departure_places, { location: "", capacity: 1, price: 0 }]
-    }));
+
+    setDepartures(prev => [...prev, { location: "", capacity: 0, price: 0, sold_tickets: 0 }])
   };
 
   const removeDeparturePlace = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      departure_places: prev.departure_places.filter((_, i) => i !== index)
-    }));
-  };
-  const handleDepartureChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedDepartures = [...formData.departure_places];
-    updatedDepartures[index][name] = name === "capacity" || name === "price"
-      ? Number(value)
-      : value;
-    setFormData(prev => ({
-      ...prev,
-      departure_places: updatedDepartures
-    }));
+
+    setDepartures(prev => prev.filter((_, i) => i !== index));
+
+
   };
 
+  const handleDepartureChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedDepartures = [...departures];
+    updatedDepartures[index][name] = name === "capacity" || name === "price" || name === "sold_tickets"
+      ? Number(value)
+      : value;
+    setDepartures(updatedDepartures);
+  };
+
+  const handleImageDelete = (index) => {
+    setTripImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setTripImages(prev => [...prev, ...files]);
+    console.log(tripImages)
+  };
   const [flights, setFlights] = useState([]);
 
   useEffect(() => {
-
-    async function fetchRelatedFlights() {
-
-      const response = await fetch(`${API_URL}/all_trips/`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch related flights.");
-      }
-
-      return response.json();
-
-
-    }
     fetchRelatedFlights()
-      .then(data => {
-        setFlights(data);
-      })
-      .catch(err => {
-        console.error(err);
-        setError(err.message);
-      });
-
-
-
   }, []);
 
-  return (
+
+
+  const handleImagesSubmit = async () => {
+    const formData = new FormData();
+
+    // Append each file to FormData (key can be "images" or any name your backend expects)
+    tripImages.forEach((file, index) => {
+      formData.append("uploaded_images", file);
+    });
+
+    const repsonse = fetch(`${API_URL}/add_trip_images/${tripId}`, {
+      method: 'POST',
+      headers: {
+
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+
+      }, body: formData
+
+    }).catch(err => alert('Error' + err))
+
+
+
+
+  }
+  const submitDepartures = async () => {
+    try {
+      const results = await Promise.all(
+        departures.map(async departure => {
+          const response = await fetch(`${API_URL}/add_trip_departure/${tripId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem("accessToken")}`
+            },
+            body: JSON.stringify(departure)
+          });
+          if (!response.ok) throw new Error('Failed on one departure');
+          return response.json();
+        })
+      );
+
+      alert(`${results.length} departures added successfully!`);
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleImagesDeparturesSubmit = async (e) => {
+    e.preventDefault()
+    submitDepartures();
+    handleImagesSubmit();
+    setFormData(INITIAM_FORM_STATE)
+    setReadyToAddImages(false)
+  }
+  return !readyToAddImages ? (
     <div className="w-full min-h-screen flex justify-center gap-6 mx-auto ">
 
-      <div className="bg-[var(--bg-color)] w-full rounded-xl py-6 px-4 flex flex-col justify-center items-start">
-        <h1 className="text-2xl font-bold mx-4 mb-8">Flights Added</h1>
-        <FlightsAdded flights={flights} />
-      </div>
+
       <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-[45%]">
-        <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <FlightInformationSection
-            formData={formData}
-            handleChange={handleChange}
-          />
+        <>
+          <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
 
-          <TripDetailsSection
-            formData={formData}
-            handleChange={handleChange}
-            TRIP_TYPES={TRIP_TYPES}
-            PRICE_CATEGORIES={PRICE_CATEGORIES}
-            EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
-            TRANSPORT_TYPES={TRANSPORT_TYPES}
-          />
-          <GuideSelectionSection guides={guides} formData={formData} handleChange={handleChange} />
-          <DepartureInformationSection
-            formData={formData}
-            handleChange={handleChange}
-            handleDepartureChange={handleDepartureChange}
-            addDeparturePlace={addDeparturePlace}
-            removeDeparturePlace={removeDeparturePlace}
-          />
+          <div onSubmit={handleSubmit} className="space-y-6">
+            <FlightInformationSection
+              formData={formData}
+              handleChange={handleChange}
+            />
 
-          <DestinationInformationSection
-            formData={formData}
-            handleChange={handleChange}
-            DESTINATION_TYPES={DESTINATION_TYPES}
-          />
+            <TripDetailsSection
+              formData={formData}
+              handleChange={handleChange}
+              TRIP_TYPES={TRIP_TYPES}
+              PRICE_CATEGORIES={PRICE_CATEGORIES}
+              EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
+              TRANSPORT_TYPES={TRANSPORT_TYPES}
+            />
+            <DepartureInformationSection
+              formData={formData} handleChange={handleChange} />
 
-          <ImageUploadSection formData={formData} handleImageUpload={handleImageUpload} handleImageDelete={handleImageDelete} />
-          <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
-        </form>
+            <GuideSelectionSection guides={guides} formData={formData} handleChange={handleChange} />
+
+
+            <DestinationInformationSection
+              formData={formData}
+              handleChange={handleChange}
+              DESTINATION_TYPES={DESTINATION_TYPES}
+            />
+
+            <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
+          </div>
+        </>
+
       </div>
     </div>
-  );
+  )
+    :
+    (
+      <div className="w-full flex justify-center gap-6 mx-auto ">
+        <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-[45%]">
+          <DeparturesSection departures={departures} addDeparturePlace={addDeparturePlace} handleDepartureChange={handleDepartureChange} removeDeparturePlace={removeDeparturePlace} />
+          <ImageUploadSection tripImages={tripImages} handleImageUpload={handleImageUpload} handleImageDelete={handleImageDelete} handleImagesSubmit={handleImagesSubmit} handleImagesDeparturesSubmit={handleImagesDeparturesSubmit} />
+        </div>
+      </div>
+    );
+
+    
 }

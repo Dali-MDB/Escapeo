@@ -2,22 +2,26 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { API_URL } from "@/app/utils/constants";
+import { useTrip } from "../context/tripContext";
 
 
 
 export default function FlightBox(props){
+  const {setTripSelected} = useTrip()
   return (
     <div className="group relative rounded-xl w-72  h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
       {/* Background Image */}
-      <div
-        className="absolute inset-0 rounded-[50px] bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${props.backgroundImage})`,
-        }}
-      ></div>
-
+      {/*<div className="absolute h-full w-full  rounded-[50px] overflow-hidden">
+                  <Image width={290} height={290} alt="a" unoptimized src={`http://127.0.0.1:8000${props.backgroundImage}`}
+                  /></div>
+*/}
       {/* Semi-transparent Overlay */}
-      <div className="absolute inset-0 rounded-[50px] bg-black bg-opacity-30"></div>
+      <div className="absolute inset-0 overflow-hidden rounded-[50px] bg-black bg-opacity-20">
+      <Image width={300} height={300} alt="a" unoptimized src={`http://127.0.0.1:8000${props.backgroundImage}`}
+                  />
+      </div>
 
       {/* Card Details */}
       <div className="relative z-10 flex flex-col justify-evenly gap-10 items-center p-6 w-full">
@@ -36,7 +40,9 @@ export default function FlightBox(props){
       </div>
 
       {/* Button */}
-      <button className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-1/3 font-bold rounded-full bg-[#F38B1E] text-black  py-2 px-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
+      <button onClick={()=>{
+        setTripSelected(props.id)
+      }} className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-1/3 font-bold rounded-full bg-[#F38B1E] text-black  py-2 px-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
         <Link href={props.link}>See more</Link>
       </button>
 

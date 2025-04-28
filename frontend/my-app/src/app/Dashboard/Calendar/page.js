@@ -15,7 +15,7 @@ export default function Calendar() {
     // Fetch events from the server
     const fetchEvents = async () => {
       try {
-        const response = await localStorage.getItem("events");
+        const response = localStorage.getItem("events");
         const data = JSON.parse(response);
         if (!data) {
           console.log("No events found in local storage.");
