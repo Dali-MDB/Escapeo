@@ -8,6 +8,9 @@ import { API_URL } from "@/app/utils/constants";
 
 export default function History() {
   const [choice, setChoice] = useState("Flights");
+  const [flights , setFlights] = useState([])
+  const [stays , setStays] = useState([])
+
 
 
   useEffect(() => {
@@ -16,14 +19,16 @@ export default function History() {
     async function fetchHistory() {
 
       try {
-        const response = await fetch(`${API_URL}/purchased_trips/`, {
+        const response = await fetch(`${API_URL}/reservation/view_my_reservations/`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         });
-
-        console.log(response)
+        const data = await response.json();
+        console.log(data)
+        setFlights(data.trip_reservations)
+        setStays(data.hotel_reservations)
 
       } catch (err) {
         alert(err)
@@ -50,6 +55,8 @@ export default function History() {
           {staysIcon} Stays
         </div>
       </div>
+      
+
 
     </div>
   );

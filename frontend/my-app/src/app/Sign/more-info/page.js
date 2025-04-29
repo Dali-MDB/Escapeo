@@ -87,7 +87,7 @@ export default function MoreInfo() {
           />
 
           {/* Birthdate Input */}
-          <InputLogin
+          <input
             type="date"
             name="birthdate"
             placeholder="Birthdate"
@@ -95,15 +95,7 @@ export default function MoreInfo() {
             onChange={handleChange}
           />
 
-          {/* Profile Picture Upload */}
-          <input
-            type="file"
-            name="profile_picture"
-            accept="image/*"
-            onChange={handleChange}
-            className="border p-2 rounded"
-          />
-
+          
           {/* Gender Select Dropdown */}
           <select
             name="gender"

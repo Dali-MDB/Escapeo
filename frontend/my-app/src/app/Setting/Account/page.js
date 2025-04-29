@@ -42,7 +42,7 @@ export default function Account() {
                 ? `${response.profile.city}, ${response.profile.country}`
                 : null,
             date_of_birth: response.profile.birthdate,
-            profile_picture: response.profile.profile_picture, // Default image
+            profile_picture: "/media/profile_pictures/profile.png" , // Default image
             // Add any other fields you need
           };
           setProfileData(transformedData);

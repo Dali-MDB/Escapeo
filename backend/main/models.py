@@ -42,7 +42,7 @@ class Customer(models.Model):
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
     birthdate = models.DateField(null=True,blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/customers/', default='profile.png')
+    profile_picture = models.ImageField(upload_to='profile_pictures/customers/', default='profile_pictures/profile.png')
 
     loyalty_points = models.PositiveIntegerField(default=0, validators=[validators.MaxValueValidator(500)])
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Wallet Balance

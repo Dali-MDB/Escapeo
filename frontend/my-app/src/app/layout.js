@@ -6,6 +6,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import Loading from "./components/Loading";
 import { FormProvider } from "./context/FormContext";
+import Footer from "./components/Footer";
 
 const urbanist = Urbanist({
   variable: "--font-urbanist",
@@ -21,11 +22,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={urbanist.variable}>
-      <body style={{ fontFamily: "urbanist", color: "black" }}>
+      <body style={{ fontFamily: "urbanist", color: "black"  }}>
         <AuthProvider>
           <SearchProvider>
             <FormProvider>
-            <Suspense fallback={<Loading />}>{children}</Suspense>
+            <Suspense fallback={<Loading />}>
+            {children}
+            
+           
+            </Suspense>
             </FormProvider>
           </SearchProvider>
         </AuthProvider>

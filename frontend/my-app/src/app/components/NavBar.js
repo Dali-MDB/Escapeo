@@ -86,7 +86,7 @@ async function fetchProfile() {
       console.log(response.profile)
       const transformedData = {
         username: response.profile.user.username,
-        profile_picture: response.profile.profile_picture,
+        profile_picture: response.profile.profile_picture === "" ? response.profile.profile_picture : "/media/profile_pictures/profile.png",
       };
       setProfileData(transformedData);
       setIsAdmin(response.isAdmin);

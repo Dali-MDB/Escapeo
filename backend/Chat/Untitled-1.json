@@ -1,0 +1,38 @@
+{
+    "id": 31,
+    "title": "paris la belle",
+    "description": "discover the hidden places in paris",
+    "capacity": 1,
+    "guide": null,
+    "trip_type": "standard",
+    "experience": "adventure",
+    "price_category": "economy",
+    "destination": "Paris",
+    "destination_type": "city",
+    "transport": "car",
+    "discount": null,
+    "created_by": 1,
+    "stars_rating": 3,
+    "departure_date": "2025-04-03T00:00:00Z",
+    "return_date": null,
+    "is_one_way": true,
+    "images": [
+        {
+            "id": 40,
+            "image": "/media/trips_images/paris%20la%20belle/parisNight.png"
+        },
+        {
+            "id": 41,
+            "image": "/media/trips_images/paris%20la%20belle/paris.jpg"
+        }
+    ],
+    "departure_places": [
+        {
+            "id": 5,
+            "location": "Alger",
+            "capacity": 30,
+            "sold_tickets": 0,
+            "price": "500.00"
+        }
+    ]
+}

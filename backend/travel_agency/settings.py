@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'channels_redis',
     'ws4redis',
     'adminPanel',
-    'corsheaders',   #to link the front
+    'corsheaders',
+    'profiles',
 ]
 
 MIDDLEWARE = [

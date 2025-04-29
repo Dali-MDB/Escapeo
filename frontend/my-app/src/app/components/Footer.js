@@ -9,8 +9,8 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-[var(--primary)] text-white w-full px-6 py-16">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+    <footer className="bg-[var(--primary)] absolute  text-white w-full  px-6 py-16 ">
+      <div className=" max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
         {/* Logo & Social Links */}
         <div className="flex flex-col items-center sm:col-span-2 lg:col-span-1">
           <div className="mb-6">
