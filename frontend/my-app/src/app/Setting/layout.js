@@ -1,6 +1,7 @@
 // components/Layout.js
 import Navbar from '../components/NavBar'; // Assuming you have a Navbar component
 import Sidebar from './components/Sidebar';
+import { TripProvider } from './context/tripContext';
 export default function Layout({ children }) {
   return (
     <div style={{ display: 'flex', backgroundColor:'#EEDAC4',color:'black',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
@@ -20,7 +21,8 @@ export default function Layout({ children }) {
 
             {/* Main content */}
             <div style={{ width:'100%' ,boxSizing:'border-box' }}>
-              {children}
+              <TripProvider>
+              {children}</TripProvider>
             </div>
           </div>
         </div>

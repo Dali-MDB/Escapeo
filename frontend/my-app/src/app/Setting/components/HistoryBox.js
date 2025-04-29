@@ -8,7 +8,7 @@ const LogoSection = ({ choice, airwaysLogo, hotelLogo }) => (
       width={100}
       height={100}
       className="w-16"
-      src={choice === "Flights" ? airwaysLogo : hotelLogo}
+      src={ "/airAlgerie.jpeg"}
     />
   </div>
 );
@@ -22,7 +22,6 @@ const FlightInfo = ({ departAirport, departHour, arrivalAirport, arrivalHour }) 
     <span className="w-full h-full flex flex-col justify-center items-center">-</span>
     <span className="w-full h-full flex flex-col justify-between items-center">
       <p className="text-md w-full">{arrivalAirport}</p>
-      <h1 className="w-full text-lg font-extrabold">{arrivalHour}</h1>
     </span>
   </div>
 );
@@ -46,9 +45,6 @@ const DetailsSection = ({ choice, date, gateNo, flightTime, seatNo, checkiinTime
     {choice === "Flights" ? (
       <>
         <DetailItem icon={time} label="Date" value={date} />
-        <DetailItem icon={gate} label="Gate" value={gateNo} />
-        <DetailItem icon={time} label="Flight time" value={flightTime} />
-        <DetailItem icon={seat} label="Seat no." value={seatNo} />
       </>
     ) : (
       <>

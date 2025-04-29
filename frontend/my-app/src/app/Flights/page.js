@@ -242,7 +242,7 @@ const FlightsSection = ({ flights, valuesToShow, filters }) => {
           <FlightBox
             key={index}
             link={"/TripDetail"}
-            backgroundImage={flight?.images[0]?.image }
+            backgroundImage={flight?.images[0]?.image}
             title={flight.title}
             description={flight.description}
             price={flight.departure_places[0]?.price}
@@ -264,24 +264,24 @@ const Flights = () => {
       try {
         const response = await fetch(`${API_URL}/all_trips/`, {
           method: "GET",
-          
+
         });
 
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to fetch related flights.");
-        }else{
+        } else {
           const data = await response.json();
-      setFlights(data)
+          setFlights(data)
         }
       } catch (err) {
         alert("error: " + err)
       }
-      
+
 
     }
     fetchRelatedFlights()
-     
+
 
 
 
