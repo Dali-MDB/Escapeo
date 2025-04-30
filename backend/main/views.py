@@ -887,51 +887,63 @@ def recommendedTrips(request):
     else:
         alpha = 0.6
 
-    # Sorting parameters
-    valid_sort_fields = ["departure_date", "stars_rating", "discount"]
-    sort_field = request.GET.get("sort")
+    # Sorting parameters with defaults
+    valid_sort_fields = ["departure_date", "stars_rating", "discount", "price", "bestseller"]
+    sort_field = request.GET.get("sort", "").lower() 
     ascending = request.GET.get("ascending", "true").lower() == "true"
 
     if alpha == 0:
-        # Recommend exactly 10 trips from Algeria, sorted by stars_rating (highest first)
+        #if the no recommendations are possible, we simply suggest 10 trips from algeria
         recommendations = Trip.objects.filter(country="Algeria").order_by("-stars_rating")[:10]
     else:
         # Get personalized recommendations
-        num_recommendations = int(alpha * 100)
+        num_recommendations = min(int(alpha * 100), 100)  # Cap at 100 recommendations
         recommendations = get_recommendations(customer.id, num_recommendations, alpha)
+        # Convert queryset to list for sorting if needed
+        if isinstance(recommendations, list):
+            recommendations = recommendations
+        else:
+            recommendations = list(recommendations)
 
     # Apply sorting if a valid sort field is provided
-    if sort_field.lower() == 'price':
+    if sort_field == 'price':
         # Get the minimum original price across all departures (ignoring discounts)
         def get_min_price(trip: Trip):
-            return min(float(departure.price) for departure in trip.departure_places.all())
+            departure_prices = [float(departure.price) for departure in trip.departure_places.all()]
+            return min(departure_prices) if departure_prices else 0
         
-        # Sort by the minimum original price
         recommendations = sorted(
             recommendations,
             key=lambda trip: get_min_price(trip),
             reverse=not ascending  
         )
-
-    if sort_field in valid_sort_fields:
-        order_by_field = sort_field if ascending else f"-{sort_field}"
-        recommendations = recommendations.order_by(order_by_field)
-
-    if sort_field.lower() == 'bestseller':
+    elif sort_field == 'bestseller':
         def get_bestseller_score(trip: Trip):
-            if trip.capacity == 0:  # Prevent division by zero
+            if trip.capacity == 0: 
                 return 0
-            return (trip.sold_tickets / trip.capacity) * 100  # Percentage
-        
+            return (trip.sold_tickets / trip.capacity) * 100  
         recommendations = sorted(
             recommendations,
             key=lambda x: get_bestseller_score(x),
             reverse=not ascending  # False=low-to-high, True=high-to-low
         )
+    elif sort_field in valid_sort_fields:
+        # Handle queryset vs list sorting
+        if hasattr(recommendations, 'order_by'):
+            order_by_field = sort_field if ascending else f"-{sort_field}"
+            recommendations = recommendations.order_by(order_by_field)
+        else:
+            #Sort
+            reverse_sort = not ascending
+            recommendations = sorted(
+                recommendations,
+                key=lambda x: getattr(x, sort_field),
+                reverse=reverse_sort
+            )
 
     # Serialize and return recommendations
-    recommended_trips = TripSerializer(recommendations, many=True)
-    return Response({'recommendations': recommended_trips.data})
+    serializer = TripSerializer(recommendations, many=True)
+    return Response({'recommendations': serializer.data})
 
 
 

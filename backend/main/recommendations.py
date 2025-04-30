@@ -31,9 +31,8 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
         Q(destination__in=destinations)
     ).exclude(id__in=[trip.id for trip in purchased_trips])
 
-
     # Score trips based on attribute matches
-    trip_counter = Counter()
+    trip_scores = Counter()
     
     for trip in similar_trips:
         score = 0
@@ -48,11 +47,9 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
         if trip.destination in destinations:
             score += 4  # City match is the most relevant
 
-        trip_counter[trip] = score  # Store the trip with its computed score
+        trip_scores[trip.id] = score  # Use trip.id as the key
 
-
-    return trip_counter.most_common(num_recommendations)
-
+    return trip_scores.most_common(num_recommendations)
 
 def get_collaborative_recommendations(customer_id, num_recommendations=20):
     """
@@ -63,10 +60,11 @@ def get_collaborative_recommendations(customer_id, num_recommendations=20):
     # Store purchased and favorite trips in lists to avoid multiple queries
     purchased_trips = list(customer.purchased_trips.all())  
     favorite_trips = list(customer.favorite_trips.all())
+    purchased_trip_ids = [trip.id for trip in purchased_trips]
 
     # Find customers who purchased or favorited the same trips
     similar_customers = Customer.objects.filter(
-        purchased_trips__in=purchased_trips + favorite_trips
+        Q(purchased_trips__in=purchased_trips) | Q(favorite_trips__in=favorite_trips)
     ).exclude(id=customer.id).distinct()
 
     trip_counter = Counter()
@@ -77,32 +75,39 @@ def get_collaborative_recommendations(customer_id, num_recommendations=20):
         other_favorites = list(other_customer.favorite_trips.all())
 
         for trip in other_purchased:
-            if trip not in purchased_trips:  # ✅ Avoid already purchased
-                trip_counter[trip] += 2  # Purchased trips get higher weight
+            if trip.id not in purchased_trip_ids:
+                trip_counter[trip.id] += 2  # Purchased trips get higher weight
 
         for trip in other_favorites:
-            if trip not in purchased_trips:  # ✅ Avoid already purchased
-                trip_counter[trip] += 1  # Wishlist (favorite trips) get lower weight
+            if trip.id not in purchased_trip_ids:
+                trip_counter[trip.id] += 1  # Wishlist (favorite trips) get lower weight
 
-    
     return trip_counter.most_common(num_recommendations)
+
+def get_recommendations(customer_id, num_recommendations=10, alpha=0.5):
+    content_based = dict(get_content_based_recommendations(customer_id, num_recommendations*2))
+    collaborative = dict(get_collaborative_recommendations(customer_id, num_recommendations*2))
+
+    # Combine scores
+    combined_scores = Counter()
     
+    # Add content-based scores with weight
+    for trip_id, score in content_based.items():
+        combined_scores[trip_id] += score * alpha
+        
+    # Add collaborative scores with weight
+    for trip_id, score in collaborative.items():
+        combined_scores[trip_id] += score * (1 - alpha)
 
-
-def get_recommendations(customer_id ,num_recommendations, alpha=0.5):
-    content_counter = get_content_based_recommendations(customer_id,num_recommendations*int(3/2))
-    collab_counter = get_collaborative_recommendations(customer_id,num_recommendations*int(3/2))
-
-
-    for trip in content_counter:
-        content_counter[trip] *= alpha  # Weight for content-based
-    for trip in collab_counter:
-        collab_counter[trip] *= (1 - alpha)  # Weight for collaborative
-
-    #we merge the results
-    merged_counter = content_counter + collab_counter
-
-    # Extract top-N recommendations
-    recommended_trips = [trip for trip, _ in merged_counter.most_common(num_recommendations)]
+    # Get top recommendations
+    top_recommendations = combined_scores.most_common(num_recommendations)
     
-    return recommended_trips
+    # Convert back to Trip objects
+    trip_ids = [trip_id for trip_id, _ in top_recommendations]
+    recommended_trips = Trip.objects.filter(id__in=trip_ids)
+    
+    # Maintain order
+    trip_id_to_obj = {trip.id: trip for trip in recommended_trips}
+    ordered_recommendations = [trip_id_to_obj[trip_id] for trip_id in trip_ids if trip_id in trip_id_to_obj]
+    
+    return ordered_recommendations
