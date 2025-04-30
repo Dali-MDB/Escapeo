@@ -28,7 +28,7 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
         Q(experience__in=experiences) |
         Q(destination_type__in=destination_types) |
         Q(price_category__in=price_categories) |
-        Q(city__in=destinations)
+        Q(destination__in=destinations)
     ).exclude(id__in=[trip.id for trip in purchased_trips])
 
     # Score trips based on attribute matches
@@ -50,7 +50,7 @@ def get_content_based_recommendations(customer_id, num_recommendations=10):
         trip_counter[trip] = score  # Store the trip with its computed score
 
 
-    return trip_counter
+    return trip_counter.most_common(num_recommendations)
 
 
 def get_collaborative_recommendations(customer_id, num_recommendations=20):
@@ -84,7 +84,7 @@ def get_collaborative_recommendations(customer_id, num_recommendations=20):
                 trip_counter[trip] += 1  # Wishlist (favorite trips) get lower weight
 
     
-    return trip_counter
+    return trip_counter.most_common(num_recommendations)
     
 
 
