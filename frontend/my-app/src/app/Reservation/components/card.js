@@ -1,10 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const Button = () => {
+const Button = ({selectedPayment , setClicked}) => {
   return (
     <StyledWrapper>
-      <button className="Btn">
+      <button className="Btn" onClick={()=>{
+        setClicked(prev=>!prev)
+      }}>
         Pay
         <svg viewBox="0 0 576 512" 
         className="svgIcon">

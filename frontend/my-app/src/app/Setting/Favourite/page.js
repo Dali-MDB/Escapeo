@@ -11,43 +11,26 @@ import { Plane, Bed, Hotel } from "lucide-react";
 import { fetchFavourites } from "@/app/utils/auth";
 import { data } from "@/app/Dashboard/data";
 import Link from "next/link";
+import FlightBox from "@/app/components/FlightBox";
 
-const WhatToActuallyRender = ({ choice, setChoice }) => (
-  <div className="w-full px-2  flex flex-col gap-14">
-    {/* Toggle Between Flights and Stays */}
-    <div className="flex flex-row rounded-xl justify-center items-center px-5 gap-4 border-b mb-0 bg-[var(--bg-color)]">
-      <div
-        className={`w-[80%] flex h-full py-7 justify-start items-center gap-2 cursor-pointer ${choice === "Flights" ? "shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]" : ""
-          }`}
-        onClick={() => setChoice("Flights")}
-      >
-        {Plane && <Plane size={30} />} Flights
-      </div>
-      <div
-        className={`flex h-full w-[80%] py-7 justify-start items-center gap-2 cursor-pointer ${choice === "Stays" ? "shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]" : ""
-          }`}
-        onClick={() => setChoice("Stays")}
-      >
-        {Hotel && <Hotel size={30} />} Stays
-      </div>
+const WhatToActuallyRender = ({ data }) => (
+  <div className="w-full px-2  flex flex-col gap-4">
+    <h1 className="text-4xl font-extrabold">Favourites</h1>
+    <div className="w-full bg-[var(--bg-color)] p-8 rounded-xl h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {
+        data.map((el, index) => (
+          <FlightBox
+            key={index}
+            link={"/TripDetail"}
+            backgroundImage={el?.images[0]?.image}
+            title={el.title}
+            description={el.description}
+            price={el.departure_places[0]?.price}
+            id={el.id}
+          />))
+      }
     </div>
 
-    {/* Display Favourite Flights or Stays */}
-    {choice === "Flights" ? (
-      <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {BigOffers.filter((el) => el.isFavourite).map((flight, index) => (
-          <FlightCard key={index} {...flight} />
-        ))}
-      </div>
-    ) : (
-      <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stays
-          .filter((st) => st.isFavourite)
-          .map((stay, index) => (
-            <UniqueStayCard key={index} {...stay} />
-          ))}
-      </div>
-    )}
   </div>
 );
 export default function Favourite() {
@@ -65,19 +48,21 @@ export default function Favourite() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
-        }).then(data => setFavorites(data));
+        })
+        const data = await response.json()
+        setFavorites(data)
       } catch (err) {
         alert(err)
       }
     }
-
+    fetchFav()
 
   }, [])
   const [choice, setChoice] = useState("Flights");
 
   return (
 
-    favorites.length ? <WhatToActuallyRender choice={choice} setChoice={setChoice} /> : <>
+    favorites.length ? <WhatToActuallyRender data={favorites} /> : <>
 
       <div className="flex flex-col  min-h-[40vh] rounded-xl justify-center items-center px-5 bg-[var(--bg-color)]">
 

@@ -90,7 +90,7 @@ export async function updateMyProfile(updatedData) {
     const result = await response.json();
     return {
       success: true,
-      ...result,
+      ...result
     };
   } catch (error) {
     console.error("Profile update error:", error);

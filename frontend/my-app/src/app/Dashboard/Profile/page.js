@@ -1,135 +1,316 @@
-"use client";
-import { modify, plus } from "@/app/Setting/data";
-import { getMyProfile } from "@/app/utils/auth";
-import { API_URL } from "@/app/utils/constants";
-import { useEffect, useState } from "react";
-import { FaFacebook, FaLinkedinIn, FaGithub, FaTwitter, FaSlack } from "react-icons/fa";
+ "use client";
+ 
+ import { useEffect, useState, useRef } from "react";
+ import {  plus } from "../data";
+ import { getMyProfile, updateMyProfile } from "../../utils/auth";
+ import { API_URL } from "../../utils/constants";
+ import Image from "next/image";
+ import { toast } from "react-toastify";
+ import { useRouter } from 'next/navigation';
+ import { Edit } from "lucide-react";
+ export default function Account() {
+   const [profileData, setProfileData] = useState(null);
+   const [formData, setFormData] = useState({
+   username:"",
+     first_name: '',
+     last_name: '',
+     phone_number: '',
+     city: '',
+     country: '',
+     birthdate: ''
+   });
+   const [imageVersion, setImageVersion] = useState(0);
+   const [isLoading, setIsLoading] = useState(true);
+   const [error, setError] = useState(null);
+   const [isUploading, setIsUploading] = useState(false);
+   const [isEditing, setIsEditing] = useState(false);
+   const fileInputRef = useRef(null);
+   const router = useRouter();
+ 
+   useEffect(() => {
+     fetchProfile();
+   }, []);
+ 
+   const fetchProfile = async () => {
+     try {
+       const response = await getMyProfile();
+       if (response.success) {
+         setProfileData(response.profile);
+         setFormData({
+          usser: response.profile.user,
+           first_name: response.profile.first_name || '',
+           last_name: response.profile.last_name || '',
+           city: response.profile.city || '',
+           country: response.profile.country || '',
+           birthdate: response.profile.birthdate || '',
+           department:  response.profile.department || '',
+           join_date: response.profile.join_date || '',
+         });
+       } else {
+         setError(response.error || 'Failed to fetch profile');
+       }
+     } catch (err) {
+       setError(err.message || 'An error occurred');
+     } finally {
+       setIsLoading(false);
+     }
+   };
+ 
+   const handleProfilePictureChange = async (e) => {
+     const file = e.target.files[0];
+     if (!file) return;
+ 
+     const formData = new FormData();
+     formData.append('profile_picture', file);
+ 
+     try {
+       setIsUploading(true);
+       const response = await fetch(`${API_URL}/profiles/update_profile_picture/`, {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+         },
+         body: formData,
+       });
+ 
+       if (response.ok) {
+         const data = await response.json();
+         setProfileData(prev => ({
+           ...prev,
+           profile_picture: data.profile_picture,
+           _timestamp: Date.now()
+         }));
+         setImageVersion(v => v + 1);
+         toast.success('Profile picture updated successfully');
+       } else {
+         throw new Error('Failed to update profile picture');
+       }
+     } catch (err) {
+       toast.error(err.message);
+     } finally {
+       setIsUploading(false);
+       router.refresh();
+     }
+   };
+ 
+   const triggerFileInput = () => {
+     fileInputRef.current.click();
+   };
+ 
+   const handleInputChange = (e) => {
+     const { name, value } = e.target;
+     setFormData(prev => ({
+       ...prev,
+       [name]: value
+     }));
+   };
+ 
+   const handleSubmit = async (e) => {
+     e.preventDefault();
+     try {
+       // Prepare the data in the correct format for your backend
+       const submissionData = {
+         ...formData,
+         // Include any other fields your backend expects
+       };
+ 
+       const response = await updateMyProfile(submissionData);
+       if (response.success) {
+         setProfileData(prev => ({
+           ...prev,
+           ...formData,
+         }));
+         toast.success('Profile updated successfully');
+         setIsEditing(false);
+       } else {
+         throw new Error(response.error || 'Failed to update profile');
+       }
+     } catch (err) {
+       toast.error(err.message);
+     }
+   };
+ 
+   // ... [loading and error states remain the same] ...
+ 
+   const defaultProfilePic = "/media/profile_pictures/profile.png";
+   const profilePictureUrl = profileData?.profile_picture !== ""
+     ? `${API_URL}${profileData.profile_picture}?v=${imageVersion}`
+     : `${API_URL}${defaultProfilePic}?v=${imageVersion}`;
+ 
+   return (
+     <div className="w-full py-0 px-2 flex flex-col gap-14">
+       {/* Profile picture section */}
+       <div className="bg-[url('/coverProfile.jpg')] flex justify-end items-end w-full h-56 rounded-2xl z-0 relative">
+         <div className="rounded-full overflow-hidden w-64 h-64 p-3 mx-auto mb-[-120px] bg-[#EEDAC4] flex justify-center object-contain items-center">
+           <div className="w-full h-full rounded-full relative overflow-hidden">
+             <div className="relative w-full overflow-hidden rounded-full flex justify-center items-center">
+               <Image
+                 width={256}
+                 height={256}
+                 alt="Profile picture"
+                 src={profilePictureUrl}
+                 className="object-cover w-full h-full"
+                 unoptimized
+                 key={`profile-img-${imageVersion}`}
+               />
+             </div>
+           </div>
+           <button
+             onClick={triggerFileInput}
+             className="absolute bottom-[-120px] right-[600px] z-50 bg-white p-2 rounded-xl shadow-md"
+           >
+             {<Edit size={15} />}
+           </button>
+           <input
+             type="file"
+             ref={fileInputRef}
+             onChange={handleProfilePictureChange}
+             accept="image/*"
+             className="hidden"
+           />
+         </div>
+       </div>
+      <div className="personal-info w-full gap-5 flex flex-col justify-center items-center text-center">
 
-
-export default function Profile() {
-
-
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-
-    const getProfile = async () => {
-
-      setLoading(true);
-      const response = await getMyProfile();
-      console.log(response);
-
-      const profile = response.profile;
-
-
-      setProfile(profile);
-      setLoading(false);
-
-
-    }
-    getProfile();
-  }, [])
-
-
-  return (
-    <div className="w-full py-0 px-2 flex flex-col ">
-
-
-
-      {
-
-        loading ? (
-          <div className="w-full h-screen flex justify-center items-center">
-            <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-[#efefef]">
-            </div>
-          </div>
-        ) :
-          <>
-            <div
-              className="bg-[url('/coverProfile.jpg')] flex justify-end items-end w-full h-80 rounded-t-2xl z-0"
-              style={{ backgroundPosition: "center", backgroundSize: "cover" }}
-            >
-              <div className="rounded-full w-64 h-64 p-1 mx-auto mb-[-120px] bg-[#EEDAC4] flex justify-center object-contain items-center">
-                <div
-                  className="w-full h-full rounded-full"
-                  style={{
-                    backgroundImage: `url('${profile.profile_picture.replace("media/","media/profile_pictures/")}')`,
-                    backgroundPosition: "center",
-                    backgroundSize: "cover",
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="w-full rounded-b-2xl bg-[var(--bg-color)] p-4 pt-32 pb-5">
-              <div className=" w-full text-center py-5 gap-8 flex flex-col justify-start items-center">
-                <div className="personal-info w-full gap-5 flex flex-col justify-center items-center text-center">
-
-                  <h1 className="text-5xl font-bold w-fit">{profile.username}</h1>
-                  <p className="w-fit text-lg ">{profile.department}</p>
+                  <h1 className="text-5xl font-bold w-fit">{profileData?.user?.username}</h1>
+                  <p className="w-fit text-lg ">{profileData?.department}</p>
                 </div>
+       {/* Username display */}
+       <div className="w-full z-10 flex gap-2 flex-col text-center mt-16 text-black">
+         <h1 className="text-3xl font-semibold">{profileData?.user?.username}</h1>
+         <p className="text-md font-medium">{profileData?.user?.email}</p>
+       </div>
+ 
+       {/* Profile information */}
+       <div className="w-full rounded-2xl bg-[var(--bg-color)] px-4 pt-6 pb-4">
+         {isEditing ? (
+           <form onSubmit={handleSubmit} className="space-y-4">
+             <div className="grid grid-cols-2 gap-4">
+               <div className="rounded-xl flex flex-col gap-2">
+                 <label className="block text-lg text-[var(--primary)] font-medium ">First Name</label>
+                 <input
+                   name="first_name"
+                   value={formData.first_name}
+                   onChange={handleInputChange}
+                   className="w-full p-2 border rounded"
+                 />
+               </div>
+               <div className="rounded-xl flex flex-col gap-2">
+                 <label className="block text-lg text-[var(--primary)] font-medium ">Last Name</label>
+                 <input
+                   name="last_name"
+                   value={formData.last_name}
+                   onChange={handleInputChange}
+                   className="w-full p-2 border rounded"
+                 />
+               </div>
+             </div>
+ 
+ 
+ 
+             <div className="grid grid-cols-2 gap-4">
+               <div className="rounded-xl flex flex-col gap-2">
+                 <label className="block text-lg text-[var(--primary)] font-medium ">City</label>
+                 <input
+                   name="city"
+                   value={formData.city}
+                   onChange={handleInputChange}
+                   className="w-full p-2 border rounded"
+                 />
+               </div>
+               <div className="rounded-xl flex flex-col gap-2">
+                 <label className="block text-lg text-[var(--primary)] font-medium ">Country</label>
+                 <input
+                   name="country"
+                   value={formData.country}
+                   onChange={handleInputChange}
+                   className="w-full p-2 border rounded"
+                 />
+               </div>
+               <div className="rounded-xl flex flex-col gap-2">
+                 <label className="block text-lg text-[var(--primary)] font-medium ">First Name</label>
+                 <input
+                   name="department"
+                   value={formData.department}
+                   onChange={handleInputChange}
+                   className="w-full p-2 border rounded"
+                 />
+               </div>
+               <div className="rounded-xl flex flex-col gap-2">
+               <label className="block text-lg text-[var(--primary)] font-medium ">Date of Birth</label>
+               <input
+                 type="date"
+                 name="birthdate"
+                 value={formData.birthdate}
+                 onChange={handleInputChange}
+                 className="w-full p-2 border rounded-xl"
+               />
+             </div>
 
-                
-                <div className="w-1/2 my-2 rounded-full shadow-md border-[1px] px-10  py-3 flex flex-row justify-evenly items-center ">
-                  <span className="w-full text-black text-lg border-r-[0.5px]" >Since
-                    <span className="text-[#FF6F61] font-semibold block"> {profile.join_date}</span>
-                  </span>
-                  <span className="w-full text-black text-lg "><span className="text-[#ff6f61] font-bold">{profile.years_of_experience} </span>years of experience</span>
-
-                </div>
-
-                
-                <div className="about py-8 gap-5 w-3/4 flex flex-col rounded-xl border-[0.5px] shadow-md justify-center items-center text-center">
-
-                  <h1 className="text-2xl font-semibold w-fit">Personal info</h1>
-                  <div className="w-full rounded-2xl bg-[var(--bg-color)] p-4 pb-0">
-                    {[
-                      { name: "Name", value: profile.first_name + " " + profile.last_name || "N/A" },
-                      { name: "Email", value: profile.email || "N/A" },
-                      { name: "Phone Number", value: profile.phone_number || "N/A" },
-                      { name: "Address", value: profile.city + ". " + profile.country || "N/A" },
-                    ].map((el, index) => (
-                      <div
-                        key={index}
-                        className="w-full h-full flex flex-col justify-between items-center text-left"
-                      >
-                        <div className="w-full px-4 py-4 h-full flex flex-row justify-between items-center text-left">
-                          <div className="w-full h-full flex flex-col justify-center gap-1 items-center">
-                            <p className="w-full text-xs font-extralight">{el.name}</p>
-                            <h1 className="w-full text-xl">{el.value}</h1>
-                          </div>
-                          <div className="w-full h-full flex justify-end gap-2 flex-row items-center">
-                            <button className="w-fit py-2 px-3 flex flex-row justify-center items-center rounded-md border-[1px] gap-1">
-                              {modify} Change
-                            </button>
-                          </div>
-                        </div>
-                        {index !== 3 && (
-                          <hr className="h-1 w-[95%] border-[rgba(0,0,0,0.1)]" />
-                        )}
-                      </div>
-                    ))}
-                  </div> <h1 className="text-xl font-medium w-fit">Follow me </h1>
-                  <div className="w-1/2 flex items-center justify-center gap-4 text-2xl">
-                    <FaFacebook />
-                    <FaGithub />
-                    <FaLinkedinIn />
-                    <FaTwitter />
-                    <FaSlack />
-                  </div>
-                </div>
-
-                <div className="follow-me px-32 gap-4  w-full flex flex-col justify-center text-gray-600 items-center text-center">
-
-                 
-
-                </div>
-
-
-              </div>
-            </div>
-          </>
-      }
-    </div>
-  );
-}
+             </div>
+ 
+             
+             <div className="flex justify-end gap-2 pt-4">
+               <button
+                 type="button"
+                 onClick={() => setIsEditing(false)}
+                 className="px-4 py-2 rounded"
+               >
+                 Cancel
+               </button>
+               <button
+                 type="submit"
+                 className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--bg-color)] rounded-xl"
+                 >
+                 Save
+               </button>
+             </div>
+           </form>
+         ) : (
+           <div className="">
+             {[
+               {
+                 name: "Name",
+                 value: profileData?.first_name || profileData?.last_name
+                   ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim()
+                   : "N/A"
+               },
+               { name: "Join Date", value: profileData?.join_date || "N/A" },
+ 
+               {
+                 name: "Address",
+                 value: profileData?.city || profileData?.country
+                   ? `${profileData.city || ''}, ${profileData.country || ''}`.trim()
+                   : "N/A"
+               },
+               { name: "Date of Birth", value: profileData?.birthdate || "N/A" },
+             ].map((el, index) => (
+               <div
+                 key={index}
+                 className="w-full h-full flex flex-col justify-between items-center text-left"
+               >
+                 <div className="w-full px-4 py-4 h-full flex flex-row justify-between items-center text-left">
+                   <div className="w-full h-full flex flex-col justify-center gap-1 items-center">
+                     <p className="w-full text-md font-extralight text-[var(--primary)]">{el.name}</p>
+                     <h1 className="w-full text-xl">{el.value}</h1>
+                   </div>
+                   <button
+                     onClick={() => setIsEditing(true)}
+                     className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--bg-color)] rounded-xl"
+                   >
+                     {<Edit size={15} />} Edit 
+                   </button>
+ 
+                 </div>
+                 {index !== 3 && (
+                   <hr className="h-1 w-[95%] border-[rgba(0,0,0,0.1)]" />
+                 )}
+               </div>
+             ))}
+             
+           </div>
+         )}
+       </div>
+     </div>
+   );
+ }

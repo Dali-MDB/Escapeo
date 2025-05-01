@@ -99,11 +99,9 @@ def hotel_reservation_payment_init(request, hotel_id):
 # GET endpoint (unchanged but cleaner)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getTripReservationPrice(request, trip_id):
+def getTripReservationPrice(request, trip_id , departure_id , tickets):
     trip = get_object_or_404(Trip, id=trip_id)
-    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get("departure_trip_id"))
-    tickets = int(request.GET.get("tickets", 1))
-    
+    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=departure_id)
     result = calculate_trip_price(trip, departure_trip, tickets, request.user.customer)
     if 'errors' in result:
         return Response(result, status=400)

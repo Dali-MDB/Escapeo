@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { flightIcon, staysIcon } from "@/app/data/data";
 import { API_URL } from "@/app/utils/constants";
 import { useTrip } from "../context/tripContext";
+import { useRouter } from "next/navigation";
 
 const HistoryBox = ({
   created_at,
   date,
+  id,
   departure_location,
   hotel_reservation,
   status,
   tickets,
   total_price,
-  trip_title
+  trip_title,
+  handleCancelReservation
 }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -57,14 +60,17 @@ const HistoryBox = ({
         label: "Date",
         value: formatDate(date)
       }
-      ].map((el,index) => (
-      <div key={index} className="flex justify-between items-center gap-2">
-        <span className="text-lg  font-semibold text-black">{el.label}:
-        </span>
-        <span className={`font-medium text-md ${el.label === "Status" ? "text-[var(--secondary)]" :"text-[var(primary)]" } `}>{el.value}</span>
-      </div>
+      ].map((el, index) => (
+        <div key={index} className="flex justify-between items-center gap-2">
+          <span className="text-lg  font-semibold text-black">{el.label}:
+          </span>
+          <span className={`font-medium text-md ${el.label === "Status" ? "text-[var(--secondary)]" : "text-[var(primary)]"} `}>{el.value}</span>
+        </div>
       ))}
+      <button className="w-fit rounded-xl font-semibold px-4 py-2 bg-[var(--secondary)] text-[var(--bg-color)]" onClick={(e)=>{
+        handleCancelReservation(id)
 
+      }}>Cancel</button>
     </div>
   );
 };
@@ -104,12 +110,36 @@ const HistorySection = ({ data, loading, error }) => {
     }
   }, [data, fetchDetails, fetchDeparture]);
 
+  const router = useRouter()
+  const handleCancelReservation = async (reservation_id) => {
+    try {
+      const response = await fetch(`${API_URL}/reservation/cancel_trip_reservation/${reservation_id}/`,{
+        method:'DELETE',
+        headers:{
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+      const data = await response.json()
+      if(!response.ok){
+        throw new Error(data.message)
+      }else{
+        alert('Reservation successfuly canceled')
+        router.push('/Setting/History')
+        
+      }
+    } catch (err) {
+      alert('Error: ' + err)
+    }
+
+  }
+
+
   if (loading) return <div className="text-center py-10">Loading history...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Error loading history: {error}</div>;
-  if (!data?.pending || data.pending.length === 0) return <div className="text-center py-10">No history found</div>;
+  if (!data?.pending || data.pending.length === 0) return <div className="text-center text-xl py-10 bg-[var(--bg-color)] rounded-xl">No history found</div>;
 
   return (
-    <div className="w-full py-0 px-2 flex flex-col gap-2">
+    <div className="w-full p-4 rounded-xl bg-[var(--bg-color)] flex flex-col gap-2">
 
       {data.pending.map((item) => (
         <HistoryBox
@@ -122,6 +152,8 @@ const HistorySection = ({ data, loading, error }) => {
           tickets={item.tickets}
           total_price={item.total_price}
           trip_title={tripTitles[item.trip] || 'Loading...'}
+          id={item.id}
+          handleCancelReservation={handleCancelReservation}
         />
       ))}
     </div>
@@ -165,11 +197,11 @@ export default function History() {
   }, []);
 
   return (
-    <div className="w-full py-0 px-2 flex flex-col gap-6">
-      <div className="flex flex-row rounded-xl justify-center items-center px-5 gap-4 border-b mb-0 bg-[var(--bg-color)]">
+    <div className="w-full py-0 px-0 flex flex-col gap-2">
+      <div className="flex flex-row rounded-t-xl justify-center items-center  rounded- gap-4  mb-0 bg-[var(--bg-color)]">
         <button
-          className={`w-[80%] flex h-full py-7 justify-start items-center gap-2 cursor-pointer ${choice === "Flights"
-            ? "shadow-[inset_0_-4px_0_var(--primary)] text-[var(--primary)]"
+          className={`w-[80%] p-4 rounded-t-[10px] flex h-fit py-5 justify-start items-center gap-2 cursor-pointer ${choice === "Flights"
+            ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
             : "text-gray-500"
             }`}
           onClick={() => setChoice("Flights")}
@@ -177,8 +209,8 @@ export default function History() {
           {flightIcon} Flights
         </button>
         <button
-          className={`flex h-full w-[80%] py-7 justify-start items-center gap-2 cursor-pointer ${choice === "Stays"
-            ? "shadow-[inset_0_-4px_0_var(--primary)] text-[var(--primary)]"
+          className={`flex p-4 h-full w-[80%] py-5 justify-start items-center gap-2 cursor-pointer ${choice === "Stays"
+            ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
             : "text-gray-500"
             }`}
           onClick={() => setChoice("Stays")}

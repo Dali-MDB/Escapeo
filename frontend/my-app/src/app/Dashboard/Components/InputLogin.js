@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 
-const InputLogin = ({ type, name, value, onChange, placeholder }) => {
+const InputLogin = ({ type, name, value, onChange, placeholder , max }) => {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const [isFilled, setIsFilled] = useState(false); // State to track if the input is filled
 
@@ -47,6 +47,7 @@ const InputLogin = ({ type, name, value, onChange, placeholder }) => {
             }}
             required
             value={value}
+            max={max && max }
             name={name} // Ensure the name attribute is set
           /></>
         )}

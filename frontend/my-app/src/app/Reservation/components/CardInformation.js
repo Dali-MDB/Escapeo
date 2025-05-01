@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const CardInformation = ({handleInitReservation}) => {
+const CardInformation = ({handleInitReservation , setClicked}) => {
   const [cardData, setCardData] = useState({
     cardNumber: '',
     expDate: '',
@@ -48,14 +48,15 @@ const CardInformation = ({handleInitReservation}) => {
 
     // Handle form submission
     console.log('Card data submitted:', cardData);
-    handleInitReservation();
-    
-
+    alert('Simulation successful') 
+    setClicked(false)
   };
 
   return (
     <div className="max-w-md absolute top-1/4 left-1/3 z-10 mx-auto p-6 bg-white rounded-lg shadow-2xl rounded-xl">
-      <h2 className="text-2xl font-bold mb-6">Add a new Card</h2>
+      <h2 className="text-2xl cursor-pointer font-bold mb-6 flex justify-between items-center"><span>Add a new Card</span><span onClick={()=>{
+        setClicked(false)
+      }}>x</span></h2>
       
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">

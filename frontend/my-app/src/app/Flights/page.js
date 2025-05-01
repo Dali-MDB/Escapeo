@@ -272,6 +272,7 @@ const Flights = () => {
           throw new Error(errorData.message || "Failed to fetch related flights.");
         } else {
           const data = await response.json();
+
           setFlights(data)
         }
       } catch (err) {

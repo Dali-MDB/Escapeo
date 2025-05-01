@@ -86,7 +86,7 @@ async function fetchProfile() {
       console.log(response.profile)
       const transformedData = {
         username: response.profile.user.username,
-        profile_picture: response.profile.profile_picture === "" ? response.profile.profile_picture : "/media/profile_pictures/profile.png",
+        profile_picture: response.profile.profile_picture !== "" ? response.profile.profile_picture : "/media/profile_pictures/profile.png",
       };
       setProfileData(transformedData);
       setIsAdmin(response.isAdmin);
@@ -216,11 +216,12 @@ export default function NavBar() {
           <Link href="/" aria-label="Home" className="w-1/2">
             <Image
               src={Logo}
-              height={0}
-              width={0}
+              height={100}
+              width={100}
               style={{ width: "", height: "" }}
               alt="Logo"
               priority={true}
+              unoptimized
             />
           </Link>
         </div>

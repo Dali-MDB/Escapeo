@@ -56,8 +56,8 @@ const Reviewcard = (props) => {
       </div>
       <div className="w-full rounded-lg">
         <Image
-        width={1000}
-        height={1000}
+        width={500}
+        height={500}
           src={props.img}
           alt=""
           className="w-full rounded-lg"

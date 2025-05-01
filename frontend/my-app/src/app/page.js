@@ -31,7 +31,6 @@ export default function Home() {
       { isAuthenticated ? <Hero /> : <Hero2 /> }
       <PopularDest />
       <SpecialOffers />
-      <Packages />
       {isAuthenticated && <Foryou />}
       <Reviews />
       <Footer />

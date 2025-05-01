@@ -15,7 +15,7 @@ urlpatterns = [
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('chat/',include('Chat.urls')),
     path('panel/',include('adminPanel.urls')),
-   
+    path('profiles/',include('profiles.urls')),
       
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
