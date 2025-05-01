@@ -20,3 +20,5 @@ db.sqlite3  # This is for SQLite; you're using Postgres, so it's fine to ignore
 # Ignore Django cache
 *.log
 
+#ignore-docker
+.docker-compose.yml

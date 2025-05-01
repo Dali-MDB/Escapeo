@@ -21,10 +21,10 @@ class acceptHotelReservationPermission(BasePermission):
 class acceptTripReservationPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
-            raise PermissionDenied("You must be logged in to confirm a hotel reservation.")
+            raise PermissionDenied("You must be logged in to confirm a trip reservation.")
 
         if not hasattr(request.user, 'admin'):
-            raise PermissionDenied("Only admins can create confirm hotel reservations.")
+            raise PermissionDenied("Only admins can create confirm trip reservations.")
         
         return True
     
