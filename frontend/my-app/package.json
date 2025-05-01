@@ -23,6 +23,7 @@
     "@nivo/geo": "^0.88.0",
     "@nivo/pie": "^0.88.0",
     "@radix-ui/react-slot": "^1.1.2",
+    "axios": "^1.9.0",
     "bootstrap": "^5.3.5",
     "chart.js": "^4.4.8",
     "class-variance-authority": "^0.7.1",

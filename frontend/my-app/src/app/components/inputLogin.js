@@ -1,60 +1,98 @@
 "use client";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const InputLogin = ({ type, name, value, onChange, placeholder }) => {
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
-  const [isFilled, setIsFilled] = useState(false); // State to track if the input is filled
+const InputLogin = ({ 
+  min , max,
+  type = "text", 
+  name, 
+  value, 
+  onChange, 
+  placeholder, 
+  error,
+  className,
+  required = true
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isFilled, setIsFilled] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // Update isFilled state when the value changes
   useEffect(() => {
     setIsFilled(!!value);
   }, [value]);
 
+  const handleChange = (e) => {
+    onChange && onChange(e);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+  };
+
+  const getInputType = () => {
+    if (type === "password") return showPassword ? "text" : "password";
+    if (type === "date") return "date";
+    if (type === "text-area") return "text";
+    return type;
+  };
+
   return (
-    <StyledWrapper className="w-full">
-      <div className="input-container">
+    <StyledWrapper className={`w-full ${className}`}>
+      <div className={`input-container ${error ? "has-error" : ""}`}>
         {type === "text-area" ? (
           <textarea
             id={name}
-            className={`input bg-transparent ${isFilled ? "filled" : ""}`}
-            onChange={(e) => {
-              onChange(e); // Pass the event to the parent
-            }}
-            required
-            rows={4}
+            className={`input ${isFilled ? "filled" : ""} ${error ? "error" : ""}`}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             value={value}
-            name={name} // Ensure the name attribute is set
+            name={name}
+            required={required}
+            rows={4}
           />
         ) : (
           <input
-            type={type !== "password" ? type === 'date' ? type : "text" : showPassword ? "text": "password"   } // Toggle input type
+            type={getInputType()}
             id={name}
-            className={`input ${isFilled ? "filled" : ""}`}
-            onChange={(e) => {
-              onChange(e); // Pass the event to the parent
-            }}
-            required
+            className={`input ${isFilled ? "filled" : ""} ${error ? "error" : ""}`}
+            onChange={handleChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             value={value}
-            name={name} // Ensure the name attribute is set
+            name={name}
+            required={required}
+            min={min && min}
+            max={max && max}
           />
         )}
-        <label htmlFor={name} className={` w-fit ${type === "text-area" ? "top-0 label-fixed"  : "label top-[50%]"}`}>
+        <label 
+          htmlFor={name} 
+          className={`label ${type === "text-area" ? "label-fixed" : ""} ${isFocused ? "focused" : ""}`}
+        >
           {placeholder}
         </label>
-        {type === "password" && ( // Show toggle button only for password fields
+        {type === "password" && (
           <button
             type="button"
             onClick={togglePasswordVisibility}
             className="eye-button"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
+        )}
+        {error && (
+          <span className="error-message">{error}</span>
         )}
       </div>
     </StyledWrapper>
@@ -65,6 +103,16 @@ const StyledWrapper = styled.div`
   .input-container {
     position: relative;
     width: 100%;
+    margin-bottom: 1rem;
+
+    &.has-error {
+      .input {
+        border-color: #ff4444;
+      }
+      .label {
+        color: #ff4444;
+      }
+    }
   }
 
   .input {
@@ -75,7 +123,15 @@ const StyledWrapper = styled.div`
     border-radius: 8px;
     background: transparent;
     outline: none;
-    transition: border-color 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+    
+    &:focus {
+      border-color: var(--secondary);
+    }
+    
+    &.error {
+      border-color: #ff4444;
+    }
   }
 
   .label {
@@ -88,32 +144,22 @@ const StyledWrapper = styled.div`
     font-size: 16px;
     color: rgba(0, 0, 0, 0.6);
     transition: all 0.2s ease-in-out;
-    pointer-events: none; /* Ensure the label doesn't interfere with input clicks */
-  }
-  .label-fixed {
-   position: absolute;
-    left: 35%;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #eedac4;
-    padding: 0 5px;
-    font-size: 16px;
-    color: rgba(0, 0, 0, 0.6);
-    transition: all 0.2s ease-in-out;
-    pointer-events: none; /* Ensure the label doesn't interfere with input clicks */
-  }
-  .input:focus ~ .label,
-  .input.filled ~ .label ,
-  .input:focus ~ .label-fixed,
-  .input.filled ~ .label-fixed 
-  {
-    top: 0;
-    font-size: 14px;
-    color: [var(--secondary)];
+    pointer-events: none;
+    
+    &.focused {
+      color: var(--secondary);
+    }
+    
+    &.label-fixed {
+      left: 35%;
+    }
   }
 
-  .input:focus {
-    border-color: [var(--secondary)];
+  .input:focus ~ .label,
+  .input.filled ~ .label {
+    top: 0;
+    font-size: 14px;
+    color: var(--secondary);
   }
 
   .eye-button {
@@ -130,10 +176,18 @@ const StyledWrapper = styled.div`
     align-items: center;
     justify-content: center;
     padding: 0;
+    
+    &:hover {
+      color: var(--secondary);
+    }
   }
 
-  .eye-button:hover {
-    color: [var(--secondary)];
+  .error-message {
+    display: block;
+    color: #ff4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
   }
 `;
 
