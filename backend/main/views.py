@@ -1001,6 +1001,12 @@ def get_user_info(request):
         status=status.HTTP_200_OK
     )
 
+@api_view(['GET'])
+def get_trips_for_country(request,country):
+    trips = Trip.objects.filter(destination__icontains = country)
+    trips_ser = TripSerializer(trips,many=True)
+    return Response(trips_ser.data,status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def get_trips_for_country(request):
