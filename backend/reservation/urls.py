@@ -18,4 +18,10 @@ urlpatterns = [
 
     path('confirm_hotel_reservation_manually/<int:reservation_id>/',view=views.confirmHotelReservationManually,name='confirm-hotel-reservation-manually'),
     path('confirm_trip_reservation_manually/<int:reservation_id>/',view=views.confirmTripReservationManually,name='confirm-trip-reservation-manually'),
+
+
+    path('view_hotel_reservations/',view=views.pending_hotel_reservations),
+    path('view_trip_reservations/',view=views.pending_trip_reservations),
+    path('pending_reservation_for_trip/<int:trip_id>/',view=views.pending_reservation_for_trip)
+
 ]
