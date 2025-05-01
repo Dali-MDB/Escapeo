@@ -14,9 +14,9 @@ export default function Forgot() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  
-  const onSubmit = async (data) => {
+  const [mail ,setMail] = useState("")
+  const onSubmit = async (e) => {
+    e.preventDefault()
     setIsLoading(true);
     setError(null);
     
@@ -27,7 +27,7 @@ export default function Forgot() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: data.email
+          email: mail
         })
       });
 
@@ -35,9 +35,12 @@ export default function Forgot() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to send reset code");
       }
-
+      const data = await response.json()
+      localStorage.setItem('data' , mail)
+      alert(data.message)
+      
       // Redirect to verification page without query params
-      router.push('/Log/Verify');
+      router.push('/Log/SetPassword');
     } catch (err) {
       setError(err.message || "Failed to send reset code");
     } finally {
@@ -67,20 +70,14 @@ export default function Forgot() {
       )}
 
       {/* Login Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col items-end gap-8 rounded-lg">
+      <form onSubmit={onSubmit} className="w-full flex flex-col items-end gap-8 rounded-lg">
         <InputLogin 
           type="email" 
           name="email"
           placeholder="Email"
-          register={register}
-          validation={{ 
-            required: "Email is required",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Invalid email address"
-            }
-          }}
-          error={errors.email}
+          value={mail}
+          onChange={(e)=>{setMail(e.target.value)}}
+          
         />
         
         {/* Submit Button */}
