@@ -268,7 +268,7 @@ export const reviews = [
   },
 ];
 
-import { FlightClass,FlightOutlined,  Hotel } from "@mui/icons-material";
+import { FlightOutlined,  Hotel } from "@mui/icons-material";
 
 
 export const navLinks = [

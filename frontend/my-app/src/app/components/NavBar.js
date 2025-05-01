@@ -16,7 +16,6 @@ import { getMyProfile, logout } from "../utils/auth";
 import { Heart } from "lucide-react";
 import { Notifications, NotificationsActive } from "@mui/icons-material";
 import { FaCircle } from "react-icons/fa";
-import { AsyncCallbackSet } from "next/dist/server/lib/async-callback-set";
 const urbanist = Urbanist({ subsets: ["latin"], weight: "400" });
 import { API_URL } from "../utils/constants";
 import { useRouter } from "next/router";
@@ -215,9 +214,9 @@ export default function NavBar() {
         <div className="flex justify-center items-center w-1/2 h-full">
           <Link href="/" aria-label="Home" className="w-1/2">
             <Image
-              src={Logo}
-              height={100}
-              width={100}
+              src={"/logo.png"}
+              height={256}
+              width={256}
               style={{ width: "", height: "" }}
               alt="Logo"
               priority={true}

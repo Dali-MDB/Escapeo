@@ -13,6 +13,9 @@ export function useTrip() {
   return context;
 }
 
+
+
+
 export function TripProvider({ children }) {
  
   const fetchDetails = async (tripId) => {
@@ -38,8 +41,28 @@ export function TripProvider({ children }) {
     return details?.departure_places?.find(el => el.id === departureId);
   };
 
+  const fetchHotelDetails = async (id)=>{
+    if (!id) return null;
+    
+    try {
+      const response = await fetch(`${API_URL}/hotel_details/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      alert("Fetch error:", err);
+      return null;
+    } 
+
+  }
+
   return (
     <TripContext.Provider value={{ 
+      fetchHotelDetails,
       fetchDetails, 
       fetchDeparture 
     }}>

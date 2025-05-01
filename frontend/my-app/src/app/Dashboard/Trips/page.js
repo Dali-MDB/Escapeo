@@ -13,47 +13,6 @@ import { data } from "../data";
 
 
 
-function FlightBox(props) {
-  const { setTripSelected } = useForm()
-  return (
-    <div className="group relative rounded-xl w-72  h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
-      {/* Background Image */}
-      <div className="absolute h-full w-full  rounded-[50px] overflow-hidden">
-        <Image width={290} height={290} alt="a" unoptimized src={`http://127.0.0.1:8000${props.backgroundImage}`}
-        /></div>
-
-      {/* Semi-transparent Overlay */}
-      <div className="absolute inset-0 overflow-hidden rounded-[50px] bg-black bg-opacity-20">
-      </div>
-
-      {/* Card Details */}
-      <div className="relative z-10 flex flex-col justify-evenly gap-10 items-center p-6 w-full">
-        {/* Title */}
-        <div className="flex justify-center items-end w-full px-8">
-          <p className="text-xl font-semibold text-center">{props.title}</p>
-        </div>
-
-        {/* Description and Price */}
-        <div className="flex justify-end items-center w-full gap-2">
-          <p className="w-full">{props.description}</p>
-          <div className="flex flex-col items-center justify-end w-1/2">
-            <span className="text-md text-white w-fit text-[#000]">{`${props.price || "500"} $`}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Button */}
-      <button onClick={() => {
-        setTripSelected(props.id)
-      }} className="absolute z-10 left-1/2 translate-y-[150%] -translate-x-1/2 w-1/3 font-bold rounded-full bg-[#F38B1E] text-black  py-2 px-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-[50%] group-hover:opacity-100">
-        <Link href={"/TripDetail"}>See more</Link>
-      </button>
-
-      {/* Hover Effects */}
-      <div className="absolute inset-0 border-2 border-transparent rounded-[50px] transition-all duration-300 ease-out group-hover:border-[#008bf8] group-hover:shadow-[0_4px_18px_0_rgba(0,0,0,0.25)]"></div>
-    </div>
-  );
-};
 
 // Move all components outside the main function
 
@@ -372,7 +331,7 @@ const FormActions = ({ handleSubmit, setFormData }) => {
 const FlightsAdded = ({ flights }) => {
   return (
 
-    <div className=" text-white  rounded-xl w-full rounded-lg flex flex-col items-center justify-center">
+    <div className="w-full  flex justify-center gap-6 mx-auto">
       {flights ? (
         <div className="grid grid-cols-3 gap-x-4 gap-y-8 w-full justify-items-center">
           {flights.map((flight, index) => (
@@ -561,43 +520,42 @@ export default function Trips() {
     setReadyToAddImages(false)
   }
   return !readyToAddImages ? (
-    <div className="w-full min-h-screen flex justify-center gap-6 mx-auto ">
+    <div className="w-full flex justify-center gap-6 mx-auto">
 
 
-      <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-[45%]">
+      <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-2/3">
 
-        <>
-          <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
+        <h1 className="text-2xl font-bold mb-6">Add a New Flight</h1>
 
-          <div onSubmit={handleSubmit} className="space-y-6">
-            <FlightInformationSection
-              formData={formData}
-              handleChange={handleChange}
-            />
+        <div onSubmit={handleSubmit} className="space-y-6">
+          <FlightInformationSection
+            formData={formData}
+            handleChange={handleChange}
+          />
 
-            <TripDetailsSection
-              formData={formData}
-              handleChange={handleChange}
-              TRIP_TYPES={TRIP_TYPES}
-              PRICE_CATEGORIES={PRICE_CATEGORIES}
-              EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
-              TRANSPORT_TYPES={TRANSPORT_TYPES}
-            />
-            <DepartureInformationSection
-              formData={formData} handleChange={handleChange} />
+          <TripDetailsSection
+            formData={formData}
+            handleChange={handleChange}
+            TRIP_TYPES={TRIP_TYPES}
+            PRICE_CATEGORIES={PRICE_CATEGORIES}
+            EXPERIENCE_LEVELS={EXPERIENCE_LEVELS}
+            TRANSPORT_TYPES={TRANSPORT_TYPES}
+          />
+          <DepartureInformationSection
+            formData={formData} handleChange={handleChange} />
 
-            <GuideSelectionSection guides={guides} formData={formData} handleChange={handleChange} />
+          <GuideSelectionSection guides={guides} formData={formData} handleChange={handleChange} />
 
 
-            <DestinationInformationSection
-              formData={formData}
-              handleChange={handleChange}
-              DESTINATION_TYPES={DESTINATION_TYPES}
-            />
+          <DestinationInformationSection
+            formData={formData}
+            handleChange={handleChange}
+            DESTINATION_TYPES={DESTINATION_TYPES}
+          />
 
-            <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
-          </div>
-        </>
+          <FormActions handleSubmit={handleSubmit} setFormData={setFormData} />
+        </div>
+
 
       </div>
     </div>
@@ -612,5 +570,5 @@ export default function Trips() {
       </div>
     );
 
-    
+
 }

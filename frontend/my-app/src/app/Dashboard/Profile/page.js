@@ -133,24 +133,23 @@
    // ... [loading and error states remain the same] ...
  
    const defaultProfilePic = "/media/profile_pictures/profile.png";
-   const profilePictureUrl = profileData?.profile_picture !== ""
+   const profilePictureUrl = profileData?.profile_picture
      ? `${API_URL}${profileData.profile_picture}?v=${imageVersion}`
      : `${API_URL}${defaultProfilePic}?v=${imageVersion}`;
  
    return (
-     <div className="w-full py-0 px-2 flex flex-col gap-14">
+     <div className="w-full py-0 px-2 flex flex-col gap-8">
        {/* Profile picture section */}
        <div className="bg-[url('/coverProfile.jpg')] flex justify-end items-end w-full h-56 rounded-2xl z-0 relative">
          <div className="rounded-full overflow-hidden w-64 h-64 p-3 mx-auto mb-[-120px] bg-[#EEDAC4] flex justify-center object-contain items-center">
            <div className="w-full h-full rounded-full relative overflow-hidden">
              <div className="relative w-full overflow-hidden rounded-full flex justify-center items-center">
                <Image
-                 width={256}
-                 height={256}
+                 width={400}
+                 height={400}
                  alt="Profile picture"
                  src={profilePictureUrl}
                  className="object-cover w-full h-full"
-                 unoptimized
                  key={`profile-img-${imageVersion}`}
                />
              </div>
@@ -170,13 +169,8 @@
            />
          </div>
        </div>
-      <div className="personal-info w-full gap-5 flex flex-col justify-center items-center text-center">
-
-                  <h1 className="text-5xl font-bold w-fit">{profileData?.user?.username}</h1>
-                  <p className="w-fit text-lg ">{profileData?.department}</p>
-                </div>
-       {/* Username display */}
-       <div className="w-full z-10 flex gap-2 flex-col text-center mt-16 text-black">
+        {/* Username display */}
+      <div className="w-full mt-24 z-10 flex gap-2 flex-col text-center  text-black">
          <h1 className="text-3xl font-semibold">{profileData?.user?.username}</h1>
          <p className="text-md font-medium">{profileData?.user?.email}</p>
        </div>

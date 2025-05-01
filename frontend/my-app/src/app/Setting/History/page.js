@@ -5,17 +5,16 @@ import { flightIcon, staysIcon } from "@/app/data/data";
 import { API_URL } from "@/app/utils/constants";
 import { useTrip } from "../context/tripContext";
 import { useRouter } from "next/navigation";
+import { Star, CalendarDays } from "lucide-react";
 
-const HistoryBox = ({
-  created_at,
-  date,
+const HistoryBoxFlight = ({
   id,
   departure_location,
-  hotel_reservation,
   status,
   tickets,
   total_price,
   trip_title,
+  date,
   handleCancelReservation
 }) => {
   const formatDate = (dateString) => {
@@ -26,144 +25,241 @@ const HistoryBox = ({
     });
   };
 
-  const formatTime = (dateString) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-
-
-
-
   return (
-    <div className="w-full flex justify-evenly gap-2 p-4  rounded-xl  bg-white  shadow-sm hover:shadow-md transition-shadow">
-
-
-      {[{
-        label: "Trip",
-        value: trip_title
-      }, {
-        label: "Departure",
-        value: departure_location
-      }, {
-        label: "Tickets",
-        value: tickets
-      }, {
-        label: "Price",
-        value: total_price
-      }, {
-        label: "Status",
-        value: status
-      }, {
-        label: "Date",
-        value: formatDate(date)
-      }
+    <div className="w-full flex justify-evenly gap-2 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+      {[
+        { label: "Trip", value: trip_title },
+        { label: "Departure", value: departure_location },
+        { label: "Tickets", value: tickets },
+        { label: "Price", value: `$${total_price}` },
+        { label: "Status", value: status },
+        { label: "Date", value: formatDate(date) }
       ].map((el, index) => (
         <div key={index} className="flex justify-between items-center gap-2">
-          <span className="text-lg  font-semibold text-black">{el.label}:
+          <span className="text-lg font-semibold text-black">{el.label}:</span>
+          <span className={`font-medium text-lg ${el.label === "Status" ? "text-[var(--secondary)]" : "text-[var(--primary)]"}`}>
+            {el.value}
           </span>
-          <span className={`font-medium text-md ${el.label === "Status" ? "text-[var(--secondary)]" : "text-[var(primary)]"} `}>{el.value}</span>
         </div>
       ))}
-      <button className="w-fit rounded-xl font-semibold px-4 py-2 bg-[var(--secondary)] text-[var(--bg-color)]" onClick={(e)=>{
-        handleCancelReservation(id)
-
-      }}>Cancel</button>
+      <button
+        className="w-fit rounded-xl font-semibold px-4 py-2 bg-[var(--secondary)] text-[var(--bg-color)]"
+        onClick={(e) => handleCancelReservation(id, false)}
+      >
+        Cancel
+      </button>
     </div>
   );
 };
 
-const HistorySection = ({ data, loading, error }) => {
-  const { fetchDetails, fetchDeparture } = useTrip();
-  const [tripTitles, setTripTitles] = useState({});
-  const [departureLocations, setDepartureLocations] = useState({});
+const HistoryBoxStay = ({
+  id,
+  hotel_reservation,
+  status,
+  handleCancelReservation
+}) => {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="w-full grid grid-cols-4 items-start  gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex flex-col w-full">
+        <span className="text-lg font-semibold text-black">Hotel:</span>
+        <span className="font-medium text-lg text-[var(--primary)]">
+          {hotel_reservation.hotel?.name || 'Loading...'}
+        </span>
+        <span className="font-medium text-lg text-[var(--primary)]">
+          {hotel_reservation.hotel?.location || 'Loading...'}
+        </span>
+
+      </div>
+      <div className="w-full flex flex-col items-center justify-between">
+        <div className="flex w-full flex-col items-start justify-between">
+          <span className="text-lg font-semibold text-black">Check-in:</span>
+          <div className="flex items-center gap-1">
+            <span className="font-medium flex flex-col text-lg text-[var(--primary)]">
+              <p className="font-semibold"><span className="font-light text-lg">{formatDate(hotel_reservation.check_in)} </span></p>
+            </span>
+          </div>
+        </div>
+        <div className="flex w-full flex-col items-start justify-between">
+          <span className="text-lg font-semibold text-black">Check-out:</span>
+          <div className="flex items-center gap-1">
+            <span className="font-medium flex flex-col text-lg text-[var(--primary)]">
+              <p className="font-semibold"><span className="font-light text-lg">{formatDate(hotel_reservation.check_out)} </span></p>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full flex flex-col px-4  gap-2 items-center justify-between">
+
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="text-lg font-semibold text-black">Rooms:</span>
+          <span className="font-medium text-left  text-lg text-[var(--primary)]">
+            {hotel_reservation.rooms}
+          </span>
+        </div>
+
+
+
+        <div className="flex w-full items-center gap-2 justify-between">
+          <span className="text-lg font-semibold text-black">Price:</span>
+          <span className="font-medium text-left  text-lg text-[var(--primary)]">
+            ${hotel_reservation.total_price}
+          </span>
+        </div>
+        <div className="flex flex w-full items-center justify-between ">
+        <span className="text-lg font-semibold text-black">Status:</span>
+        <span className="font-medium text-lg text-[var(--secondary)]">
+          {status}
+        </span>
+      </div>
+      
+      </div>
+
+      <div className="flex h-full items-center justify-center ">
+        <button
+          className="w-fit rounded-xl font-semibold px-6 py-4 text-xl bg-[var(--secondary)] text-[var(--bg-color)]"
+          onClick={(e) => handleCancelReservation(id, true)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const HistorySection = ({ data, loading, error, isHotel }) => {
+  const { fetchDetails, fetchDeparture, fetchHotelDetails } = useTrip();
+  const [tripData, setTripData] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
     if (data?.pending) {
       const fetchAllData = async () => {
-        const newTripTitles = {};
-        const newDepartureLocations = {};
+        const newData = {};
 
         for (const item of data.pending) {
           try {
-            // Fetch trip title
-            const details = await fetchDetails(item.trip);
-            newTripTitles[item.trip] = details?.title || 'N/A';
-
-            // Fetch departure location
-            const departure = await fetchDeparture(item.trip, item.departure_trip);
-            newDepartureLocations[`${item.trip}-${item.departure_trip}`] = departure?.location || 'N/A';
+            if (isHotel) {
+              // Fetch hotel details using the hotel ID from the reservation
+              const hotel = await fetchHotelDetails(item.hotel);
+              newData[item.id] = {
+                ...item,
+                hotel_reservation: {
+                  ...item,
+                  hotel: hotel || { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+                }
+              };
+            } else {
+              // Fetch trip details for flights
+              const details = await fetchDetails(item.trip);
+              const departure = await fetchDeparture(item.trip, item.departure_trip);
+              newData[item.id] = {
+                ...item,
+                trip_title: details?.title || 'N/A',
+                departure_location: departure?.location || 'N/A'
+              };
+            }
           } catch (err) {
             console.error("Error fetching data:", err);
-            newTripTitles[item.trip] = 'Error';
-            newDepartureLocations[`${item.trip}-${item.departure_trip}`] = 'Error';
+            newData[item.id] = {
+              ...item,
+              trip_title: 'Error',
+              departure_location: 'Error',
+              hotel_reservation: {
+                ...item,
+                hotel: { id: item.hotel, name: 'Error', location: 'Error' }
+              }
+            };
           }
         }
 
-        setTripTitles(newTripTitles);
-        setDepartureLocations(newDepartureLocations);
+        setTripData(newData);
       };
 
       fetchAllData();
     }
-  }, [data, fetchDetails, fetchDeparture]);
+  }, [data, isHotel, fetchDetails, fetchDeparture, fetchHotelDetails]);
 
-  const router = useRouter()
-  const handleCancelReservation = async (reservation_id) => {
+  const handleCancelReservation = async (reservation_id, isHotel = false) => {
     try {
-      const response = await fetch(`${API_URL}/reservation/cancel_trip_reservation/${reservation_id}/`,{
-        method:'DELETE',
-        headers:{
+      const endpoint = isHotel
+        ? `${API_URL}/reservation/cancel_hotel_reservation/${reservation_id}/`
+        : `${API_URL}/reservation/cancel_trip_reservation/${reservation_id}/`;
+
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
-      })
-      const data = await response.json()
-      if(!response.ok){
-        throw new Error(data.message)
-      }else{
-        alert('Reservation successfuly canceled')
-        router.push('/Setting/History')
-        
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || result.error);
+      } else {
+        alert('Reservation successfully canceled');
+        router.refresh();
       }
     } catch (err) {
-      alert('Error: ' + err)
+      alert('Error: ' + err.message);
     }
-
-  }
-
+  };
 
   if (loading) return <div className="text-center py-10">Loading history...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Error loading history: {error}</div>;
-  if (!data?.pending || data.pending.length === 0) return <div className="text-center text-xl py-10 bg-[var(--bg-color)] rounded-xl">No history found</div>;
+  if (!data?.pending || data.pending.length === 0) return (
+    <div className="text-center text-xl py-10 bg-[var(--bg-color)] rounded-xl">
+      No history found
+    </div>
+  );
 
   return (
-    <div className="w-full p-4 rounded-xl bg-[var(--bg-color)] flex flex-col gap-2">
+    <div className="w-full p-4 rounded-xl bg-[var(--bg-color)] flex flex-col gap-4">
+      {data.pending.map((item) => {
+        const itemData = tripData[item.id] || item;
 
-      {data.pending.map((item) => (
-        <HistoryBox
-          key={item.id}
-          created_at={item.created_at}
-          date={item.date}
-          departure_location={departureLocations[`${item.trip}-${item.departure_trip}`] || 'Loading...'}
-          hotel_reservation={item.hotel_reservation}
-          status={item.status}
-          tickets={item.tickets}
-          total_price={item.total_price}
-          trip_title={tripTitles[item.trip] || 'Loading...'}
-          id={item.id}
-          handleCancelReservation={handleCancelReservation}
-        />
-      ))}
+        return isHotel ? (
+          <HistoryBoxStay
+            key={item.id}
+            id={item.id}
+            hotel_reservation={itemData.hotel_reservation || {
+              ...item,
+              hotel: { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+            }}
+            status={item.status}
+            handleCancelReservation={handleCancelReservation}
+          />
+        ) : (
+          <HistoryBoxFlight
+            key={item.id}
+            id={item.id}
+            departure_location={itemData.departure_location}
+            status={item.status}
+            tickets={item.tickets}
+            total_price={item.total_price}
+            trip_title={itemData.trip_title}
+            date={item.date}
+            handleCancelReservation={handleCancelReservation}
+          />
+        );
+      })}
     </div>
   );
 };
 
 export default function History() {
   const [choice, setChoice] = useState("Flights");
-  const [flights, setFlights] = useState({ pending: [] });
-  const [stays, setStays] = useState({ pending: [] });
+  const [flights, setFlights] = useState({ pending: [], confirmed: [], over: [], cancelled: [] });
+  const [stays, setStays] = useState({ pending: [], confirmed: [], over: [], cancelled: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -183,8 +279,22 @@ export default function History() {
         }
 
         const data = await response.json();
-        setFlights({ pending: data.trip_reservations.pending || [] });
-        setStays({ pending: data.hotel_reservations.pending || [] });
+        console.log("API Response:", data); // Debug log
+
+        // Ensure we have proper data structures
+        setFlights({
+          pending: data.trip_reservations?.pending || [],
+          confirmed: data.trip_reservations?.confirmed || [],
+          over: data.trip_reservations?.over || [],
+          cancelled: data.trip_reservations?.cancelled || []
+        });
+
+        setStays({
+          pending: data.hotel_reservations?.pending || [],
+          confirmed: data.hotel_reservations?.confirmed || [],
+          over: data.hotel_reservations?.over || [],
+          cancelled: data.hotel_reservations?.cancelled || []
+        });
       } catch (err) {
         console.error("Fetch error:", err);
         setError(err.message);
@@ -198,7 +308,7 @@ export default function History() {
 
   return (
     <div className="w-full py-0 px-0 flex flex-col gap-2">
-      <div className="flex flex-row rounded-t-xl justify-center items-center  rounded- gap-4  mb-0 bg-[var(--bg-color)]">
+      <div className="flex flex-row rounded-t-xl justify-between items-center rounded- gap-4 mb-0 bg-[var(--bg-color)]">
         <button
           className={`w-[80%] p-4 rounded-t-[10px] flex h-fit py-5 justify-start items-center gap-2 cursor-pointer ${choice === "Flights"
             ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
@@ -223,6 +333,7 @@ export default function History() {
         data={choice === 'Flights' ? flights : stays}
         loading={loading}
         error={error}
+        isHotel={choice === 'Stays'}
       />
     </div>
   );

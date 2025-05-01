@@ -1,4 +1,4 @@
-export const Account  = (<svg xmlns="http://www.w3.org/2000/svg" width={28} height={28} viewBox="0 0 24 24">
+export const Account = (<svg xmlns="http://www.w3.org/2000/svg" width={28} height={28} viewBox="0 0 24 24">
 	<path fill="currentColor" d="M12 12q-1.65 0-2.825-1.175T8 8t1.175-2.825T12 4t2.825 1.175T16 8t-1.175 2.825T12 12m-8 8v-2.8q0-.85.438-1.562T5.6 14.55q1.55-.775 3.15-1.162T12 13t3.25.388t3.15 1.162q.725.375 1.163 1.088T20 17.2V20z" strokeWidth={0.5} stroke="currentColor"></path>
 </svg>);
 
@@ -47,37 +47,32 @@ export const dashboardIconWhite = (<svg xmlns="http://www.w3.org/2000/svg" width
 </svg>)
 
 export const calendarIcon = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-  >
-    <path
-      fill="currentColor"
-      d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V10h14zM9 14H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm-8 4H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2z"
-      strokeWidth="0.5"
-      stroke="currentColor"
-    />
-  </svg>
-);
-
-export const flightIcon = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="28"
-    height="28"
-    viewBox="0 0 512 512"
-    aria-label="Find Flights"
-  >
-    <path
-      fill="currentColor"
-      d="M407.72 208c-2.72 0-14.44.08-18.67.31l-57.77 1.52L198.06 48h-62.81l74.59 164.61l-97.31 1.44L68.25 160H16.14l20.61 94.18c.15.54.33 1.07.53 1.59a.26.26 0 0 1 0 .15a15 15 0 0 0-.53 1.58L15.86 352h51.78l45.45-55l96.77 2.17L135.24 464h63l133-161.75l57.77 1.54c4.29.23 16 .31 18.66.31c24.35 0 44.27-3.34 59.21-9.94C492.22 283 496 265.46 496 256c0-30.06-33-48-88.28-48m-71.29 87.9"
-    />
-  </svg>
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="28"
+		height="28"
+		viewBox="0 0 24 24"
+	>
+		<path
+			fill="currentColor"
+			d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V10h14zM9 14H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm-8 4H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2z"
+			strokeWidth="0.5"
+			stroke="currentColor"
+		/>
+	</svg>
 );
 
 
+import { FlightOutlined, Hotel } from "@mui/icons-material";
+
+
+export const flightIcon = (<FlightOutlined className="rotate-90" />
+);
+import { CiBookmark } from "react-icons/ci";
+import { FaBookmark } from "react-icons/fa";
+export const stayIcon = (<Hotel />)
 export const message = (<svg xmlns="http://www.w3.org/2000/svg" width={28} height={28} viewBox="0 0 24 24">
 	<path fill="#000" d="M4 20q-.825 0-1.412-.587T2 18V6q0-.825.588-1.412T4 4h16q.825 0 1.413.588T22 6v12q0 .825-.587 1.413T20 20zm8-7L4 8v10h16V8zm0-2l8-5H4zM4 8V6v12z"></path>
 </svg>)
+
+export const reservationIcon = (<FaBookmark color="#000" fill="#000" size={20} />)
