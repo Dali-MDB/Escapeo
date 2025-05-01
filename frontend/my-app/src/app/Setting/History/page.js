@@ -67,7 +67,7 @@ const HistoryBoxStay = ({
   };
 
   return (
-    <div className="w-full grid grid-cols-4 items-start  gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div className={`w-full grid ${status === 'pending' ? " grid-cols-4":"grid-cols-3"} items-start  gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow`}>
       <div className="flex flex-col w-full">
         <span className="text-lg font-semibold text-black">Hotel:</span>
         <span className="font-medium text-lg text-[var(--primary)]">
@@ -100,8 +100,8 @@ const HistoryBoxStay = ({
       <div className="w-full flex flex-col px-4  gap-2 items-center justify-between">
 
         <div className="flex w-full items-center justify-between gap-2">
-          <span className="text-lg font-semibold text-black">Rooms:</span>
-          <span className="font-medium text-left  text-lg text-[var(--primary)]">
+          <span className="text-lg font-semibold w-full text-black">Rooms:</span>
+          <span className="font-medium text-center w-full mx-auto  text-lg text-[var(--primary)]">
             {hotel_reservation.rooms}
           </span>
         </div>
@@ -115,15 +115,15 @@ const HistoryBoxStay = ({
           </span>
         </div>
         <div className="flex flex w-full items-center justify-between ">
-        <span className="text-lg font-semibold text-black">Status:</span>
-        <span className="font-medium text-lg text-[var(--secondary)]">
-          {status}
-        </span>
-      </div>
-      
+          <span className="text-lg font-semibold text-black">Status:</span>
+          <span className="font-medium text-lg text-[var(--secondary)]">
+            {status}
+          </span>
+        </div>
+
       </div>
 
-      <div className="flex h-full items-center justify-center ">
+      {status === 'pending' &&<div className="flex h-full items-center justify-center ">
         <button
           className="w-fit rounded-xl font-semibold px-6 py-4 text-xl bg-[var(--secondary)] text-[var(--bg-color)]"
           onClick={(e) => handleCancelReservation(id, true)}
@@ -131,7 +131,7 @@ const HistoryBoxStay = ({
           Cancel
         </button>
       </div>
-    </div>
+   } </div>
   );
 };
 
@@ -214,9 +214,10 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
     }
   };
 
+  console.log(data)
   if (loading) return <div className="text-center py-10">Loading history...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Error loading history: {error}</div>;
-  if (!data?.pending || data.pending.length === 0) return (
+  if (!data ) return (
     <div className="text-center text-xl py-10 bg-[var(--bg-color)] rounded-xl">
       No history found
     </div>
@@ -252,6 +253,64 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
           />
         );
       })}
+
+      {data.confirmed.map((item) => {
+        const itemData = tripData[item.id] || item;
+
+        return isHotel ? (
+          <HistoryBoxStay
+            key={item.id}
+            id={item.id}
+            hotel_reservation={itemData.hotel_reservation || {
+              ...item,
+              hotel: { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+            }}
+            status={item.status}
+            handleCancelReservation={handleCancelReservation}
+          />
+        ) : (
+          <HistoryBoxFlight
+            key={item.id}
+            id={item.id}
+            departure_location={itemData.departure_location}
+            status={item.status}
+            tickets={item.tickets}
+            total_price={item.total_price}
+            trip_title={itemData.trip_title}
+            date={item.date}
+            handleCancelReservation={handleCancelReservation}
+          />
+        );
+      })}
+      {data.over.map((item) => {
+        const itemData = tripData[item.id] || item;
+
+        return isHotel ? (
+          <HistoryBoxStay
+            key={item.id}
+            id={item.id}
+            hotel_reservation={itemData.hotel_reservation || {
+              ...item,
+              hotel: { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+            }}
+            status={item.status}
+            handleCancelReservation={handleCancelReservation}
+          />
+        ) : (
+          <HistoryBoxFlight
+            key={item.id}
+            id={item.id}
+            departure_location={itemData.departure_location}
+            status={item.status}
+            tickets={item.tickets}
+            total_price={item.total_price}
+            trip_title={itemData.trip_title}
+            date={item.date}
+            handleCancelReservation={handleCancelReservation}
+          />
+        );
+      })}
+
     </div>
   );
 };

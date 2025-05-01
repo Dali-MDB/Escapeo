@@ -20,18 +20,20 @@ export const metadata = {
 };
 
 import { TripContext } from "./Setting/context/tripContext";
-
+import Melio from "./components/Melio"
+import ChatBot from "./components/ChatBot";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={urbanist.variable}>
-      <body style={{ fontFamily: "urbanist", color: "black" }}>
+      <body style={{ fontFamily: "urbanist", color: "black" , position:'relative' }}>
         <AuthProvider>
           <SearchProvider>
             <FormProvider>
                <Suspense fallback={<Loading />}>
                   {children}
-
+                  <Melio />
+                  <ChatBot />
                 </Suspense>
              </FormProvider>
           </SearchProvider>

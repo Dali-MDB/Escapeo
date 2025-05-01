@@ -41,13 +41,7 @@ const HotelInfoSection = ({ data }) => {
                         </div>
                     </div>
                     <div className="flex space-x-4">
-                        <button
-                            onClick={() => setIsFavorite(!isFavorite)}
-                            className="p-2 rounded-xl border border-[var(--primary)]"
-                        >
-                            <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
-                        </button>
-                        <button className="p-2 rounded-xl border border-[var(--primary)]">
+                       <button className="p-2 rounded-xl border border-[var(--primary)]">
                             <Share2 className="w-6 h-6 text-gray-500" />
                         </button>
                     </div>

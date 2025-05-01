@@ -10,7 +10,7 @@ import json
 from rest_framework import status
 from main.permissions import CustomerPermissions
 from rest_framework.exceptions import ValidationError
-from .serializers import HotelReservationSerializer,TripReservationSerializer
+from .serializers import HotelReservationSerializer,TripReservationSerializer,HotelReservationWithTripSerializer
 from main.serializers import HotelSerializer
 from datetime import date
 from decimal import Decimal
@@ -99,9 +99,11 @@ def hotel_reservation_payment_init(request, hotel_id):
 # GET endpoint (unchanged but cleaner)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getTripReservationPrice(request, trip_id , departure_id , tickets):
+def getTripReservationPrice(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id)
-    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=departure_id)
+    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get("departure_trip_id"))
+    tickets = int(request.GET.get("tickets", 1))
+    
     result = calculate_trip_price(trip, departure_trip, tickets, request.user.customer)
     if 'errors' in result:
         return Response(result, status=400)
@@ -123,7 +125,7 @@ def trip_reservation_payment_init(request, trip_id):
     # Get basic data
     trip = get_object_or_404(Trip, id=trip_id)
     print(request.data.get('departure_trip_id'))
-    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.data.get('departure_trip_id'))
+    departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get('departure_trip_id'))
     tickets = int(request.data.get('tickets', 1))
     submitted_price = float(request.data.get('total_price'))
     
@@ -505,9 +507,79 @@ def get_nearby_hotels(request,trip_id):
 
 
 
+#------------------------------ viewing reservations
+from main.permissions import CreateHotelPermission,CreateTripPermission
+@api_view(['GET'])
+@permission_classes([CreateHotelPermission])
+def pending_hotel_reservations(request):
+    # Pending reservations WITH trip association
+    with_trip = HotelReservation.objects.filter(
+        status='pending',
+        trip_reservation__isnull=False
+    ).select_related('hotel', 'user', 'trip_reservation')
+    
+    # Pending reservations WITHOUT trip association
+    without_trip = HotelReservation.objects.filter(
+        status='pending',
+        trip_reservation__isnull=True
+    ).select_related('hotel')
+    
+    
+    return Response({
+        'with_trip': HotelReservationWithTripSerializer(with_trip, many=True).data,
+        'without_trip': HotelReservationSerializer(without_trip, many=True).data
+    })
 
 
 
+@api_view(['GET'])
+@permission_classes([CreateTripPermission])
+def pending_trip_reservations(request):
+    # With hotel reservation
+    with_hotel = TripReservation.objects.filter(
+        status='pending',
+        hotel_reservation__isnull=False
+    ).select_related('trip', 'hotel_reservation')
+    
+    # Without hotel reservation
+    without_hotel = TripReservation.objects.filter(
+        status='pending',
+        hotel_reservation__isnull=True
+    ).select_related('trip')
+    
+    return Response({
+        'with_hotel_reservation': TripReservationSerializer(with_hotel, many=True).data,
+        'without_hotel_reservation': TripReservationSerializer(without_hotel, many=True).data
+    })
 
 
+
+from main.permissions import TripPermission
+@api_view(['GET'])
+@permission_classes([TripPermission])
+def pending_reservation_for_trip(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    
+    permission = TripPermission()
+    permission.has_object_permission(request,None,trip)
+    
+    # With hotel reservation
+    with_hotel = TripReservation.objects.filter(
+        trip=trip,
+        status='pending',
+        hotel_reservation__isnull=False
+    ).select_related('hotel_reservation')
+    
+    # Without hotel reservation
+    without_hotel = TripReservation.objects.filter(
+        trip=trip,
+        status='pending',
+        hotel_reservation__isnull=True
+    )
+    
+    return Response({
+        'with_hotel_reservation': TripReservationSerializer(with_hotel, many=True).data,
+        'without_hotel_reservation': TripReservationSerializer(without_hotel, many=True).data,
+        'trip_id': trip_id
+    })
     

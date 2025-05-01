@@ -2,6 +2,7 @@ import json
 from fuzzywuzzy import fuzz
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+import random
 
 
 def get_best_match(message,previous):
@@ -60,7 +61,14 @@ def get_best_match(message,previous):
                     if fuzz.ratio(message.lower(),pattern.lower()) >= value.get('match_threshold'):
                         found = True
                         previous = [key]
-                        return (value.get('response'),previous)
+                        #we return one of the pre defined answers 
+                        follow_ups = value.get('follow_ups', {})
+                        indicators = []
+                        for f, v in follow_ups.items():
+                            if isinstance(v, dict):
+                                patterns = v.get('patterns', [])
+                                indicators.extend(patterns[:3])         
+                        return (random.choice(value.get('responses')),previous,indicators)
                     
         if not found:            
             return "I'm not quite sure I understand. Could you please rephrase or provide more details about what you're looking for?",[]
@@ -69,7 +77,6 @@ def get_best_match(message,previous):
             
         
                 
-
 
 
 
@@ -85,10 +92,19 @@ def talkToMelio(request):
         returns {
             'response' : str
             'context' : [str]     (take it and replace previous with it in the next message)
+            'indicators' : [str]   (simply suggestions for the user to keep him in the context of our pre defined questions)
         }
     """
     message = request.data.get('message','')
     previous = request.data.get('previous',[])
-    response ,context = get_best_match(message=message,previous=previous)
+    response ,context,indicators = get_best_match(message=message,previous=previous)
     
-    return Response({"response": response, "context": context})
+    
+    return Response({
+        "response": response,
+        "context": context,
+        "indicators" : indicators,
+        })
+
+
+

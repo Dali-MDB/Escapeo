@@ -1,267 +1,1606 @@
 {
-    "greetings": {
-        "patterns": ["hello", "hi", "hey", "good morning", "good evening"],
-        "match_threshold": 70,
-        "response": "Welcome to our Travel Agency! How can I assist you today?",
-        "output_context": ["greeting_context"],
+    "greeting": {
+        "patterns": [
+            "hi",
+            "hello",
+            "hey",
+            "good morning",
+            "good afternoon",
+            "good evening",
+            "greetings",
+            "hi there",
+            "hello there",
+            "hey there",
+            "howdy",
+            "what's up",
+            "sup"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "Hello! Welcome to Traveleo Travel Agency. How can I help you plan your next adventure?",
+            "Hi there! I'm your Traveleo travel assistant. Ready to explore the world?",
+            "Greetings from Traveleo! How can I assist you with your travel plans today?"
+        ],
+        "follow_ups": {}
+    },
+    "about_traveleo": {
+        "patterns": [
+            "about traveleo",
+            "who are you",
+            "company info",
+            "travel agency details",
+            "about the company",
+            "agency information",
+            "company details",
+            "about us",
+            "who we are",
+            "our company",
+            "agency background",
+            "company background",
+            "agency history",
+            "company history",
+            "tell me about traveleo",
+            "what is traveleo",
+            "traveleo information"
+        ],
+        "match_threshold": 75,
+        "responses": [
+            "Traveleo is a modern travel agency based in Algeria, founded in 2025 by Team 36 Melio. We're headquartered in Algiers with branches in Oran and Annaba. Our motto is 'Every mile a memory, every dawn a glow, where skies hold stories and hearts overflow.' We offer a wide range of travel experiences from local Algerian destinations to international trips.",
+            "Welcome to Traveleo! We started as a university project by ESI students and grew into a full-service travel agency. Based in Algeria with offices in Algiers, Oran, and Annaba, we specialize in creating memorable travel experiences. Our services range from standard trips to all-inclusive packages, catering to all types of travelers.",
+            "At Traveleo, we're more than just a travel agency - we're memory makers. Founded in 2025 by Team 36 Melio, we combine modern booking convenience with traditional Algerian hospitality. From our headquarters in Algiers to our branches in Oran and Annaba, we're dedicated to creating unforgettable travel experiences."
+        ],
+        "output_context": [
+            "agency_context"
+        ],
         "follow_ups": {
-            "greeting-help": {
-                "patterns": ["help", "need assistance", "looking for information"],
+            "trip_categories": {
+                "patterns": [
+                    "trip types",
+                    "package types",
+                    "what packages",
+                    "types of trips",
+                    "categories",
+                    "trip categories",
+                    "package categories",
+                    "what options",
+                    "available packages",
+                    "travel options",
+                    "standard",
+                    "all inclusive",
+                    "group travel",
+                    "solo travel",
+                    "road trip",
+                    "cruise"
+                ],
                 "match_threshold": 75,
-                "response": "Sure! I can help you with destinations, bookings, travel packages, and more. What specifically are you interested in?",
-                "output_context": ["assistance_context"]
+                "responses": [
+                    "We offer several trip categories: 1) Standard (transport + accommodation) 2) All-Inclusive (everything included) 3) Group Travel 4) Solo Travel 5) Road Trip 6) Cruise. Which type interests you?",
+                    "Our trip packages include: Standard, All-Inclusive, Group Travel, Solo Travel, Road Trip, and Cruise options. Each designed for different travel preferences. What type of experience are you looking for?",
+                    "Traveleo provides various trip categories: Standard packages, All-Inclusive experiences, Group Travel options, Solo Travel adventures, Road Trips, and Cruise packages. Which category would you like to explore?"
+                ],
+                "output_context": [
+                    "trip_categories_context"
+                ]
+            },
+            "experience_types": {
+                "patterns": [
+                    "experience types",
+                    "types of experiences",
+                    "what experiences",
+                    "adventure",
+                    "cultural",
+                    "eco tourism",
+                    "wellness",
+                    "romantic",
+                    "festival",
+                    "pilgrimage",
+                    "nature",
+                    "spa",
+                    "honeymoon",
+                    "events"
+                ],
+                "match_threshold": 75,
+                "responses": [
+                    "We offer various experience types: 1) Adventure (hiking, diving) 2) Cultural & Historical 3) Eco-Tourism & Nature 4) Wellness & Spa 5) Romantic & Honeymoon 6) Festival & Events 7) Religious & Pilgrimage. Which experience interests you?",
+                    "Our experiences range from Adventure and Cultural tours to Eco-Tourism, Wellness retreats, Romantic getaways, Festival trips, and Pilgrimage journeys. What kind of experience are you seeking?",
+                    "Choose from our diverse experiences: Adventure activities, Cultural exploration, Eco-Tourism adventures, Wellness retreats, Romantic escapes, Festival experiences, or Pilgrimage journeys. Which appeals to you?"
+                ],
+                "output_context": [
+                    "experience_types_context"
+                ]
             }
         }
     },
     "destination_inquiry": {
-        "patterns": ["destinations", "where can I go", "travel locations", "vacation spots"],
-        "match_threshold": 70,
-        "response": "We offer amazing destinations worldwide! Are you interested in specific types of travel?",
-        "output_context": ["destination_context"],
+        "patterns": [
+            "where should I go",
+            "what places can I visit",
+            "suggest a destination",
+            "recommend a place",
+            "where to travel",
+            "looking for vacation spots",
+            "need travel ideas",
+            "where to go on holiday",
+            "best places to visit",
+            "travel recommendations",
+            "suggestions for travel",
+            "where to vacation",
+            "looking for travel destinations",
+            "need destination ideas"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you find the perfect destination! We specialize in both Algerian destinations and international trips to places like France, USA, UK, and Spain. What type of destination interests you?",
+            "Let me suggest some amazing destinations! We offer both local Algerian experiences and international trips. Are you interested in exploring Algeria or traveling abroad?",
+            "I'd love to help you choose a destination! We have beautiful local spots in Algeria and exciting international destinations. What kind of place are you dreaming of visiting?"
+        ],
         "follow_ups": {
-            "destination_inquiry-types": {
-                "patterns": ["beach", "mountain", "city", "adventure", "cultural"],
-                "match_threshold": 75,
-                "response": "Great choice! Let me tell you about our top {type} destinations.",
-                "output_context": ["destination_type_context"],
-                "follow_ups": {
-                    "destination_inquiry-types-details": {
-                        "patterns": ["tell me more", "details", "packages"],
-                        "match_threshold": 70,
-                        "response": "We have some fantastic {type} packages. Would you like to hear about specific locations or pricing?",
-                        "output_context": ["destination_details_context"],
-                        "follow_ups": {
-                            "destination-booking": {
-                                "patterns": ["book", "interested", "pricing"],
-                                "match_threshold": 75,
-                                "response": "Wonderful! I'll connect you with our booking specialist to customize your perfect {type} trip.",
-                                "output_context": ["booking_context"]
-                            }
-                        }
-                    }
-                }
+            "destination_type": {
+                "patterns": [
+                    "city",
+                    "beach",
+                    "mountain",
+                    "island",
+                    "cruise",
+                    "urban",
+                    "coastal",
+                    "alpine",
+                    "tropical",
+                    "sea"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "Great choice! We have amazing this type of destination destinations. Would you like to explore local Algerian options or international locations?",
+                    "Perfect! I can suggest some wonderful this type of destination destinations. Are you interested in staying in Algeria or traveling abroad?",
+                    "Excellent choice! We offer both local and international this type of destination destinations. Which would you prefer to explore?"
+                ],
+                "follow_ups": {}
             }
         }
     },
     "travel_packages": {
-        "patterns": ["packages", "tour packages", "vacation deals", "all-inclusive"],
-        "match_threshold": 70,
-        "response": "We have a variety of travel packages! Are you looking for international or domestic packages?",
-        "output_context": ["packages_context"],
+        "patterns": [
+            "show me packages",
+            "what packages do you have",
+            "travel packages",
+            "vacation packages",
+            "holiday packages",
+            "package deals",
+            "travel deals",
+            "vacation deals",
+            "holiday deals",
+            "package offers",
+            "travel offers",
+            "vacation offers",
+            "holiday offers",
+            "package options",
+            "travel options",
+            "vacation options",
+            "holiday options"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "We offer a variety of travel packages to suit different preferences and budgets. Would you like to know about our standard packages, all-inclusive options, or something specific?",
+            "I can help you explore our travel packages! We have options ranging from standard to all-inclusive. What type of package are you interested in?",
+            "Let me show you our travel packages! We offer different types to match various travel styles. What kind of package would you like to learn about?"
+        ],
         "follow_ups": {
-            "travel_packages-type": {
-                "patterns": ["international", "domestic", "budget", "luxury"],
-                "match_threshold": 75,
-                "response": "Our {type} packages offer unique experiences. What's your preferred duration?",
-                "output_context": ["package_type_context"],
-                "follow_ups": {
-                    "travel_packages-type-duration": {
-                        "patterns": ["weekend", "week", "two weeks", "month"],
-                        "match_threshold": 70,
-                        "response": "Perfect! We have {type} {duration} packages. Would you like to see specific options?",
-                        "output_context": ["package_duration_context"],
-                        "follow_ups": {
-                            "package-details": {
-                                "patterns": ["yes", "show me", "details"],
-                                "match_threshold": 75,
-                                "response": "Great! I'll send you our top {type} {duration} package recommendations.",
-                                "output_context": ["package_details_context"]
-                            }
-                        }
-                    }
-                }
+            "package_type": {
+                "patterns": [
+                    "standard",
+                    "all inclusive",
+                    "group",
+                    "solo",
+                    "road trip",
+                    "cruise",
+                    "luxury",
+                    "budget",
+                    "family",
+                    "couple"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "Great choice! Our this package type packages include... Would you like to know more about what's included?",
+                    "Perfect! Let me tell you about our this package type packages... Would you like to see some examples?",
+                    "Excellent choice! Our this package type packages offer... Would you like to know about pricing?"
+                ],
+                "follow_ups": {}
             }
         }
     },
     "booking_inquiry": {
-        "patterns": ["book a trip", "make a reservation", "travel booking","booking"],
-        "match_threshold": 70,
-        "response": "Booking a trip is easy! What would you like to book - flights, hotels, or complete travel packages?",
-        "output_context": ["booking_inquiry_context"],
+        "patterns": [
+            "how to book",
+            "booking process",
+            "how do I book",
+            "booking steps",
+            "how to make a booking",
+            "booking procedure",
+            "how to reserve",
+            "reservation process",
+            "how do I reserve",
+            "reservation steps",
+            "how to make a reservation",
+            "reservation procedure",
+            "how to pay",
+            "payment process",
+            "how do I pay",
+            "payment steps",
+            "how to make a payment",
+            "payment procedure"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can guide you through our booking process. First, we'll need to know your preferred destination and travel dates. Would you like to start with that?",
+            "Let me help you with the booking process! We'll need some basic information first. What's your preferred destination and when would you like to travel?",
+            "I'll walk you through our booking process. To get started, we'll need your destination preference and travel dates. What are you thinking?"
+        ],
         "follow_ups": {
-            "booking_inquiry-type": {
-                "patterns": ["flights", "hotels", "packages", "complete trip"],
-                "match_threshold": 75,
-                "response": "Excellent! For {type} booking, I'll need some additional details. What are your travel dates?",
-                "output_context": ["booking_type_context"],
-                "follow_ups": {
-                    "booking_inquiry-type-dates": {
-                        "patterns": ["next month", "summer", "specific dates"],
-                        "match_threshold": 70,
-                        "response": "Got it! How many travelers will be joining?",
-                        "output_context": ["booking_dates_context"],
-                        "follow_ups": {
-                            "booking-travelers": {
-                                "patterns": ["1", "2", "family", "group"],
-                                "match_threshold": 75,
-                                "response": "Perfect! Let's customize your {type} booking for {travelers}.",
-                                "output_context": ["booking_travelers_context"]
-                            }
-                        }
-                    }
-                }
+            "booking_details": {
+                "patterns": [
+                    "destination",
+                    "dates",
+                    "travel dates",
+                    "when",
+                    "where",
+                    "how long",
+                    "duration",
+                    "number of people",
+                    "guests",
+                    "travelers"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "Great! For these details, we'll need... Would you like to proceed with this information?",
+                    "Perfect! Regarding these details, we can... Would you like to continue?",
+                    "Excellent! For these details, we offer... Would you like to know more?"
+                ],
+                "follow_ups": {}
             }
         }
     },
     "travel_requirements": {
-        "patterns": ["visa", "passport", "travel documents", "requirements"],
-        "match_threshold": 70,
-        "response": "Travel documentation is crucial! Which country are you planning to visit?",
-        "output_context": ["requirements_context"],
+        "patterns": [
+            "what do I need",
+            "travel requirements",
+            "what documents",
+            "required documents",
+            "necessary documents",
+            "travel documents",
+            "visa requirements",
+            "passport requirements",
+            "entry requirements",
+            "travel essentials",
+            "what to bring",
+            "packing list",
+            "travel checklist",
+            "required items",
+            "necessary items",
+            "travel items"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you with travel requirements! The documents and items needed may vary depending on your destination. Which country are you planning to visit?",
+            "Let me guide you through the travel requirements! The necessary documents and items depend on your destination. Where are you planning to travel?",
+            "I'll help you with the travel requirements! The needed documents and items vary by destination. What country are you visiting?"
+        ],
         "follow_ups": {
-            "travel_requirements-country": {
-                "patterns": ["Europe", "Asia", "USA", "Caribbean"],
-                "match_threshold": 75,
-                "response": "For {country}, here are the key travel requirements. Do you need detailed visa information?",
-                "output_context": ["requirements_country_context"],
+            "country": {
+                "patterns": [
+                    "algeria",
+                    "france",
+                    "usa",
+                    "uk",
+                    "spain",
+                    "italy",
+                    "germany",
+                    "turkey",
+                    "morocco",
+                    "tunisia"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this country, you'll need... Would you like to know more about specific requirements?",
+                    "Traveling to this country requires... Would you like details about any specific document?",
+                    "When visiting this country, you must have... Would you like information about visa requirements?"
+                ],
                 "follow_ups": {
-                    "travel_requirements-country": {
-                        "patterns": ["yes", "details", "more information"],
-                        "match_threshold": 75,
-                        "response": "I'll provide comprehensive visa and entry requirements for {country}.",
-                        "output_context": ["requirements_details_context"]
+                    "details": {
+                        "patterns": [
+                            "more details",
+                            "specific requirements",
+                            "document details",
+                            "visa details",
+                            "passport details",
+                            "entry details",
+                            "requirements details",
+                            "document requirements",
+                            "visa requirements",
+                            "passport requirements",
+                            "entry requirements"
+                        ],
+                        "match_threshold": 80,
+                        "responses": [
+                            "For this country, here are the detailed requirements... Do you have any specific questions?",
+                            "Let me provide detailed requirements for this country... Is there anything specific you'd like to know?",
+                            "Here are the complete requirements for this country... Would you like clarification on any point?"
+                        ],
+                        "follow_ups": {}
                     }
                 }
             }
         }
     },
     "customer_support": {
-        "patterns": ["help", "support", "problem", "issue"],
-        "match_threshold": 70,
-        "response": "Our support team is ready to help! What kind of assistance do you need?",
-        "output_context": ["support_context"],
+        "patterns": [
+            "help",
+            "support",
+            "assistance",
+            "need help",
+            "need support",
+            "need assistance",
+            "looking for help",
+            "looking for support",
+            "looking for assistance",
+            "customer service",
+            "customer support",
+            "customer assistance",
+            "contact support",
+            "contact customer service",
+            "contact customer support",
+            "contact customer assistance"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I'm here to help! What type of support do you need? You can ask about bookings, cancellations, changes, or general information.",
+            "How can I assist you today? I can help with bookings, cancellations, changes, or answer any questions you might have.",
+            "I'm ready to help! Please let me know what you need assistance with - bookings, cancellations, changes, or any other inquiries."
+        ],
         "follow_ups": {
-            "customer_support-types": {
-                "patterns": ["booking", "cancellation", "refund", "change reservation"],
-                "match_threshold": 75,
-                "response": "I understand you need help with {type}. Can you provide more details?",
-                "output_context": ["support_type_context"],
-                "follow_ups": {
-                    "customer_support-types-details": {
-                        "patterns": ["reservation number", "booking details"],
-                        "match_threshold": 70,
-                        "response": "Thank you for providing details. Our team will assist you promptly.",
-                        "output_context": ["support_details_context"]
-                    }
-                }
+            "types": {
+                "patterns": [
+                    "booking",
+                    "cancellation",
+                    "change",
+                    "refund",
+                    "reservation",
+                    "modification",
+                    "payment",
+                    "invoice",
+                    "receipt",
+                    "confirmation"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "I can help you with this type of request. What specific information do you need?",
+                    "Let me assist you with this type of request. What would you like to know?",
+                    "I'll help you with this type of request. What details do you need?"
+                ],
+                "follow_ups": {}
             }
         }
     },
     "pricing_inquiry": {
-        "patterns": ["price", "cost", "budget", "how much"],
-        "match_threshold": 70,
-        "response": "We offer competitive pricing! What type of travel are you interested in?",
-        "output_context": ["pricing_context"],
+        "patterns": [
+            "how much",
+            "what's the price",
+            "what's the cost",
+            "what's the fee",
+            "what's the charge",
+            "what's the rate",
+            "what's the amount",
+            "what's the total",
+            "what's the bill",
+            "what's the payment",
+            "what's the expense",
+            "what's the budget",
+            "what's the spending",
+            "what's the outlay",
+            "what's the expenditure"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you with pricing information! The cost depends on several factors like destination, duration, and package type. What specific trip are you interested in?",
+            "Let me assist you with pricing! Costs vary based on destination, duration, and package type. What trip would you like to know about?",
+            "I'll help you with the pricing! The total cost depends on your destination, duration, and package choice. What trip are you considering?"
+        ],
         "follow_ups": {
-            "pricing_inquiry-type": {
-                "patterns": ["international", "domestic", "budget", "luxury"],
-                "match_threshold": 75,
-                "response": "Our {type} travel options range from affordable to premium. What's your budget range?",
-                "output_context": ["pricing_type_context"],
+            "type": {
+                "patterns": [
+                    "standard",
+                    "all inclusive",
+                    "group",
+                    "solo",
+                    "road trip",
+                    "cruise",
+                    "luxury",
+                    "budget",
+                    "family",
+                    "couple"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For our this package type packages, prices start from... Would you like to know more about what's included?",
+                    "Our this package type packages range from... Would you like to see some examples?",
+                    "The cost for this package type packages varies from... Would you like to know about specific inclusions?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "agency_info": {
+        "patterns": [
+            "agency location",
+            "office location",
+            "branch location",
+            "agency address",
+            "office address",
+            "branch address",
+            "agency contact",
+            "office contact",
+            "branch contact",
+            "agency phone",
+            "office phone",
+            "branch phone",
+            "agency email",
+            "office email",
+            "branch email"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "Traveleo has offices in three locations: 1) Headquarters in Algiers 2) Branch in Oran 3) Branch in Annaba. Would you like contact information for a specific location?",
+            "We have three offices: Our main office in Algiers, and branches in Oran and Annaba. Which location would you like information about?",
+            "Traveleo operates from three locations: Algiers (headquarters), Oran, and Annaba. Would you like details about a specific office?"
+        ],
+        "follow_ups": {
+            "location": {
+                "patterns": [
+                    "algiers",
+                    "oran",
+                    "annaba",
+                    "headquarters",
+                    "main office",
+                    "branch office",
+                    "local office",
+                    "regional office",
+                    "city office",
+                    "town office"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "Our this location office is located at... Would you like the contact details?",
+                    "The this location office address is... Would you like the phone number?",
+                    "You can find our this location office at... Would you like the email address?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "website_help": {
+        "patterns": [
+            "website navigation",
+            "site navigation",
+            "web navigation",
+            "website guide",
+            "site guide",
+            "web guide",
+            "website tutorial",
+            "site tutorial",
+            "web tutorial",
+            "website help",
+            "site help",
+            "web help",
+            "website assistance",
+            "site assistance",
+            "web assistance"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you navigate our website! What specific section would you like to know about? You can ask about bookings, packages, destinations, or account management.",
+            "Let me guide you through our website! Which section would you like help with? I can assist with bookings, packages, destinations, or your account.",
+            "I'll help you with our website! What part would you like to explore? I can show you bookings, packages, destinations, or account features."
+        ],
+        "follow_ups": {
+            "section": {
+                "patterns": [
+                    "booking",
+                    "package",
+                    "destination",
+                    "account",
+                    "profile",
+                    "settings",
+                    "payment",
+                    "invoice",
+                    "receipt",
+                    "confirmation"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "To access the this website section section... Would you like step-by-step instructions?",
+                    "Here's how to use the this website section section... Would you like more details?",
+                    "Let me show you the this website section section... Would you like a guided tour?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "booking_steps": {
+        "patterns": [
+            "booking steps",
+            "reservation steps",
+            "booking process",
+            "reservation process",
+            "booking procedure",
+            "reservation procedure",
+            "how to book",
+            "how to reserve",
+            "booking guide",
+            "reservation guide",
+            "booking tutorial",
+            "reservation tutorial",
+            "booking instructions",
+            "reservation instructions",
+            "booking manual",
+            "reservation manual"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I'll guide you through our booking process step by step. First, we'll need to know your preferred destination and travel dates. Would you like to start with that?",
+            "Let me walk you through the booking process! We'll begin with your destination and travel dates. What are you thinking?",
+            "I'll help you with the booking steps! We'll start with your destination and travel dates. What would you like to book?"
+        ],
+        "follow_ups": {
+            "details": {
+                "patterns": [
+                    "destination",
+                    "dates",
+                    "travel dates",
+                    "when",
+                    "where",
+                    "how long",
+                    "duration",
+                    "number of people",
+                    "guests",
+                    "travelers"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this step, here's what you need to do... Would you like to proceed?",
+                    "Regarding this step, follow these steps... Would you like to continue?",
+                    "For this step, here are the instructions... Would you like to move forward?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "travel_docs": {
+        "patterns": [
+            "travel documents",
+            "travel papers",
+            "travel permits",
+            "travel visas",
+            "travel passports",
+            "travel IDs",
+            "travel certificates",
+            "travel licenses",
+            "travel authorizations",
+            "travel clearances",
+            "travel approvals",
+            "travel validations",
+            "travel verifications",
+            "travel confirmations",
+            "travel authentications"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you with travel document requirements! The needed documents vary by destination. Which country are you planning to visit?",
+            "Let me guide you through the required travel documents! The necessary papers depend on your destination. Where are you traveling to?",
+            "I'll help you with travel document requirements! The needed documents vary by country. What's your destination?"
+        ],
+        "follow_ups": {
+            "country": {
+                "patterns": [
+                    "algeria",
+                    "france",
+                    "usa",
+                    "uk",
+                    "spain",
+                    "italy",
+                    "germany",
+                    "turkey",
+                    "morocco",
+                    "tunisia"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this country, you'll need the following documents... Would you like details about any specific document?",
+                    "When traveling to this country, these documents are required... Would you like information about visa requirements?",
+                    "To visit this country, you must have these documents... Would you like to know about passport validity?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "contact_support": {
+        "patterns": [
+            "contact us",
+            "get in touch",
+            "reach us",
+            "call us",
+            "email us",
+            "message us",
+            "write us",
+            "phone us",
+            "text us",
+            "chat with us",
+            "speak with us",
+            "talk to us",
+            "connect with us",
+            "reach out to us",
+            "get hold of us"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you contact our support team! You can reach us through phone, email, or live chat. Which method would you prefer?",
+            "Let me help you get in touch with our team! We're available via phone, email, or live chat. How would you like to contact us?",
+            "I'll help you connect with our support team! You can contact us by phone, email, or live chat. What's your preferred method?"
+        ],
+        "follow_ups": {
+            "method": {
+                "patterns": [
+                    "phone",
+                    "email",
+                    "chat",
+                    "call",
+                    "message",
+                    "text",
+                    "write",
+                    "speak",
+                    "talk",
+                    "connect"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "To contact us by this contact method, you can... Would you like the specific details?",
+                    "Here's how to reach us via this contact method... Would you like the contact information?",
+                    "You can get in touch through this contact method by... Would you like the instructions?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "travel_planning": {
+        "patterns": [
+            "plan a trip",
+            "organize travel",
+            "book a vacation",
+            "arrange a journey",
+            "plan my travel",
+            "organize my trip",
+            "book my holiday",
+            "arrange my vacation",
+            "planning to travel",
+            "want to travel",
+            "need a trip",
+            "looking to travel",
+            "thinking of traveling",
+            "considering a trip"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you plan your trip! We'll need some information about your destination, travel dates, and preferences.",
+            "Let me assist you with your travel planning! We'll start with your destination and travel dates. What's your preferred destination and when would you like to travel?",
+            "I'll help you with your travel planning! We'll need some more details about your trip. What's your destination and when are you planning to travel?"
+        ],
+        "follow_ups": {
+            "trip_details": {
+                "patterns": [
+                    "destination",
+                    "dates",
+                    "travel dates",
+                    "when",
+                    "where",
+                    "how long",
+                    "duration",
+                    "number of people",
+                    "guests",
+                    "travelers"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this location, we'll need... Would you like to proceed with this information?",
+                    "Perfect! Regarding this location, we can... Would you like to continue?",
+                    "Excellent! For this location, we offer... Would you like to know more?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "visa_information": {
+        "patterns": [
+            "visa requirements",
+            "need a visa",
+            "visa needed",
+            "visa process",
+            "visa application",
+            "visa documentation",
+            "visa rules",
+            "visa regulations",
+            "visa policy",
+            "visa procedure",
+            "visa formalities",
+            "visa documents",
+            "visa checklist",
+            "visa guidelines"
+        ],
+        "match_threshold": 80,
+        "responses": [
+            "I can help you with visa information! The needed documents vary by destination. Which country are you planning to visit?",
+            "Let me guide you through the visa requirements! The necessary papers depend on your destination. Where are you traveling to?",
+            "I'll help you with visa information! The needed documents vary by country. What's your destination?"
+        ],
+        "follow_ups": {
+            "country": {
+                "patterns": [
+                    "algeria",
+                    "france",
+                    "usa",
+                    "uk",
+                    "spain",
+                    "italy",
+                    "germany",
+                    "turkey",
+                    "morocco",
+                    "tunisia"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this country, you'll need the following documents... Would you like details about any specific document?",
+                    "When traveling to this country, these documents are required... Would you like information about visa requirements?",
+                    "To visit this country, you must have these documents... Would you like to know about passport validity?"
+                ],
+                "follow_ups": {}
+            }
+        }
+    },
+    "flight_information": {
+        "patterns": [
+            "flight details",
+            "airline information",
+            "flight times",
+            "flight schedule",
+            "when is my flight",
+            "flight status",
+            "departure times",
+            "arrival times",
+            "flight duration",
+            "connecting flights",
+            "layover information",
+            "flight changes",
+            "flight delays"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "I can provide general information about flights. For specific flight details, you'll need to check with the airline or your booking confirmation. What would you like to know?",
+            "Flight information varies by airline and route. I can explain how to find your flight details. What specifically are you looking for?",
+            "For flight schedules and status, you'll typically need to check the airline's website or app. I can guide you on what information to look for."
+        ],
+        "follow_ups": {
+            "flight_type": {
+                "patterns": [
+                    "international",
+                    "domestic",
+                    "connecting",
+                    "direct",
+                    "one way",
+                    "round trip",
+                    "multi city"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this flight type flights, you should check in at least 3 hours before departure for international flights, 2 hours for domestic. Would you like baggage information?",
+                    "this flight type flights typically require passport and visa documentation for international routes. Need details about required documents?",
+                    "When booking this flight type flights, consider travel insurance for protection against delays or cancellations. Want to know more about insurance options?"
+                ],
                 "follow_ups": {
-                    "pricing_inquiry-type-budget": {
-                        "patterns": ["under 1000", "1000-2000", "2000-5000", "no limit"],
-                        "match_threshold": 70,
-                        "response": "Great! I can help you find {type} options within your {budget} budget.",
-                        "output_context": ["pricing_budget_context"]
+                    "baggage_info": {
+                        "patterns": [
+                            "baggage",
+                            "luggage",
+                            "carry on",
+                            "checked bags",
+                            "baggage allowance",
+                            "baggage policy"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Baggage policies vary by airline. Typically you get 1 carry-on (7kg) and 1 checked bag (23kg) for international flights. Always check your airline's specific rules.",
+                            "For baggage, most airlines allow 1 cabin bag plus a personal item. Checked baggage allowance depends on your ticket class. Need help finding your airline's policy?",
+                            "Excess baggage fees can be expensive! I recommend checking your airline's website for current baggage rules before packing."
+                        ],
+                        "follow_ups": {}
                     }
                 }
             }
         }
     },
-    "agency_info": {
-        "patterns": ["about your agency", "who are you", "company info", "travel agency details"],
-        "match_threshold": 75,
-        "response": "We're Sunshine Travel, specializing in dream vacations since 2010. We offer expert planning for all travel types. Would you like to know about our team, awards, or service areas?",
-        "output_context": ["agency_context"],
+
+    "accommodation_info": {
+        "patterns": [
+            "hotel information",
+            "where will I stay",
+            "accommodation details",
+            "hotel amenities",
+            "room types",
+            "hotel location",
+            "check in time",
+            "check out time",
+            "hotel facilities",
+            "resort information",
+            "hostel details",
+            "guest house"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Accommodation details are included in your package confirmation. I can explain what information to expect. What specifically would you like to know?",
+            "Our packages include carefully selected accommodations. Would you like general information about hotel standards or something specific?",
+            "Hotel information varies by destination and package. I can tell you how to find the details in your booking confirmation."
+        ],
         "follow_ups": {
-            "agency_info-details": {
-                "patterns": ["team", "agents", "staff"],
-                "match_threshold": 70,
-                "response": "Our team includes 50+ certified travel experts specializing in regions worldwide.",
-                "output_context": ["team_context"]
-            },
-            "agency_info-awards": {
-                "patterns": ["awards", "recognitions", "accreditations"],
-                "match_threshold": 70,
-                "response": "We're proud recipients of the 'Best Travel Agency 2023' award by Travel+Leisure.",
-                "output_context": ["awards_context"]
-            }
-        }
-    },
-    "website_help": {
-        "patterns": ["use the website", "site navigation", "where to find", "how to browse"],
-        "match_threshold": 70,
-        "response": "Our website sections include: Destinations, Special Offers, Travel Guides, and Contact. Which section do you need help with?",
-        "output_context": ["website_context"],
-        "follow_ups": {
-            "website_help-section": {
-                "patterns": ["destinations", "offers", "guides", "contact"],
-                "match_threshold": 75,
-                "response": "To access {section}: 1) Click the menu icon 2) Select '{section}' 3) Use filters to refine results. Need more specific guidance?",
-                "output_context": ["website_section_context"]
-            }
-        }
-    },
-    "booking_steps": {
-        "patterns": ["how to book", "reservation process", "steps to reserve"],
-        "match_threshold": 80,
-        "response": "Our booking process: 1) Search trips 2) Select package 3) Complete traveler details 4) Secure payment. Which step do you need explained?",
-        "output_context": ["booking_steps_context"],
-        "follow_ups": {
-            "booking_steps-details": {
-                "patterns": ["search", "select", "traveler details", "payment"],
-                "match_threshold": 70,
-                "response": "For '{step}': {details}",
-                "output_context": ["step_details_context"],
-                "response_options": {
-                    "search": "Use our destination filters or search bar to find trips matching your preferences",
-                    "select": "Click any package to see full itinerary, prices, and availability calendar",
-                    "traveler details": "Have passport information and special requests ready before starting",
-                    "payment": "We accept all major cards; your reservation is confirmed only after payment"
+            "accommodation_type": {
+                "patterns": [
+                    "hotel",
+                    "resort",
+                    "hostel",
+                    "guest house",
+                    "apartment",
+                    "villa",
+                    "boutique",
+                    "luxury",
+                    "budget"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "this accommodation type accommodations typically offer... Would you like to know about amenities or location?",
+                    "For this accommodation type stays, we recommend packing... Need a packing checklist?",
+                    "Our this accommodation type options are carefully vetted for quality and safety. Want details about our selection process?"
+                ],
+                "follow_ups": {
+                    "amenities": {
+                        "patterns": [
+                            "amenities",
+                            "facilities",
+                            "what's included",
+                            "wifi",
+                            "pool",
+                            "gym",
+                            "restaurant",
+                            "breakfast"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Standard amenities usually include WiFi, daily housekeeping, and often a restaurant. Specific facilities vary - I can help you check your particular hotel.",
+                            "Most hotels offer WiFi, toiletries, and towels. Higher-end properties may include pools, gyms, and breakfast. Need to know about a specific property?",
+                            "Amenities are listed in your hotel confirmation. I can guide you on where to find this information in your booking details."
+                        ],
+                        "follow_ups": {}
+                    }
                 }
             }
         }
     },
-    "travel_docs": {
-        "patterns": ["required documents", "what to bring", "passport needed", "visa requirements"],
-        "match_threshold": 75,
-        "response": "For international travel, you'll typically need: 1) Valid passport 2) Visas (if required) 3) Travel insurance. Specify a country for exact requirements.",
-        "output_context": ["docs_context"],
+
+    "travel_insurance": {
+        "patterns": [
+            "travel insurance",
+            "insurance options",
+            "do I need insurance",
+            "medical coverage",
+            "trip protection",
+            "insurance policy",
+            "cancellation coverage",
+            "travel protection",
+            "health insurance abroad",
+            "emergency coverage"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Travel insurance is highly recommended! It typically covers medical emergencies, trip cancellations, and lost luggage. Would you like details about coverage options?",
+            "We strongly advise getting travel insurance for international trips. It can protect you from unexpected costs due to cancellations or medical issues. Want to know more?",
+            "Insurance gives peace of mind when traveling. Basic coverage includes medical and cancellation protection. Need help understanding the benefits?"
+        ],
         "follow_ups": {
-            "travel_docs-country": {
-                "patterns": ["USA", "Europe", "Thailand", "Brazil"],
-                "match_threshold": 70,
-                "response": "For {country}: {requirements}",
-                "output_context": ["country_docs_context"],
-                "response_options": {
-                    "USA": "ESTA authorization for visa waiver, passport valid for stay duration",
-                    "Europe": "Schengen visa if required, passport with 3+ months validity",
-                    "Thailand": "30-day visa exemption for most passports, proof of onward travel",
-                    "Brazil": "e-Visa for tourism, yellow fever certificate if visiting certain areas"
+            "insurance_type": {
+                "patterns": [
+                    "medical",
+                    "cancellation",
+                    "baggage",
+                    "comprehensive",
+                    "basic",
+                    "premium",
+                    "family",
+                    "senior",
+                    "student"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "this insurance type coverage typically includes... Would you like a comparison of different plans?",
+                    "For this insurance type protection, we recommend... Need details about providers?",
+                    "Our most popular this insurance type policies cover... Want to know about costs?"
+                ],
+                "follow_ups": {
+                    "insurance_cost": {
+                        "patterns": [
+                            "how much",
+                            "cost",
+                            "price",
+                            "premium",
+                            "is it worth it",
+                            "value"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Insurance typically costs 4-10% of your trip value. Comprehensive coverage for a $2000 trip might be $80-$200. Want help finding a provider?",
+                            "Prices vary based on coverage. Basic plans start around $5/day, comprehensive around $10-$15/day. Need a recommendation?",
+                            "Consider insurance an essential travel cost - medical evacuation alone can cost over $100,000 without coverage!"
+                        ],
+                        "follow_ups": {}
+                    }
                 }
             }
         }
     },
-    "contact_support": {
-        "patterns": ["talk to agent", "customer service", "help center", "live support"],
-        "match_threshold": 80,
-        "response": "Our support options: 1) Live chat (Mon-Fri 9AM-6PM) 2) Email response within 24h 3) Phone: +1 (800) 555-TRAVEL. Which method works best?",
-        "output_context": ["support_context"],
+
+    "payment_options": {
+        "patterns": [
+            "payment methods",
+            "how to pay",
+            "accepted payments",
+            "credit cards",
+            "installments",
+            "payment plan",
+            "deposit required",
+            "full payment",
+            "cash payments",
+            "bank transfer",
+            "online payment"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "We accept major credit cards, bank transfers, and cash payments at our offices. Would you like details about a specific payment method?",
+            "Payment options include credit cards (Visa/Mastercard), bank transfer, or in-person cash payments. Need information about payment deadlines?",
+            "For bookings, we typically require a 30% deposit with balance due 30 days before travel. Want to know about cancellation policies?"
+        ],
         "follow_ups": {
-            "contact_support-method": {
-                "patterns": ["chat", "email", "phone", "callback"],
-                "match_threshold": 70,
-                "response": "For {method}: {instructions}",
-                "output_context": ["support_method_context"],
-                "response_options": {
-                    "chat": "Click the blue chat icon in the bottom-right of any page",
-                    "email": "Send inquiries to help@sunshinetravel.com with your booking reference",
-                    "phone": "Call +1 (800) 555-TRAVEL (press 1 for bookings, 2 for existing reservations)",
-                    "callback": "Visit our Contact page to request a callback within 2 business hours"
+            "payment_method": {
+                "patterns": [
+                    "credit card",
+                    "debit card",
+                    "bank transfer",
+                    "cash",
+                    "installments",
+                    "paypal",
+                    "mobile payment"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this payment method payments, please note... Would you like security tips for online payments?",
+                    "When using this payment method, we recommend... Need help with the payment process?",
+                    "Our this payment method options include... Want to know about payment protection?"
+                ],
+                "follow_ups": {
+                    "payment_security": {
+                        "patterns": [
+                            "security",
+                            "safe",
+                            "fraud",
+                            "protection",
+                            "scams",
+                            "secure payment"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "We use encrypted payment systems for security. Never share card details via email - only through our secure booking portal.",
+                            "For safe payments: 1) Check for HTTPS in our website URL 2) Never share OTP codes 3) Keep payment confirmations. Need more safety tips?",
+                            "All online payments are processed through PCI-compliant systems. You'll receive immediate email confirmation for every transaction."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "cancellation_policy": {
+        "patterns": [
+            "cancellation policy",
+            "refund policy",
+            "if I cancel",
+            "change my booking",
+            "modify reservation",
+            "postpone trip",
+            "no show policy",
+            "late cancellation",
+            "get my money back",
+            "refund process"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Our cancellation policy depends on the package and timing. Generally, cancellations 30+ days before travel get 75% refund. Need specific details?",
+            "For most bookings: 1) 30+ days - 75% refund 2) 15-29 days - 50% 3) <14 days - no refund. Travel insurance can help protect you. Want the full policy?",
+            "Cancellation fees vary by supplier (hotels, airlines etc.). I can explain how to check the specific terms for your booking."
+        ],
+        "follow_ups": {
+            "cancellation_type": {
+                "patterns": [
+                    "flight",
+                    "hotel",
+                    "package",
+                    "tour",
+                    "last minute",
+                    "emergency"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this cancellation type cancellations, the policy states... Would you like information about exceptions?",
+                    "this cancellation type changes typically require... Need help understanding the fees?",
+                    "Our policy for this cancellation type modifications is... Want to know about travel insurance coverage?"
+                ],
+                "follow_ups": {
+                    "force_majeure": {
+                        "patterns": [
+                            "natural disaster",
+                            "pandemic",
+                            "political unrest",
+                            "weather",
+                            "strike",
+                            "unavoidable"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "For force majeure situations, we work with suppliers to provide credits or alternative arrangements. Each case is evaluated individually.",
+                            "In extraordinary circumstances beyond anyone's control, standard cancellation policies may not apply. We'll help find the best solution.",
+                            "During emergencies, we prioritize client safety and work to minimize losses. Travel insurance is especially valuable in these cases."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "safety_info": {
+        "patterns": [
+            "is it safe",
+            "travel warnings",
+            "dangerous areas",
+            "crime rate",
+            "political situation",
+            "health risks",
+            "vaccinations",
+            "travel alerts",
+            "safety tips",
+            "emergency contacts",
+            "local laws",
+            "cultural norms"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "We monitor safety conditions in all our destinations. For current travel advisories, check your government's travel website. Need specific safety tips?",
+            "Safety depends on location and current events. I can provide general safety advice for travelers. What destination are you concerned about?",
+            "We recommend registering with your embassy when traveling abroad. Would you like general travel safety guidelines?"
+        ],
+        "follow_ups": {
+            "safety_type": {
+                "patterns": [
+                    "health",
+                    "crime",
+                    "political",
+                    "transportation",
+                    "scams",
+                    "natural disasters"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this safety type concerns in your destination, we recommend... Would you like emergency contact numbers?",
+                    "Regarding this safety type safety, standard precautions include... Need destination-specific advice?",
+                    "Our clients report this safety type issues are... Want tips from experienced travelers?"
+                ],
+                "follow_ups": {
+                    "emergency_contacts": {
+                        "patterns": [
+                            "emergency",
+                            "police",
+                            "ambulance",
+                            "embassy",
+                            "helpline",
+                            "urgent"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Always save these numbers when traveling: Local emergency (112 in EU, 911 in US), your embassy, and our 24/7 support line +123456789.",
+                            "For emergencies abroad: 1) Call local emergency number 2) Contact your embassy 3) Call our support team. We'll provide specific numbers for your destination.",
+                            "We provide all clients with destination-specific emergency contacts in their travel documents. Want general international emergency numbers?"
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "special_requests": {
+        "patterns": [
+            "special needs",
+            "accessibility",
+            "wheelchair",
+            "dietary restrictions",
+            "food allergies",
+            "religious requirements",
+            "medical conditions",
+            "child facilities",
+            "pet friendly",
+            "special assistance",
+            "disabled access"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "We can accommodate many special requests with advance notice. Please tell me what specific requirements you have so I can advise.",
+            "For special needs, we recommend contacting us at least 30 days before travel. What specific assistance are you looking for?",
+            "Many hotels and airlines can accommodate special requests. The sooner you inform us, the better we can assist. What do you need?"
+        ],
+        "follow_ups": {
+            "request_type": {
+                "patterns": [
+                    "mobility",
+                    "dietary",
+                    "medical",
+                    "religious",
+                    "family",
+                    "pet"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this request type needs, we typically arrange... Would you like to know what documentation is required?",
+                    "this request type requirements often need... Need help communicating these to suppliers?",
+                    "Our experience with this request type accommodations shows... Want tips from other travelers with similar needs?"
+                ],
+                "follow_ups": {
+                    "documentation": {
+                        "patterns": [
+                            "doctor's note",
+                            "medical certificate",
+                            "proof",
+                            "documentation",
+                            "letter",
+                            "verification"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "For medical needs, airlines typically require a doctor's note dated within 10 days of travel stating you're fit to fly.",
+                            "Special dietary requests usually don't need documentation, but for severe allergies, a doctor's note can help ensure proper handling.",
+                            "Accessibility requirements may need documentation depending on the destination. We can provide specific guidance for your itinerary."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "local_customs": {
+        "patterns": [
+            "local customs",
+            "cultural norms",
+            "what to wear",
+            "tipping etiquette",
+            "gift giving",
+            "appropriate behavior",
+            "offensive gestures",
+            "dress code",
+            "religious customs",
+            "taboos",
+            "greetings",
+            "negotiating prices"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Cultural norms vary widely! I can provide general advice about local customs. Which destination are you interested in?",
+            "Understanding local customs enhances your travel experience. Would you like information about dress codes, greetings, or other etiquette?",
+            "We provide destination-specific cultural guides to all our clients. What particular customs are you curious about?"
+        ],
+        "follow_ups": {
+            "custom_type": {
+                "patterns": [
+                    "dress",
+                    "greetings",
+                    "tipping",
+                    "religion",
+                    "photography",
+                    "bargaining",
+                    "gifts"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this custom type customs in your destination... Would you like specific examples?",
+                    "this custom type etiquette typically involves... Need advice for special situations?",
+                    "Our travelers report this custom type norms are... Want tips from locals?"
+                ],
+                "follow_ups": {
+                    "dos_donts": {
+                        "patterns": [
+                            "do's",
+                            "don'ts",
+                            "mistakes",
+                            "avoid",
+                            "should",
+                            "shouldn't"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Key do's and don'ts: 1) Do dress modestly in religious sites 2) Don't point with fingers in some Asian countries 3) Do learn basic greetings.",
+                            "Common mistakes travelers make: 1) Tipping in Japan 2) Showing soles of feet in Middle East 3) Touching people's heads in Buddhist countries.",
+                            "Cultural faux pas to avoid: 1) Public affection in conservative countries 2) Refusing hospitality 3) Discussing sensitive political topics."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "weather_season": {
+        "patterns": [
+            "best time to visit",
+            "weather conditions",
+            "rainy season",
+            "dry season",
+            "summer",
+            "winter",
+            "monsoon",
+            "hurricane season",
+            "packing for weather",
+            "temperature",
+            "climate"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "The ideal travel time depends on your destination and preferences. Would you like general climate information or seasonal advice?",
+            "Weather patterns vary significantly by region. I can suggest the best seasons for different types of travel. What destination interests you?",
+            "We recommend different times for beach vs. city vacations. Need help choosing the perfect travel dates based on weather?"
+        ],
+        "follow_ups": {
+            "destination_weather": {
+                "patterns": [
+                    "algeria",
+                    "france",
+                    "usa",
+                    "uk",
+                    "spain",
+                    "italy",
+                    "germany",
+                    "turkey",
+                    "morocco",
+                    "tunisia"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "In this destination, the weather is typically... Would you like monthly averages?",
+                    "For this destination, we recommend visiting during... Need packing tips for this climate?",
+                    "The seasons in this destination are... Want to know about seasonal events?"
+                ],
+                "follow_ups": {
+                    "packing_tips": {
+                        "patterns": [
+                            "pack",
+                            "what to bring",
+                            "luggage",
+                            "essentials",
+                            "clothing",
+                            "shoes"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "For this destination, pack: 1) Comfortable walking shoes 2) Layers for changing temperatures 3) Appropriate cultural attire 4) Basic first aid.",
+                            "Destination-specific packing tips: 1) Sun protection for beaches 2) Umbrella for rainy seasons 3) Converters for electronics 4) Copies of documents.",
+                            "Smart packing advice: 1) Roll clothes to save space 2) Use packing cubes 3) Bring versatile pieces 4) Leave room for souvenirs."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "transportation": {
+        "patterns": [
+            "local transport",
+            "getting around",
+            "public transportation",
+            "taxis",
+            "car rental",
+            "airport transfer",
+            "train tickets",
+            "bus routes",
+            "metro",
+            "transport options",
+            "how to get there"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Transport options vary by destination. Would you like information about public transport, taxis, or private transfers?",
+            "We can advise on the best ways to get around your destination. Are you looking for cost-effective or most convenient options?",
+            "Navigating a new city can be challenging! I can provide general transportation tips. What specifically would you like to know?"
+        ],
+        "follow_ups": {
+            "transport_type": {
+                "patterns": [
+                    "public",
+                    "taxi",
+                    "rental",
+                    "private",
+                    "walking",
+                    "bicycle"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this transport type transport in your destination... Would you like safety tips?",
+                    "this transport type options typically cost... Need advice on reliable providers?",
+                    "Our clients find this transport type is... Want local insider tips?"
+                ],
+                "follow_ups": {
+                    "safety_tips": {
+                        "patterns": [
+                            "safe",
+                            "dangerous",
+                            "scams",
+                            "avoid",
+                            "reliable",
+                            "trustworthy"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Transport safety tips: 1) Use official taxi stands 2) Avoid unmarked vehicles 3) Know routes in advance 4) Keep valuables secure.",
+                            "To avoid transport scams: 1) Agree on fares first 2) Use metered taxis 3) Beware 'helpful' strangers 4) Have small bills ready.",
+                            "For safe travel: 1) Note license plates 2) Share ride details 3) Use hotel-recommended services 4) Trust your instincts."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "currency_money": {
+        "patterns": [
+            "currency",
+            "exchange rate",
+            "money",
+            "cash or card",
+            "ATMs",
+            "credit cards",
+            "tipping",
+            "budgeting",
+            "cost of living",
+            "prices",
+            "how expensive"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Money matters vary by destination. Would you like information about currency exchange, payment methods, or budgeting tips?",
+            "Financial preparation is key for smooth travels. I can advise on cash, cards, and local costs. What specifically do you need?",
+            "We provide all clients with destination-specific money tips. Would you like general advice or details for a particular country?"
+        ],
+        "follow_ups": {
+            "money_topic": {
+                "patterns": [
+                    "exchange",
+                    "cards",
+                    "cash",
+                    "costs",
+                    "budget",
+                    "tipping"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this money topic in your destination... Would you like current rates or tips?",
+                    "this money topic advice includes... Need help calculating amounts?",
+                    "Our travelers recommend this money topic strategy... Want local insights?"
+                ],
+                "follow_ups": {
+                    "exchange_tips": {
+                        "patterns": [
+                            "best rate",
+                            "where to exchange",
+                            "avoid fees",
+                            "save money",
+                            "cheapest"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "For best exchange rates: 1) Avoid airports/hotels 2) Use ATMs (check fees) 3) Compare local banks 4) Don't exchange more than needed.",
+                            "Money exchange tips: 1) Know current rates 2) Count money carefully 3) Keep receipts 4) Split cash/card usage.",
+                            "To save on currency: 1) Use no-foreign-fee cards 2) Withdraw larger amounts 3) Notify your bank 4) Have backup payment methods."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "technology_travel": {
+        "patterns": [
+            "sim cards",
+            "mobile data",
+            "internet access",
+            "roaming",
+            "power adapters",
+            "voltage",
+            "travel apps",
+            "offline maps",
+            "electronics",
+            "charging",
+            "wifi availability"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Staying connected is important! I can advise on SIM cards, WiFi, and power needs. What tech concerns do you have?",
+            "Technology preparation varies by destination. Would you like information about mobile data, power adapters, or useful apps?",
+            "We recommend all travelers consider connectivity and power needs. Need help planning your tech setup for travel?"
+        ],
+        "follow_ups": {
+            "tech_topic": {
+                "patterns": [
+                    "phone",
+                    "internet",
+                    "power",
+                    "apps",
+                    "photos",
+                    "laptop"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this tech topic needs in your destination... Would you like product recommendations?",
+                    "this tech topic solutions typically include... Need help finding local providers?",
+                    "Our travelers suggest this tech topic approach... Want detailed how-to guidance?"
+                ],
+                "follow_ups": {
+                    "sim_card": {
+                        "patterns": [
+                            "sim",
+                            "data",
+                            "roaming",
+                            "mobile",
+                            "phone plan"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "SIM card tips: 1) Buy at airport for convenience 2) Compare data packages 3) Ensure phone is unlocked 4) Keep home SIM safe.",
+                            "For mobile data: 1) Local SIMs are cheapest 2) Roaming can be expensive 3) WiFi is widely available 4) Consider eSIM options.",
+                            "Data options: 1) Prepaid local SIM 2) International roaming plan 3) Portable WiFi device 4) WiFi hotspots. Need help choosing?"
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "food_dining": {
+        "patterns": [
+            "local food",
+            "restaurants",
+            "dietary restrictions",
+            "food safety",
+            "tipping",
+            "meal times",
+            "vegetarian",
+            "vegan",
+            "halal",
+            "kosher",
+            "street food",
+            "food tours",
+            "must try dishes"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Food is a highlight of travel! Would you like recommendations for local cuisine, dietary needs, or food safety tips?",
+            "Dining experiences vary widely by destination. I can suggest must-try dishes or advise on special diets. What interests you?",
+            "We provide all clients with dining recommendations. Need help finding authentic eateries or managing dietary restrictions?"
+        ],
+        "follow_ups": {
+            "food_topic": {
+                "patterns": [
+                    "local",
+                    "restaurants",
+                    "diet",
+                    "safety",
+                    "tipping",
+                    "tours"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this food topic in your destination... Would you like our top recommendations?",
+                    "this food topic advice includes... Need help finding options?",
+                    "Our foodie travelers love this food tip... Want more local insights?"
+                ],
+                "follow_ups": {
+                    "food_safety": {
+                        "patterns": [
+                            "safe",
+                            "stomach",
+                            "hygiene",
+                            "water",
+                            "ice",
+                            "clean"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Food safety tips: 1) Drink bottled water 2) Avoid raw veggies 3) Eat freshly cooked food 4) Peel fruits yourself 5) Carry stomach medicine.",
+                            "To avoid illness: 1) Watch where locals eat 2) Check food handling 3) Be cautious with dairy 4) Gradually introduce new foods 5) Stay hydrated.",
+                            "For sensitive stomachs: 1) Start with mild dishes 2) Avoid street food at first 3) Use probiotics 4) Have medication ready 5) Rest if needed."
+                        ],
+                        "follow_ups": {}
+                    }
+                }
+            }
+        }
+    },
+
+    "language_tips": {
+        "patterns": [
+            "language",
+            "local language",
+            "english spoken",
+            "translation",
+            "useful phrases",
+            "communication",
+            "language barrier",
+            "sign language",
+            "translator apps",
+            "learn language"
+        ],
+        "match_threshold": 85,
+        "responses": [
+            "Language preparation enhances your trip! Would you like basic phrases, translation tips, or advice about English availability?",
+            "Communication varies by destination. I can suggest essential phrases or translation tools. What specifically would help you?",
+            "We recommend all travelers learn a few local phrases. Need help with pronunciation or finding language resources?"
+        ],
+        "follow_ups": {
+            "language_topic": {
+                "patterns": [
+                    "phrases",
+                    "translator",
+                    "english",
+                    "signs",
+                    "alphabet",
+                    "pronunciation"
+                ],
+                "match_threshold": 80,
+                "responses": [
+                    "For this language topic in your destination... Would you like our cheat sheet?",
+                    "this language topic solutions include... Need help practicing?",
+                    "Our travelers find this language tip helpful... Want more resources?"
+                ],
+                "follow_ups": {
+                    "basic_phrases": {
+                        "patterns": [
+                            "hello",
+                            "thank you",
+                            "please",
+                            "help",
+                            "bathroom",
+                            "how much"
+                        ],
+                        "match_threshold": 85,
+                        "responses": [
+                            "Essential phrases: Hello/Hi, Thank you, Please, Excuse me, Help, How much?, Where is...?, Bathroom, Goodbye."
+                        ],
+                        "follow_ups": {}
+                    }
                 }
             }
         }
     }
-
 }

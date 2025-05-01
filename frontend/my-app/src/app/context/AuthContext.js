@@ -21,6 +21,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [melio , setMelio] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -49,7 +50,7 @@ export function AuthProvider({ children }) {
   }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, isLoading }}>
+    <AuthContext.Provider value={{ melio , setMelio ,isAuthenticated, setIsAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

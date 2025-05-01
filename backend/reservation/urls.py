@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('get_trip_reservation_price/<int:trip_id>/<int:departure_id>/<int:tickets>/',view=views.getTripReservationPrice,name='get-trip-reservation-price'),
+    path('get_trip_reservation_price/<int:trip_id>/',view=views.getTripReservationPrice,name='get-trip-reservation-price'),
     path('get_hotel_reservation_price/<int:hotel_id>/',view=views.getHotelReservationPrice,name='get-hotel-reservation-price'),
 
     path('initiate_hotel_reservation/<int:hotel_id>/',view=views.hotel_reservation_payment_init,name='initiate-hotel-reservation'),
@@ -18,4 +18,10 @@ urlpatterns = [
 
     path('confirm_hotel_reservation_manually/<int:reservation_id>/',view=views.confirmHotelReservationManually,name='confirm-hotel-reservation-manually'),
     path('confirm_trip_reservation_manually/<int:reservation_id>/',view=views.confirmTripReservationManually,name='confirm-trip-reservation-manually'),
+
+
+    path('view_hotel_reservations/',view=views.pending_hotel_reservations),
+    path('view_trip_reservations/',view=views.pending_trip_reservations),
+    path('pending_reservation_for_trip/<int:trip_id>/',view=views.pending_reservation_for_trip)
+
 ]
