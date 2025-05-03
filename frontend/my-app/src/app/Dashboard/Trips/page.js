@@ -3,7 +3,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/app/utils/constants";
 import { getMyProfile } from "@/app/utils/auth";
-import InputLogin from "../Components/InputLogin";
+import InputLogin from "@/app/components/inputLogin";
 import CustomDropdown from "../Components/DropDown";
 import { useTrip } from "../context/tripContext";
 import Link from "next/link";

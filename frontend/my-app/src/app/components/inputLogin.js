@@ -42,6 +42,8 @@ const InputLogin = ({
     if (type === "password") return showPassword ? "text" : "password";
     if (type === "date") return "date";
     if (type === "text-area") return "text";
+    if (type === "email") return "text";
+    
     return type;
   };
 
@@ -137,12 +139,12 @@ const StyledWrapper = styled.div`
   .label {
     position: absolute;
     left: 12px;
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
-    background-color: #eedac4;
+    background-color: var(--bg-color);
     padding: 0 5px;
     font-size: 16px;
-    color: rgba(0, 0, 0, 0.6);
+    color: hsl(31, 85%, 53%);
     transition: all 0.2s ease-in-out;
     pointer-events: none;
     

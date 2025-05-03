@@ -5,12 +5,9 @@ const CustomDropdown = ({ name, options, selectedValue, onChange, placeholder })
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOptionClick = (value) => {
-    onChange({
-      target: {
-        name: name,
-        value: value
-      }
-    });
+    onChange(
+     value
+    );
     setIsOpen(false);
   };
 
@@ -24,9 +21,9 @@ const CustomDropdown = ({ name, options, selectedValue, onChange, placeholder })
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="flex flex-col relative w-full">
-            <span className={`absolute left-0 top-1/2 transform -translate-y-1/2 bg-[var(--bg-color)] px-1 text-xl transition-all duration-200 ease-in-out pointer-events-none ${
-              selectedValue || isOpen 
-                ? 'top-0 text-[14px] text-[var(--secondary)] -translate-y-1/2' 
+            <span className={`absolute left-0 -translate-y-[30%] top-0 transform   bg-[var(--bg-color)] px-1 text-xl transition-all duration-200 ease-in-out pointer-events-none ${
+            isOpen || selectedLabel
+                ? 'top-0 text-[14px] text-[var(--secondary)] -translate-y-[90%]' 
                 : 'text-base text-gray-600'
             }`}>
               {placeholder}
@@ -49,9 +46,7 @@ const CustomDropdown = ({ name, options, selectedValue, onChange, placeholder })
               <div
                 key={option.value}
                 className={`px-4 py-3 cursor-pointer transition-colors duration-200 ${
-                  selectedValue === option.value 
-                    ? 'bg-[var(--bg-color)]' 
-                    : 'hover:bg-[#235784] hover:text-[var(--bg-color)]'
+                   'hover:bg-[#235784] hover:text-[var(--bg-color)]'
                 }`}
                 onClick={() => handleOptionClick(option.value)}
               >
