@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core import validators
 from django.core.exceptions import ValidationError
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
+from chat.models import GroupConversation
 # ------------------------- Users -------------------------
 import uuid
 class User(AbstractUser):
@@ -295,8 +296,8 @@ class Trip(models.Model):
         
        
         if created and self.trip_type == 'group':
-            GroupChatConversation.objects.get_or_create(trip=self)
-
+            GroupConversation.objects.get_or_create(trip=self)
+            #GroupChatConversation.objects.get_or_create(trip=self)
 
 
     
@@ -316,7 +317,8 @@ class Trip(models.Model):
     @property
     def group_chat_exists(self):
         
-        return hasattr(self, 'group_chat')
+        #return hasattr(self, 'group_chat')
+        return hasattr(self, 'group_conversation')
 
     def get_group_chat_participants(self):
         
