@@ -384,68 +384,37 @@ def allTrips(request):
 
 #@api_view(['GET','PUT','DELETE'])
 
+
 class tripDetails(APIView):
     permission_classes = [TripPermission]
     def get_trip(self,pk):
         return get_object_or_404(Trip,id=pk)
     
-
-    def get(self, request, pk):
+    def get(self,request,pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
         trip_ser = TripSerializer(trip)
-        return Response(trip_ser.data, status=status.HTTP_200_OK)
-
+        return Response(trip_ser.data,status=status.HTTP_200_OK)
+    
     def put(self, request, pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
+        
 
-        # Get all old data dynamically
-        old_data = {
-            field.name: getattr(trip, field.name)
-            for field in trip._meta.get_fields()
-            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
-        }
-
-        trip_ser = TripSerializer(trip, data=request.data, partial=True)
+        trip_ser = TripSerializer(trip, data=request.data,partial = True)  
         if trip_ser.is_valid():
             trip_ser.save()
-
-
-            notified_admins = Admin.objects.filter(department='owner')
-            if request.user.admin.department != 'owner':
-                notified_admins = list(notified_admins) + [request.user.admin]
-
-            #Compare changes
-            new_data = trip_ser.data
-            changes = []
-
-            for field, old_value in old_data.items():
-                new_value = new_data.get(field)
-                if str(old_value) != str(new_value):
-                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
-
-            if changes:
-                changes = "\n".join(changes)
-
-                # Create notifications for each admin
-                for admin in notified_admins:
-                    Notification.objects.create(
-                        recipient=admin.user,  # The admin to receive the notification
-                        type='Trip',  # Notification type
-                        title='Trip Updated',  # Title of the notification
-                        message=f'The Trip "{trip.title}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
-                    )
             return Response(trip_ser.data, status=status.HTTP_200_OK)
-
+        
         return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  
+
         trip.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
-    
+
+        
+   
 
 @api_view(['POST'])
 @permission_classes([TripPermission])

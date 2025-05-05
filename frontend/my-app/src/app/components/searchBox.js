@@ -5,7 +5,7 @@ import { departicon, arrivalIcon, calendarIcon, searchIcon } from "../data/data"
 import { useState, useEffect } from "react";
 import { FaPlaneDeparture, FaPlaneArrival, FaCalendar } from "react-icons/fa";
 import { PriceChange } from "@mui/icons-material";
-
+import CustomDropdown from "../Dashboard/Components/DropDown";
 const SearchInputFields = ({ label, field, placeholder, searchData, setSearchData, min, disabled, icon }) => (
   <fieldset className="w-full border-[1px] border-[#4B6382] rounded-md px-4">
     <legend className="text-md px-2">{label}</legend>
@@ -112,39 +112,7 @@ export default function FlightSearch() {
         )}
 
         {/* Passengers and Class */}
-        <fieldset className="w-full border-[1px] border-[#4B6382] rounded-md px-4">
-          <legend className="text-md px-2">Passengers - Class</legend>
-          <div className="flex gap-5 py-3 items-center w-full">
-            <input
-              type="number"
-              className="w-full bg-transparent text-lg outline-none"
-              value={searchData.passengers || 1}
-              onChange={
-                (e) => setSearchData( prev => (
-                  {
-                ...prev,
-                passengers: Math.max(1, parseInt(e.target.value) )|| 1 ,
-              }
-            )
-          )}
-          min={1}
-            />
-            <select
-              className="w-full bg-transparent text-lg outline-none"
-              value={searchData.class_type }
-              onChange={(e) => setSearchData(prev => ({
-                ...prev,
-                class_type: e.target.value
-              }))}
-            >
-              {
-
-                  PRICE_CATEGORIES.map((el , index)=>(<option key={index} value={el.value}>{el.label}</option>
-                  ))
-              }
-              </select>
-          </div>
-        </fieldset>
+        
 
         {/* Search Button */}
         <div className="w-full max-w-10 h-full flex flex-row justify-center items-end">

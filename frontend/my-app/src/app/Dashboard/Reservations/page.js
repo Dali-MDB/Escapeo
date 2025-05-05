@@ -6,6 +6,7 @@ import { API_URL } from "@/app/utils/constants";
 import { useTrip } from "@/app/Setting/context/tripContext";
 import { useRouter } from "next/navigation";
 import { Star, CalendarDays } from "lucide-react";
+import { getMyProfile } from "@/app/utils/auth";
 
 const HistoryBoxFlight = ({
   id,
@@ -15,7 +16,7 @@ const HistoryBoxFlight = ({
   total_price,
   trip_title,
   date,
-  handleCancelReservation
+  confirmReservation
 }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -42,11 +43,12 @@ const HistoryBoxFlight = ({
           </span>
         </div>
       ))}
+     
       <button
         className="w-fit rounded-xl font-semibold px-4 py-2 bg-[var(--secondary)] text-[var(--bg-color)]"
-        onClick={(e) => handleCancelReservation(id, false)}
+        onClick={(e) => confirmReservation(id, false)}
       >
-        Cancel
+        Accept
       </button>
     </div>
   );
@@ -56,7 +58,7 @@ const HistoryBoxStay = ({
   id,
   hotel_reservation,
   status,
-  handleCancelReservation
+  confirmReservation
 }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -118,10 +120,11 @@ const HistoryBoxStay = ({
         </div>
       </div>
 
+     
       <div className="flex h-full items-center justify-center">
         <button
           className="w-fit rounded-xl font-semibold px-6 py-4 text-xl bg-[var(--secondary)] text-[var(--bg-color)]"
-          onClick={(e) => handleCancelReservation(id, true)}
+          onClick={(e) => confirmReservation(id, true)}
         >
           Confirm
         </button>
@@ -164,10 +167,10 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
   };
 
   const confirmReservation = async (id, isHotel) => {
-    const url = isHotel 
-      ? `${API_URL}/reservation/confirm_hotel_reservation_manually/${id}/` 
+    const url = isHotel
+      ? `${API_URL}/reservation/confirm_hotel_reservation_manually/${id}/`
       : `${API_URL}/reservation/confirm_trip_reservation_manually/${id}/`;
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -191,7 +194,7 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
   useEffect(() => {
     const fetchAllData = async () => {
       if (!data) return;
-      
+
       const newData = {};
       for (const item of data) {
         try {
@@ -253,7 +256,7 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
               hotel: { id: item.hotel, name: 'Loading...', location: 'Loading...' }
             }}
             status={item.status}
-            handleCancelReservation={confirmReservation}
+            confirmReservation={confirmReservation}
           />
         ) : (
           <HistoryBoxFlight
@@ -264,8 +267,9 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
             tickets={item.tickets}
             total_price={item.total_price}
             trip_title={itemData.trip_title}
-            date={item.date}
-            handleCancelReservation={confirmReservation}
+            date={item.date} 
+            confirmReservation={confirmReservation}
+
           />
         );
       })}
@@ -279,20 +283,29 @@ export default function Reservation() {
   const [stays, setStays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [isHM, setIsHM] = useState(false)
   useEffect(() => {
     const fetchReservations = async () => {
+      console.log(localStorage.getItem("accessToken"))
       try {
         setLoading(true);
         setError(null);
-        
+        const responseP = await getMyProfile();
+        const isHotelManager = responseP.profile.department === 'hotel_manager' || responseP?.profile?.department
+          === 'owner'
+        console.log(isHotelManager)
+        setIsHM(isHotelManager)
+        const secondUrl = isHotelManager ? `${API_URL}/reservation/view_hotel_reservations/` : `${API_URL}/reservation/view_trip_reservations/`
         const [flightsRes, staysRes] = await Promise.all([
           fetch(`${API_URL}/reservation/view_trip_reservations/`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
             },
           }),
-          fetch(`${API_URL}/reservation/view_hotel_reservations/`, {
+
+
+
+          fetch(secondUrl, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
             },
@@ -300,7 +313,7 @@ export default function Reservation() {
         ]);
 
         if (!flightsRes.ok || !staysRes.ok) {
-          throw new Error('Failed to fetch reservations');
+          throw new ('Failed to fetch reservations');
         }
 
         const flightsData = await flightsRes.json();
@@ -311,14 +324,14 @@ export default function Reservation() {
           ...(flightsData.with_hotel_reservation || []),
           ...(flightsData.without_hotel_reservation || [])
         ]);
-        
-        setStays([
-          ...(staysData.with_trip || []),
-          ...(staysData.without_trip || [])
-        ]);
+        if (isHotelManager) {
+          setStays([
+            ...(staysData.with_trip || []),
+            ...(staysData.without_trip || [])
+          ]);
+        }
 
       } catch (err) {
-        console.error("Fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -330,29 +343,27 @@ export default function Reservation() {
 
   return (
     <div className="w-full py-0 px-0 flex flex-col gap-2">
-      <div className="flex flex-row rounded-t-xl justify-between items-center rounded- gap-4 mb-0 bg-[var(--bg-color)]">
+      {isHM && (<div className="flex flex-row rounded-t-xl justify-between items-center rounded- gap-4 mb-0 bg-[var(--bg-color)]">
         <button
-          className={`w-[80%] p-4 rounded-t-[10px] flex h-fit py-5 justify-start items-center gap-2 cursor-pointer ${
-            choice === "Flights"
-              ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
-              : "text-gray-500"
-          }`}
+          className={`w-[80%] p-4 rounded-t-[10px] flex h-fit py-5 justify-start items-center gap-2 cursor-pointer ${choice === "Flights"
+            && isHM ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
+            : "text-gray-500"
+            }`}
           onClick={() => setChoice("Flights")}
         >
           {flightIcon} Flights
         </button>
-        <button
-          className={`flex p-4 h-full w-[80%] py-5 justify-start items-center gap-2 cursor-pointer ${
-            choice === "Stays"
-              ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
-              : "text-gray-500"
-          }`}
+        {isHM && (<button
+          className={`flex p-4 h-full w-[80%] py-5 justify-start items-center gap-2 cursor-pointer ${choice === "Stays"
+            ? "shadow-[inset_0_-6px_0_var(--primary)] text-[var(--primary)]"
+            : "text-gray-500"
+            }`}
           onClick={() => setChoice("Stays")}
         >
           {staysIcon} Stays
         </button>
-      </div>
-
+        )}</div>
+      )}
       <HistorySection
         data={choice === 'Flights' ? flights : stays}
         loading={loading}

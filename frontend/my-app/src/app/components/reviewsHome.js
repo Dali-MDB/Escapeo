@@ -25,7 +25,7 @@ const Reviewcard = (props) => {
   const [clicked, setClicked] = useState(false);
   return (
     <div
-      className={`w-full gap-4 p-8 opacity-85 rounded-3xl ${isAuthenticated ? "bg-transparent" : "bg-white"} flex flex-col justify-center items-center hover:border-[1px] hover:border-black transition-all duration-200 ease-in shadow-2xl hover:shadow-none`}
+      className={`w-full gap-4 p-8 opacity-85 rounded-3xl ${!isAuthenticated ? "bg-transparent" : "bg-white"} flex flex-col justify-center items-center hover:border-[1px] hover:border-black transition-all duration-200 ease-in shadow-2xl hover:shadow-none`}
     >
       <div className="w-full">
         <h1 className="w-full text-2xl font-bold text-black">{props.title}</h1>
@@ -76,11 +76,11 @@ export default function Reviews(props) {
     <section
       className="h-[125vh] relative pt-10 flex justify-center items-center w-full mx-auto"
       style={
-        
-      isAuthenticated ?  {backgroundImage: `url(${bg})`,
-      backgroundSize: "cover", // Ensures the image covers the entire section
-      backgroundPosition: "center", // Centers the image
-      backgroundRepeat: "no-repeat", // Prevents the image from repeating
+        !isAuthenticated ? {
+          backgroundImage: `url(${bg})`,
+          backgroundSize: "cover", // Ensures the image covers the entire section
+          backgroundPosition: "center", // Centers the image
+          backgroundRepeat: "no-repeat", // Prevents the image from repeating
     
     }
     : {

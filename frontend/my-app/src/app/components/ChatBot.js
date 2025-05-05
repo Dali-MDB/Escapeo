@@ -75,7 +75,7 @@ export default function ChatBot() {
     };
 
     return melio ? (
-        <div className="fixed bottom-20 right-5 w-[350px] h-[400px] flex flex-col bg-white shadow-lg rounded-t-lg overflow-hidden z-50 border border-gray-200">
+        <div className="fixed bottom-20 right-5 w-[350px] h-[500px] flex flex-col bg-white shadow-lg rounded-xl overflow-hidden z-50 border border-gray-200">
             <div className="w-full p-3 text-white text-lg bg-[var(--primary)] flex justify-between items-center">
                 <span>Ask Melio</span>
                 <button onClick={() => setMelio(false)} className="text-white hover:text-gray-200">

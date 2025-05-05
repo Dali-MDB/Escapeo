@@ -78,6 +78,7 @@ export default function Login() {
           placeholder="Email"
           value={loginData.email}
           onChange={handleChange}
+          backgroundColor="var(--bg-color)" 
         />
 
         {/* Password Input */}
@@ -87,6 +88,7 @@ export default function Login() {
           placeholder="Password"
           value={loginData.password}
           onChange={handleChange}
+          backgroundColor="var(--bg-color)"
         />
 
         {/* Error Message */}

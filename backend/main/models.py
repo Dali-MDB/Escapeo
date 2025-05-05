@@ -249,6 +249,27 @@ class Trip(models.Model):
         if os.path.exists(trip_folder):
             shutil.rmtree(trip_folder)
         super().delete(*args, **kwargs)
+    @property
+    def group_chat_exists(self):
+        
+        #return hasattr(self, 'group_chat')
+        return hasattr(self, 'group_conversation')
+
+    def get_group_chat_participants(self):
+        
+        participants = list(self.purchasers.all().values_list('user', flat=True))
+        if self.guide:
+            participants.append(self.guide.user.id)
+        return User.objects.filter(id__in=participants)
+
+    def user_has_chat_access(self, user):
+       
+        if hasattr(user, 'customer'):
+            return self.purchasers.filter(id=user.customer.id).exists()
+        if hasattr(user, 'admin') and self.guide:
+            return user.admin.id == self.guide.id
+        return False
+
 
 
 class DepartureTrip(models.Model):

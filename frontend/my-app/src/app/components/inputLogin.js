@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const InputLogin = ({ 
-  min , max,
+  min, 
+  max,
   type = "text", 
   name, 
   value, 
@@ -12,7 +13,9 @@ const InputLogin = ({
   placeholder, 
   error,
   className,
-  required = true
+  required = true,
+  backgroundColor,
+  disabled = false
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isFilled, setIsFilled] = useState(false);
@@ -38,17 +41,13 @@ const InputLogin = ({
     setIsFocused(false);
   };
 
-  const getInputType = () => {
+  const inputType = useMemo(() => {
     if (type === "password") return showPassword ? "text" : "password";
-    if (type === "date") return "date";
-    if (type === "text-area") return "text";
-    if (type === "email") return "text";
-    
-    return type;
-  };
+    return type; // Let the browser handle native types like date, email, etc.
+  }, [type, showPassword]);
 
   return (
-    <StyledWrapper className={`w-full ${className}`}>
+    <StyledWrapper className={`w-full ${className}`} $backgroundColor={backgroundColor}>
       <div className={`input-container ${error ? "has-error" : ""}`}>
         {type === "text-area" ? (
           <textarea
@@ -61,10 +60,13 @@ const InputLogin = ({
             name={name}
             required={required}
             rows={4}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${name}-error` : undefined}
           />
         ) : (
           <input
-            type={getInputType()}
+            type={inputType === 'email' ? 'text' : inputType}
             id={name}
             className={`input ${isFilled ? "filled" : ""} ${error ? "error" : ""}`}
             onChange={handleChange}
@@ -73,13 +75,16 @@ const InputLogin = ({
             value={value}
             name={name}
             required={required}
-            min={min && min}
-            max={max && max}
+            min={min}
+            max={max}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${name}-error` : undefined}
           />
         )}
         <label 
           htmlFor={name} 
-          className={`label ${type === "text-area" ? "label-fixed" : ""} ${isFocused ? "focused" : ""}`}
+          className={`label ${type === "text-area" ? "label-textarea" : ""} ${isFocused ? "focused" : ""}`}
         >
           {placeholder}
         </label>
@@ -89,12 +94,13 @@ const InputLogin = ({
             onClick={togglePasswordVisibility}
             className="eye-button"
             aria-label={showPassword ? "Hide password" : "Show password"}
+            tabIndex={-1} // Prevent button from being in tab sequence
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         )}
         {error && (
-          <span className="error-message">{error}</span>
+          <span id={`${name}-error`} className="error-message">{error}</span>
         )}
       </div>
     </StyledWrapper>
@@ -126,7 +132,7 @@ const StyledWrapper = styled.div`
     background: transparent;
     outline: none;
     transition: all 0.2s ease-in-out;
-    
+    background-color: #eeeeee;
     &:focus {
       border-color: var(--secondary);
     }
@@ -134,26 +140,33 @@ const StyledWrapper = styled.div`
     &.error {
       border-color: #ff4444;
     }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
   }
 
   .label {
     position: absolute;
+    text-align: center;
     left: 12px;
     top: 55%;
     transform: translateY(-50%);
-    background-color: var(--bg-color);
-    padding: 0 5px;
+    padding: 3px 5px;
     font-size: 16px;
     color: hsl(31, 85%, 53%);
     transition: all 0.2s ease-in-out;
     pointer-events: none;
-    
+    background-color: #eeeeee;
+    min-width: 100px;
+    border-radius: 8px;
     &.focused {
       color: var(--secondary);
     }
     
-    &.label-fixed {
-      left: 35%;
+    &.label-textarea {
+      top: 20px;
     }
   }
 
@@ -162,6 +175,12 @@ const StyledWrapper = styled.div`
     top: 0;
     font-size: 14px;
     color: var(--secondary);
+
+    border: 1px solid var(--secondary);
+  }
+
+  .input.filled:not(:focus) ~ .label {
+    color: hsl(31, 85%, 53%);
   }
 
   .eye-button {
@@ -181,6 +200,11 @@ const StyledWrapper = styled.div`
     
     &:hover {
       color: var(--secondary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--secondary);
+      outline-offset: 2px;
     }
   }
 

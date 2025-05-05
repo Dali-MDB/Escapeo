@@ -176,3 +176,50 @@ def update_profile_picture(request):
     )
 
 
+from main.models import Trip
+from main.permissions import CustomerPermissions
+from rest_framework.exceptions import ValidationError
+from main.serializers import TripSerializer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_managed_trips(request):
+    if not hasattr(request.user,'admin'):
+        raise ValidationError("Only admins are allowed to view this page")
+    if request.user.admin.department == 'owner':
+        trips = Trip.objects.all()
+    elif request.user.admin.department == 'staff':
+        trips = Trip.objects.filter(created_by = request.user.admin)
+    else:
+        raise ValidationError("Only admins with roles owner or staff are allowed to view this page ")
+    
+    coming = trips.filter(status = 'coming')
+    ongoing = trips.filter(status = 'ongoing')
+    done = trips.filter(status = 'done')
+    
+    return Response({
+        'coming_trips' : TripSerializer(coming,many=True).data,
+        'ongoing_trips' : TripSerializer(ongoing,many=True).data,
+        'done_trips' : TripSerializer(done,many=True).data
+    },status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated,CustomerPermissions])
+def get_my_travel_history(request):
+    trips = request.user.customer.purchased_trips.all()
+    coming = trips.filter(status = 'coming')
+    ongoing = trips.filter(status = 'ongoing')
+    done = trips.filter(status = 'done')
+    return Response({
+        'coming_trips' : TripSerializer(coming,many=True).data,
+        'ongoing_trips' : TripSerializer(ongoing,many=True).data,
+        'done_trips' : TripSerializer(done,many=True).data
+    },status=status.HTTP_200_OK)
+
+
+
+
+    
+        
+    

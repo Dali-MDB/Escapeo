@@ -22,7 +22,7 @@ export async function getMyProfile() {
     }
 
     const Profile = await response.json();
-
+    console.log(Profile)
     return {
       success: true,
       profile: Profile,
@@ -88,6 +88,7 @@ export async function updateMyProfile(updatedData) {
     }
 
     const result = await response.json();
+    console.log(result)
     return {
       success: true,
       ...result

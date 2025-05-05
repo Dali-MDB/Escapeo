@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import { signUp } from "../../utils/auth";
 import { useRouter } from "next/navigation";
 import InputLogin from "@/app/components/inputLogin";
+import CustomDropdown from "@/app/Dashboard/Components/DropDown";
+
 export default function MoreInfo() {
   const { formData, setFormData } = useForm();
   const { setIsAuthenticated } = useAuth();
@@ -58,11 +60,13 @@ export default function MoreInfo() {
         <div className="w-full grid grid-cols-2 grid-rows-2 gap-4">
           {/* Text Inputs */}
           <InputLogin
+
             type="text"
             name="first_name"
             placeholder="First Name"
             value={formData.first_name}
             onChange={handleChange}
+            backgroundColor="var(--bg-color)"
           />
           <InputLogin
             type="text"
@@ -70,6 +74,7 @@ export default function MoreInfo() {
             placeholder="Last Name"
             value={formData.last_name}
             onChange={handleChange}
+            backgroundColor="var(--bg-color)"
           />
           <InputLogin
             type="text"
@@ -77,6 +82,7 @@ export default function MoreInfo() {
             placeholder="Country"
             value={formData.country}
             onChange={handleChange}
+            backgroundColor="var(--bg-color)"
           />
           <InputLogin
             type="text"
@@ -84,45 +90,35 @@ export default function MoreInfo() {
             placeholder="City"
             value={formData.city}
             onChange={handleChange}
+            backgroundColor="var(--bg-color)"
           />
 
           {/* Birthdate Input */}
-          <input
+          <InputLogin
             type="date"
             name="birthdate"
             placeholder="Birthdate"
             value={formData.birthdate}
             onChange={handleChange}
+            backgroundColor="var(--bg-color)"
           />
 
           
           {/* Gender Select Dropdown */}
-          <select
-            name="gender"
-            value={formData.gender || ""}
+          <CustomDropdown
+            options={[{label: "Male", value: "male"}, {label: "Female", value: "female"}]}
+            value={formData.gender}
             onChange={handleChange}
-            className="border p-2 rounded"
-          >
-            <option value="">Select Gender</option>
-            <option value="male">M</option>
-            <option value="female">F</option>
-          </select>
+            placeholder="Select Gender"
+          />
 
           {/* Favorite Currency Select Dropdown */}
-          <select
-            name="favorite_currency"
+          <CustomDropdown
+            options={[{label: "USD", value: "USD"}, {label: "EUR", value: "EUR"}, {label: "GBP", value: "GBP"}]}
             value={formData.favorite_currency}
             onChange={handleChange}
-            className="border p-2 rounded"
-          >
-            <option value="">Select Currency</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="DZD">DZD</option>
-            <option value="CAD">CAD</option>
-            <option value="AUD">AUD</option>
-          </select>
+            placeholder="Select Favorite Currency"
+          />  
         </div>
 
         {/* Submit Button */}

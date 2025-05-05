@@ -49,7 +49,7 @@ export default function Layout({ children }) {
 
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'start', marginTop:'100px', paddingBottom:'25px' }}>
           <div style={{ width: '88%', display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ textAlign: 'left', fontSize:'45px', fontWeight:'bolder' }}>Settings</h1>
+            <h1 style={{ textAlign: 'left', fontSize:'45px', fontWeight:'bolder' }}>Dashboard</h1>
 
             <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', marginTop: '20px' }}>
               <Sidebar />

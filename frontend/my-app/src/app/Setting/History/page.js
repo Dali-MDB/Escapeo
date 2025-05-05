@@ -66,72 +66,118 @@ const HistoryBoxStay = ({
     });
   };
 
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'text-yellow-500';
+      case 'confirmed':
+        return 'text-green-500';
+      case 'cancelled':
+        return 'text-red-500';
+      case 'completed':
+        return 'text-blue-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return '⏳';
+      case 'confirmed':
+        return '✓';
+      case 'cancelled':
+        return '✕';
+      case 'completed':
+        return '✓';
+      default:
+        return '•';
+    }
+  };
+  console.log(hotel_reservation)
   return (
-    <div className={`w-full grid ${status === 'pending' ? " grid-cols-4":"grid-cols-3"} items-start  gap-4 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow`}>
-      <div className="flex flex-col w-full">
-        <span className="text-lg font-semibold text-black">Hotel:</span>
-        <span className="font-medium text-lg text-[var(--primary)]">
-          {hotel_reservation.hotel?.name || 'Loading...'}
-        </span>
-        <span className="font-medium text-lg text-[var(--primary)]">
-          {hotel_reservation.hotel?.location || 'Loading...'}
-        </span>
-
-      </div>
-      <div className="w-full flex flex-col items-center justify-between">
-        <div className="flex w-full flex-col items-start justify-between">
-          <span className="text-lg font-semibold text-black">Check-in:</span>
-          <div className="flex items-center gap-1">
-            <span className="font-medium flex flex-col text-lg text-[var(--primary)]">
-              <p className="font-semibold"><span className="font-light text-lg">{formatDate(hotel_reservation.check_in)} </span></p>
-            </span>
-          </div>
-        </div>
-        <div className="flex w-full flex-col items-start justify-between">
-          <span className="text-lg font-semibold text-black">Check-out:</span>
-          <div className="flex items-center gap-1">
-            <span className="font-medium flex flex-col text-lg text-[var(--primary)]">
-              <p className="font-semibold"><span className="font-light text-lg">{formatDate(hotel_reservation.check_out)} </span></p>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full flex flex-col px-4  gap-2 items-center justify-between">
-
-        <div className="flex w-full items-center justify-between gap-2">
-          <span className="text-lg font-semibold w-full text-black">Rooms:</span>
-          <span className="font-medium text-center w-full mx-auto  text-lg text-[var(--primary)]">
-            {hotel_reservation.rooms}
+    <div className={`w-full flex items-start gap-4 p-6 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300`}>
+      {/* Hotel Information */}
+      <div className="flex flex-col w-full space-y-2">
+         <div className="flex flex-col space-y-1">
+          <span className="font-semibold text-lg text-[var(--primary)]">
+            {hotel_reservation.hotel?.name || 'Loading...'}
+          </span>
+          <span className="font-medium text-base text-gray-600">
+            {hotel_reservation.hotel?.location || 'Loading...'}
+            {" "}	&#9679;{" "}
+            {hotel_reservation.hotel?.stars_rating && (
+            <>
+              <span className="text-yellow-500">★</span>
+              <span className="text-md text-gray-600">{hotel_reservation.hotel.stars_rating}</span>
+            </>
+          )}  
+          {" "}&#9679;{" "}
+          {
+            hotel_reservation?.rooms && (
+              <span className=" text-md text-gray-600">{hotel_reservation.rooms} rooms</span>
+            )
+          }
           </span>
         </div>
+      </div>
 
+      {/* Check-in/Check-out Dates */}
+        <div className="flex w-full flex-col items-start space-y-2">
+          <span className="text-lg font-semibold text-gray-700">Check-in</span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📅</span>
+            <span className="font-medium text-lg text-[var(--primary)]">
+              {formatDate(hotel_reservation.check_in)}
+            </span>
+          </div>
+        </div>
+        <div className="flex w-full flex-col items-start space-y-2">
+          <span className="text-lg font-semibold text-gray-700">Check-out</span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📅</span>
+            <span className="font-medium text-lg text-[var(--primary)]">
+              {formatDate(hotel_reservation.check_out)}
+            </span>
+          </div>
+        </div>
+      
 
+      {/* Reservation Details */}
+      <div className="w-full flex flex-col px-4 space-y-4">
+        
 
-        <div className="flex w-full items-center gap-2 justify-between">
-          <span className="text-lg font-semibold text-black">Price:</span>
-          <span className="font-medium text-left  text-lg text-[var(--primary)]">
+        <div className="flex w-full items-center justify-between">
+          <span className="text-lg font-semibold text-gray-700">Total Price</span>
+          <span className="font-medium text-lg text-[var(--primary)]">
             ${hotel_reservation.total_price}
           </span>
         </div>
-        <div className="flex flex w-full items-center justify-between ">
-          <span className="text-lg font-semibold text-black">Status:</span>
-          <span className="font-medium text-lg text-[var(--secondary)]">
-            {status}
-          </span>
+
+        <div className="flex w-full items-center justify-between">
+          <span className="text-lg font-semibold text-gray-700">Status</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{getStatusIcon(status)}</span>
+            <span className={`font-medium text-lg ${getStatusColor(status)}`}>
+              {status}
+            </span>
+          </div>
         </div>
-
       </div>
 
-      {status === 'pending' &&<div className="flex h-full items-center justify-center ">
-        <button
-          className="w-fit rounded-xl font-semibold px-6 py-4 text-xl bg-[var(--secondary)] text-[var(--bg-color)]"
-          onClick={(e) => handleCancelReservation(id, true)}
-        >
-          Cancel
-        </button>
-      </div>
-   } </div>
+      {/* Action Button */}
+      {(
+        <div className="flex w-1/2 h-full items-end justify-center">
+          <button
+            className="w-fit rounded-xl font-semibold p-4 text-lg bg-[var(--secondary)] hover:bg-red-600 text-white transition-colors duration-300 "
+            onClick={(e) => handleCancelReservation(id, true)}
+          >
+            Cancel 
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -150,11 +196,12 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
             if (isHotel) {
               // Fetch hotel details using the hotel ID from the reservation
               const hotel = await fetchHotelDetails(item.hotel);
+              console.log(hotel)
               newData[item.id] = {
                 ...item,
                 hotel_reservation: {
                   ...item,
-                  hotel: hotel || { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+                  hotel: hotel 
                 }
               };
             } else {
@@ -175,7 +222,7 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
               departure_location: 'Error',
               hotel_reservation: {
                 ...item,
-                hotel: { id: item.hotel, name: 'Error', location: 'Error' }
+                hotel: { id: item.id, name: 'Error', location: 'Error' }
               }
             };
           }
@@ -217,7 +264,7 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
   console.log(data)
   if (loading) return <div className="text-center py-10">Loading history...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Error loading history: {error}</div>;
-  if (!data ) return (
+  if (data.pending.length === 0 && data.confirmed.length === 0 && data.over.length === 0 ) return (
     <div className="text-center text-xl py-10 bg-[var(--bg-color)] rounded-xl">
       No history found
     </div>
@@ -227,14 +274,14 @@ const HistorySection = ({ data, loading, error, isHotel }) => {
     <div className="w-full p-4 rounded-xl bg-[var(--bg-color)] flex flex-col gap-4">
       {data.pending.map((item) => {
         const itemData = tripData[item.id] || item;
-
+        console.log(item)
         return isHotel ? (
           <HistoryBoxStay
             key={item.id}
             id={item.id}
             hotel_reservation={itemData.hotel_reservation || {
               ...item,
-              hotel: { id: item.hotel, name: 'Loading...', location: 'Loading...' }
+              hotel: { id: item.hotel, name: item.hotel.name, location:item.hotel.location }
             }}
             status={item.status}
             handleCancelReservation={handleCancelReservation}

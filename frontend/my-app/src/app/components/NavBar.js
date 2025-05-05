@@ -73,7 +73,7 @@ const RightSectionCon = ({ clicked, setClicked , isAuthenticated }) => {
             throw new Error("error fetching unread notification count")
         }
     } catch (err) {
-        alert("Error: " + err)
+      logout()
     }
 
 }
@@ -93,7 +93,7 @@ async function fetchProfile() {
       setError(response.error);
     }
   } catch (err) {
-    setError(err.message);
+    logout()
   } finally {
     setIsLoading(false);
   }

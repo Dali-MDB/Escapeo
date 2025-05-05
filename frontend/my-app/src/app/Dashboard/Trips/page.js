@@ -71,7 +71,6 @@ const FlightInformationSection = ({ formData, handleChange }) => {
   const flightFields = [
     { type: "text", name: "title", placeholder: "Trip Title" },
     { type: 'text', name: "description", placeholder: "Trip Description" },
-    { type: "text", name: "airlineCompany", placeholder: "Airline Company" },
     { type: "number", name: "stars_rating", placeholder: "Star Rating (1-5)", min: 1, max: 5 },
   ];
 
@@ -96,14 +95,22 @@ const FlightInformationSection = ({ formData, handleChange }) => {
   );
 };
 
-const TripDetailsSection = ({ formData, handleChange, TRIP_TYPES, PRICE_CATEGORIES, EXPERIENCE_LEVELS, TRANSPORT_TYPES }) => {
+
+
+
+const TripDetailsSection = ({ formData, handleChange, TRIP_TYPES, PRICE_CATEGORIES, EXPERIENCE_LEVELS, TRANSPORT_TYPES , setFormData }) => {
   const dropdowns = [
     { val: TRIP_TYPES, name: 'trip_type', label: 'Trip Type' },
     { val: PRICE_CATEGORIES, name: 'price_category', label: 'Price Category' },
     { val: EXPERIENCE_LEVELS, name: 'experience', label: 'Experience Type' },
     { val: TRANSPORT_TYPES, name: 'transport', label: 'Transport' }
   ];
-
+  const handleDChange  = (val) => {
+    setFormData(prev => ({
+      ...prev,
+      [val.name]: val.value
+    }))
+  }
   return (
     <div className="mb-6">
       <h2 className="text-xl font-semibold mb-4">Trip Details</h2>
@@ -114,7 +121,12 @@ const TripDetailsSection = ({ formData, handleChange, TRIP_TYPES, PRICE_CATEGORI
             name={dropdown.name}
             options={dropdown.val}
             selectedValue={formData[dropdown.name]}
-            onChange={handleChange}
+            onChange={(value) => handleChange({
+              target: {
+                name: dropdown.name,
+                value: value
+              }
+            })}
             placeholder={dropdown.label}
           />
         ))}
@@ -129,7 +141,6 @@ const DepartureInformationSection = ({
 }) => {
   const departureFields = [
     { type: "date", name: "departure_date", placeholder: "Departure Date" },
-    { type: "time", name: "departureTime", placeholder: "Departure Time" },
   ];
 
   return (
@@ -182,13 +193,24 @@ const DestinationInformationSection = ({ formData, handleChange, DESTINATION_TYP
           formData={formData}
           handleChange={handleChange}
         />
-        <CustomDropdown
-          name="destination_type"
-          options={DESTINATION_TYPES}
-          selectedValue={formData.destination_type}
-          onChange={handleChange}
-          placeholder="Destination Type"
-        />
+        {
+          [
+            { val: DESTINATION_TYPES, name: 'destination_type', label: 'Destination Type' },
+                     ].map(dropdown => (
+                      <CustomDropdown
+                        key={dropdown.name}
+                        name={dropdown.name}
+                        options={dropdown.val}
+                        selectedValue={formData[dropdown.name]}
+                        onChange={(value) => handleChange({
+                          target: {
+                            name: dropdown.name,
+                            value: value
+                          }
+                        })}
+                        placeholder={dropdown.label}
+                      />
+                    ))}
       </div>
     </div>
   )
@@ -461,10 +483,7 @@ export default function Trips() {
   };
   const [flights, setFlights] = useState([]);
 
-  useEffect(() => {
-    fetchRelatedFlights()
-  }, []);
-
+  
 
 
   const handleImagesSubmit = async () => {

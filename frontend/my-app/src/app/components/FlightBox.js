@@ -19,37 +19,39 @@ export default function FlightBox(props) {
       path('favorites/remove/<int:trip_id>/', view=views.remove_from_favorites, name='remove_favorite'),
       path('favorites/check/<int:trip_id>/', view=views.is_favorite, name='check_favorite'),
 
-     */ const checkFav = async () =>{
+     */ const checkFav = async () => {
 
 
-        console.log(`${API_URL}/favorites/check/${props.id}/`)
-        console.log(localStorage.getItem('accessToken'))
-        try {
-          const response = await fetch(`${API_URL}/favorites/check/${props.id}/` , {
-            headers:{
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-            }
-
-
-          })
-
-          const data = await response.json()
-          console.log(data)
-          setIsfavourite(data.is_favorite)
-
-
-        }catch( err){
-          alert("Error"+err)
+    console.log(`${API_URL}/favorites/check/${props.id}/`)
+    console.log(localStorage.getItem('accessToken'))
+    try {
+      const response = await fetch(`${API_URL}/favorites/check/${props.id}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
+
+
+      })
+
+      if (!response.ok) {
+        throw new Error(response.status)
       }
+      const data = await response.json()
+      console.log(data)
+      setIsfavourite(data.is_favorite)
+
+    } catch (err) {
+      if (err === 403 && !props.isAdmin) {
+        alert("Error" + err)
+      }
+    }
+  }
 
 
-    useEffect(()=>{
-     
-
-      checkFav()
-    } , [isFavourite])
-      const addToFavourites = async () => {
+  useEffect(() => {
+    checkFav()
+  }, [isFavourite])
+  const addToFavourites = async () => {
 
     console.log(`${API_URL}/favorites/add/${props.id}/`)
     console.log(localStorage.getItem("accessToken"))
@@ -90,10 +92,15 @@ export default function FlightBox(props) {
   return (
     <div className="group relative rounded-xl w-72  h-[400px] text-white flex flex-col justify-end items-center  transition-transform duration-300 ease-out hover:-translate-y-4">
       {/* Background Image */}
+
+      {props.isAdmin && <p className="w-6 h-6 text-white cursor-pointer font-bold absolute top-6 rounded-full border p-1 flex justify-center items-center left-6 z-20" onClick={(e) => {
+        props.handledelete(props.id)
+      }}>x</p>
+      }
       <div className="absolute h-full w-full  rounded-[50px] overflow-hidden">
         <img width={290} height={290} alt="a" src={`http://127.0.0.1:8000${props.backgroundImage || "/media/trips_images/aa/book-with-confident.png"}`}
         /></div>
-      <Heart size={25} fill={isFavourite ? "var(--primary)" : "transparent"} className="absolute top-6 z-20 right-6"
+      {!props.isAdmin && <Heart size={25} fill={isFavourite ? "var(--primary)" : "transparent"} className="absolute top-6 z-20 right-6"
         onClick={() => {
 
           if (isFavourite) {
@@ -103,7 +110,7 @@ export default function FlightBox(props) {
           }
           setIsfavourite(prev => !prev)
 
-        }} />
+        }} />}
       {/* Semi-transparent Overlay */}
       <div className="absolute inset-0 overflow-hidden rounded-[50px] bg-black bg-opacity-20">
       </div>
