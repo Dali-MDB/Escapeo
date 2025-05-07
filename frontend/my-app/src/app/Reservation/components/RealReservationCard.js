@@ -17,6 +17,7 @@ const RealCard = ({ setClicked, departure_data, trip_data }) => {
 
         const getRealPrice = async () => {
             try {
+                console.log(localStorage.getItem('accessToken'))
                 const response = await fetch(
                     `${API_URL}/reservation/get_trip_reservation_price/${tripSelected}/?departure_trip_id=${storedDepartureId}&tickets=${number_of_tickets}`,
                     {
@@ -29,11 +30,14 @@ const RealCard = ({ setClicked, departure_data, trip_data }) => {
                 )
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch price')
+                    const aler = await response.json()
+                    alert(aler.errors)
+                }else{
+                    const data = await response.json()
+                    setTotalPrice(data.total_trip_price)
+    
                 }
 
-                const data = await response.json()
-                setTotalPrice(data.total_trip_price)
             } catch (error) {
                 console.error("Price calculation error:", error)
                 // You might want to set some error state here

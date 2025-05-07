@@ -70,11 +70,12 @@ export default function Messages() {
     const [conversations, setConversations] = useState([]);
     const [message, setMessage] = useState("");
     const [user, setUser] = useState(null);
-    const [conversationId, setConversationId] = useState(null);
-
-    useEffect(() => {
-        setConversationId(localStorage.getItem('lastSelectedCustomerConversationId') || null);
-    }, []);
+    const [conversationId, setConversationId] = useState(() => {
+        localStorage.removeItem('lastSelectedCustomerConversationId')
+        localStorage.removeItem('conversationId')
+        return null;
+    });
+    const [isInitializing, setIsInitializing] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [tickets, setTickets] = useState([]);
@@ -100,11 +101,13 @@ export default function Messages() {
             return null;
         }
     }, []);
+
     const initWebSocket = useCallback(async (conversationId) => {
         if (!conversationId) return;
 
         try {
             const info = await getSocketInfo();
+            console.log(info)
             if (!info) throw new Error("Failed to get WebSocket info");
 
             setWsInfo(info);
@@ -121,22 +124,25 @@ export default function Messages() {
                 try {
                     const data = JSON.parse(event.data);
                     
-                      if(data.type === "message"){  setMessages(prev => {const currentMessages = Array.isArray(prev) ? prev : [];
+                    if(data.type === "message"){  
+                        setMessages(prev => {
+                            const currentMessages = Array.isArray(prev) ? prev : [];
                             
-                        // Check if message already exists
-                        if (!currentMessages.some(msg => msg.id === data.id)) {
-                            const updatedMessages = [...currentMessages, {
-                                id: data.id,
-                                message: data.content,
-                                sender: data.sender,
-                                timestamp: data.timestamp
-                            }];
-                            
-                            localStorage.setItem(`chatMessages-${conversationId}`, JSON.stringify(updatedMessages));
-                            return updatedMessages;
-                        }
-                        return currentMessages;
-                    });}
+                            // Check if message already exists
+                            if (!currentMessages.some(msg => msg.id === data.id)) {
+                                const updatedMessages = [...currentMessages, {
+                                    id: data.id,
+                                    message: data.content,
+                                    sender: data.sender,
+                                    timestamp: data.timestamp
+                                }];
+                                
+                                localStorage.setItem(`chatMessages-${conversationId}`, JSON.stringify(updatedMessages));
+                                return updatedMessages;
+                            }
+                            return currentMessages;
+                        });
+                    }
                     
                 } catch (error) {
                     console.error('Error processing WebSocket message:', error);
@@ -144,12 +150,13 @@ export default function Messages() {
             };
 
             newSocket.onerror = (error) => {
+                console.log(error)
                 setError("WebSocket connection error");
             };
 
             newSocket.onclose = (event) => {
                 if (event.code !== 1000) {
-                    setError("WebSocket disconnected unexpectedly");
+                    console.log(event)
                 }
             };
 
@@ -161,7 +168,6 @@ export default function Messages() {
         }
     }, [getSocketInfo]);
 
-    // Add this to both admin and customer components
     useEffect(() => {
         if (socket) {
             console.log('Socket status:', {
@@ -170,12 +176,12 @@ export default function Messages() {
                 protocol: socket.protocol
             });
 
-            // 0: CONNECTING, 1: OPEN, 2: CLOSING, 3: CLOSED
             if (socket.readyState === 1) {
                 console.log('WebSocket is properly connected');
             }
         }
     }, [socket]);
+
     async function fetchTickets() {
         try {
             setLoading(true);
@@ -217,11 +223,7 @@ export default function Messages() {
         const data = await response.json();
         setLoading(false);
         alert('Request Sent');
-
-        // Reset form
         setFormTicket({ subject: '', description: '' });
-
-        // Fetch updated conversations
         fetchConversations();
     }
 
@@ -235,6 +237,7 @@ export default function Messages() {
             });
 
             if (response.ok) {
+                localStorage.removeItem('conversation_id')
                 const data = await response.json();
                 setConversations(data);
             } else {
@@ -249,18 +252,14 @@ export default function Messages() {
         if (!id) return;
 
         try {
-
-            // First load cached messages if they exist
             const cachedMessages = localStorage.getItem(`chatMessages-${id}`);
             if (cachedMessages) {
                 const parsedMessages = JSON.parse(cachedMessages);
                 setMessages(parsedMessages);
             } else {
-                // If no cached messages, initialize with empty array
                 setMessages([]);
             }
 
-            // Then fetch fresh messages from API
             const response = await fetch(`${API_URL}/chat/direct-conversations/${id}/messages/`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -276,7 +275,6 @@ export default function Messages() {
                         const newMessgs = data.filter(msg=>!currentIds.includes(msg.id))
                         return [...prev , ...newMessgs]
                     });
-                    // Update cache with latest messages from API
                     localStorage.setItem(`chatMessages-${id}`, JSON.stringify(data));
                 }
             } else {
@@ -291,6 +289,7 @@ export default function Messages() {
         setConversationId(id);
         localStorage.setItem('lastSelectedCustomerConversationId', id);
     }, []);
+
     const sendMessage = useCallback(async () => {
         if (!message.trim() || !conversationId || !socket) return;
 
@@ -298,19 +297,14 @@ export default function Messages() {
         const tempMessage = {
             id: tempId,
             message: message,
-            sender: { username: "you" , id:wsInfo?.user?.id }, // Temporary sender info
+            sender: { username: "you" , id:wsInfo?.user?.id },
             timestamp: new Date().toISOString(),
             isTemp: true
-
         };
 
-        
-
-       // setMessages(prev => [...prev, tempMessage]);
         setMessage("");
 
         try {
-
             const messageData = {
                 "action": "send",
                 'message': message,
@@ -318,41 +312,36 @@ export default function Messages() {
 
             console.log(JSON.stringify(messageData))
             socket.send(JSON.stringify(messageData));
-
         } catch (err) {
             console.error("Send error:", err);
             setMessages(prev => prev.filter(m => m.id !== tempId));
         }
     }, [message, conversationId, socket, wsInfo, conversations]);
 
-    // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Initialize data
     useEffect(() => {
-        fetchConversations();
-
+        const initialize = async () => {
+            await fetchConversations();
+            setIsInitializing(false);
+        };
+        initialize();
     }, [fetchConversations]);
 
-    // Setup connection for selected conversation
     useEffect(() => {
         let currentSocket = null;
 
         const setupWebSocket = async () => {
             if (conversationId) {
-                // Fetch messages for the selected conversation
                 await fetchConversationMessages(conversationId);
-
-                // Initialize WebSocket connection
                 currentSocket = await initWebSocket(conversationId);
             }
         };
 
         setupWebSocket();
 
-        // Cleanup function
         return () => {
             if (currentSocket) {
                 currentSocket.close();
@@ -360,8 +349,9 @@ export default function Messages() {
         };
     }, [conversationId, fetchConversationMessages, initWebSocket]);
 
+    if (isInitializing) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
-    console.log(messages)
+
     return (
         <div className="w-full min-h-[40vh] rounded-xl flex gap-6">
             {/* Sidebar */}
@@ -389,11 +379,9 @@ export default function Messages() {
 
             {/* Chat Area */}
             <div className='w-full rounded-xl bg-[var(--bg-color)] flex flex-col items-center justify-between'>
-                {/* Messages Container - Fixed height with scroll */}
                 <div className='w-full h-[400px] overflow-y-auto py-4 px-6 flex flex-col-reverse rounded-t-xl'>
                     {conversationId ? (
                         messages.length ? (
-                            // We use flex-col-reverse to pin to bottom by default
                             <div className='flex flex-col space-y-2'>
                                 {messages.map((msg) => (
                                     <div
@@ -423,7 +411,6 @@ export default function Messages() {
                     )}
                 </div>
 
-                {/* Message Input */}
                 {conversationId && (
                     <div className="w-full p-4 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex gap-2">

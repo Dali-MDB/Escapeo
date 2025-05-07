@@ -1,6 +1,6 @@
-"""
+'''
 Email message and email sending related helper functions.
-"""
+'''
 
 import socket
 

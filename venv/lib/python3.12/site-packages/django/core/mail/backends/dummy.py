@@ -1,6 +1,6 @@
-"""
+'''
 Dummy email backend that does nothing.
-"""
+'''
 
 from django.core.mail.backends.base import BaseEmailBackend
 

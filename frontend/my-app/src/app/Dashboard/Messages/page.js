@@ -56,68 +56,7 @@ export default function Messages() {
 
 
 
-    {/**4
-        
-        
-        
-        
-        const initWebSocket = useCallback(async (conversationId) => {
-        if (!conversationId) return;
-
-        try {
-            const info = await getSocketInfo();
-            if (!info) throw new Error("Failed to get WebSocket info");
-
-            setWsInfo(info);
-            const token = localStorage.getItem("accessToken");
-            const wsUrl = `${info.direct_chat.url.replace('<conversation_id>', conversationId)}?token=${token}`;
-            const newSocket = new WebSocket(wsUrl);
-
-            newSocket.onopen = () => {
-                setSocket(newSocket);
-                console.log('WebSocket connected');
-            };
-
-            newSocket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    
-                    // Handle different message types
-                    if (data.type === 'message') {
-                        setMessages(prev => {
-                            const currentMessages = Array.isArray(prev) ? prev : [];
-                            
-                            // Check if message already exists
-                            if (!currentMessages.some(msg => msg.id === data.id)) {
-                                const updatedMessages = [...currentMessages, {
-                                    id: data.id,
-                                    message: data.content,
-                                    sender: data.sender,
-                                    timestamp: data.timestamp
-                                }];
-                                
-                                localStorage.setItem(`chatMessages-${conversationId}`, JSON.stringify(updatedMessages));
-                                return updatedMessages;
-                            }
-                            return currentMessages;
-                        });
-                    }
-                    // You can add other message type handlers here if needed
-                    
-                } catch (error) {
-                    console.error('Error processing WebSocket message:', error);
-                }
-            };
-
-            // ... [keep rest of the WebSocket handlers] ...
-
-        } catch (error) {
-            console.error('WebSocket initialization error:', error);
-            setError("Failed to initialize WebSocket");
-            return null;
-        }
-    }, [getSocketInfo]);
-*/}
+   
     const initWebSocket = useCallback(async (conversationId) => {
         if (!conversationId) return;
 
@@ -169,9 +108,7 @@ export default function Messages() {
             };
 
             newSocket.onclose = (event) => {
-                if (event.code !== 1000) {
-                    setError("WebSocket disconnected unexpectedly");
-                }
+                
             };
 
             return newSocket;
@@ -265,19 +202,7 @@ export default function Messages() {
 
         };
 
-        {/**
-             if (!message.trim() || !conversationId || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-        const tempId = `temp-${Date.now()}`;
-        const tempMessage = {
-            id: tempId,
-            message: message,
-            sender: { username: "You" }, // Temporary sender info
-            timestamp: new Date().toISOString(),
-            isTemp: true
-        }; */}
-
-        //setMessages(prev => [...prev, tempMessage]);
+        
         setMessage("");
             
         try {

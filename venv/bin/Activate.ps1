@@ -151,7 +151,7 @@ function Get-PyVenvConfig(
                 $val = $keyval[1]
 
                 # Remove extraneous quotations around a string value.
-                if ("'""".Contains($val.Substring(0, 1))) {
+                if ("''''.Contains($val.Substring(0, 1))) {
                     $val = $val.Substring(1, $val.Length - 2)
                 }
 

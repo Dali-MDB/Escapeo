@@ -26,7 +26,8 @@ const StaysSection = ({ stays, valuesToShow }) => {
   // Map filter categories to fields in your stay object
 
   return (
-    <div className="w-[90%] mx-auto py-10 px-10 mt-20 gap-20 grid grid-cols-5">
+    <div className="flex mt-2 w-[80%] mx-auto justify-start gap-2 flex-row h-full overflow-hidden ">
+      {/* First row - 8 buttons */}
       {stays
         .slice(0, valuesToShow)
         .map((stay, index) => (
@@ -40,11 +41,11 @@ const StaysSection = ({ stays, valuesToShow }) => {
 
 import HotelSearch from "../components/HotelSearch";
 const Hero = ({ children }) => (
-  <div className="w-full h-[60vh] sm:h-[80vh] mt-24 lg:h-screen relative mx-auto py-5 flex flex-col justify-start lg:justify-center items-center">
-    <div className="bg-no-repeat h-1/3 lg:h-3/4 w-[90%] bg-[url('/coverStays.png')] bg-center bg-cover rounded-3xl">
+  <div className="w-full   mt-20  h-[88vh] relative   mx-auto  py-2 flex flex-col  justify-start  items-center  ">
+    <div className="bg-no-repeat h-3/4  w-[90%] bg-[url('/coverStays.png')] bg-center bg-cover  rounded-3xl">
       {/** */}
     </div>
-    <div className="absolute bottom-[-50px] w-[80%]">
+    <div className="absolute bottom-20 w-[80%]">
       {children}
     </div>
   </div>
@@ -95,34 +96,34 @@ const Hotels = () => {
   };
 
   return (
-    <div className="bg-[#EEDAC4] py-5">
+    <div className="min-h-screen relative  bg-[#EEDAC4] py-5">
       <NavBar />
       <Hero>
         <HotelSearch onSearch={handleSearch} />
       </Hero>
       {isLoading ? (
-          <div className="w-full flex justify-center py-20">
-            <p>Loading hotels...</p>
-          </div>
-        ) : stays.length === 0 ? (
-          <div className="w-full flex justify-center py-20">
-            <p>No hotels found matching your criteria</p>
-          </div>
-        ) : (
-          <>
-            <StaysSection stays={stays} valuesToShow={valuesToShow} />
-            {stays.length > valuesToShow && (
-              <div className="w-[90%] mx-auto py-10 text-center flex justify-center items-center">
-                <button 
-                  className="text-center py-4 w-2/3 text-xl text-white bg-[var(--primary)] rounded-xl"
-                  onClick={() => setValuesToShow(valuesToShow + 10)}
-                >
-                  Show More
-                </button>
-              </div>
-            )}
-          </>
-        )}
+        <div className="w-full flex justify-center py-20">
+          <p>Loading hotels...</p>
+        </div>
+      ) : stays.length === 0 ? (
+        <div className="w-full flex justify-center py-20">
+          <p>No hotels found matching your criteria</p>
+        </div>
+      ) : (
+        <>
+          <StaysSection stays={stays} valuesToShow={valuesToShow} />
+          {stays.length > valuesToShow && (
+            <div className="w-[90%] mx-auto py-10 text-center flex justify-center items-center">
+              <button
+                className="text-center py-4 w-2/3 text-xl text-white bg-[var(--primary)] rounded-xl"
+                onClick={() => setValuesToShow(valuesToShow + 10)}
+              >
+                Show More
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 };

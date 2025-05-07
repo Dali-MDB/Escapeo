@@ -159,7 +159,8 @@ const HotelReservationCard = ({ setClicked, hotel_data }) => {
                             min={format(new Date(), 'yyyy-MM-dd')}
                             value={checkIn}
                             onChange={(e) => setCheckIn(e.target.value)}
-                            className="p-2 w-full border rounded-lg"
+                            className="p-2 w-full  rounded-lg"
+                            placeholder={"Check-in"}
                             required
                         />
                     </div>
@@ -171,7 +172,8 @@ const HotelReservationCard = ({ setClicked, hotel_data }) => {
                             min={checkIn || format(new Date(), 'yyyy-MM-dd')}
                             value={checkOut}
                             onChange={(e) => setCheckOut(e.target.value)}
-                            className="p-2 w-full border rounded-lg"
+                            className="p-2 w-full  rounded-lg"
+                            placeholder={"Check-out"}
                             required
                         />
                     </div>
