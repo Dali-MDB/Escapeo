@@ -35,6 +35,7 @@ def update_trip_status():
         departure_date__lte=now
     ).update(status='done')
 
+
    
 
 @shared_task
@@ -55,6 +56,7 @@ def expire_unpaid_reservations():
         is_paid=False,
         created_at__lte=expiry_time
     ).delete()
+
 
    
     
@@ -100,3 +102,4 @@ def update_reservation_statuses():
         status='confirmed',
         date__lt=current_datetime
     ).update(status='over')
+

@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'profiles',
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -103,9 +104,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'travel_agency.wsgi.application'
 
-SECRET_KEY='hD2j3HfKgRT3xCmQ9z9YxWQKdNvwLZL5xJDwBYE2J7KQhzWQ2g'
 
+'''   #sensitive data shouldn't be shared, put it in .env
+SECRET_KEY='hD2j3HfKgRT3xCmQ9z9YxWQKdNvwLZL5xJDwBYE2J7KQhzWQ2g'
 PASSWORD='merouane'
+'''
+
+ASGI_APPLICATION = "travel_agency.routing.application"
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -114,7 +123,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'travel_db',
         'USER': 'postgres',
-        'PASSWORD':  'merouane',
+        'PASSWORD':  os.getenv('DB_PASSWORD'),    #hide password
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -255,7 +264,7 @@ SPECTACULAR_SETTINGS = {        #for auto documentation
     'DESCRIPTION': 'Auto-generated docs',
     'VERSION': '1.0.0',
 }
-ASGI_APPLICATION = "travel_agency.routing.application"
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",

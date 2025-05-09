@@ -35,13 +35,12 @@ def register(request):
         customer = user_ser.save()
         refresh = RefreshToken.for_user(customer.user)
 
-        '''Notification.objects.create(
-            recipient=request.user,
+        Notification.objects.create(
+            recipient=customer.user,
             type='Security',
             title='Welcome to Our Travel Platform!',
             message='Your account has been successfully created. We are excited to have you onboard!',
         )
-        '''
         context = {
             'details' : user_ser.data,
             'success' : 'user created successfully',
@@ -371,6 +370,8 @@ def addTrip(request):
 "success" : "a new trip has been added successfully",
 "trip_id" : trip.id
 },status=status.HTTP_201_CREATED)
+
+
     return Response(trip_ser.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -399,9 +400,42 @@ class tripDetails(APIView):
         trip = self.get_trip(pk)
         
 
-        trip_ser = TripSerializer(trip, data=request.data,partial = True)  
+
+        old_data = {
+            field.name: getattr(trip, field.name)
+            for field in trip._meta.get_fields()
+            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
+        }
+
+        trip_ser = TripSerializer(trip, data=request.data, partial=True)
         if trip_ser.is_valid():
             trip_ser.save()
+
+
+            notified_admins = Admin.objects.filter(department='owner')
+            if request.user.admin.department != 'owner':
+                notified_admins = list(notified_admins) + [request.user.admin]
+
+            #Compare changes
+            new_data = trip_ser.data
+            changes = []
+
+            for field, old_value in old_data.items():
+                new_value = new_data.get(field)
+                if str(old_value) != str(new_value):
+                    changes.append(f'{field.replace("_", " ").title()}: "{old_value}" → "{new_value}"')
+
+            if changes:
+                changes = "\n".join(changes)
+
+                # Create notifications for each admin
+                for admin in notified_admins:
+                    Notification.objects.create(
+                        recipient=admin.user,  # The admin to receive the notification
+                        type='Trip',  # Notification type
+                        title='Trip Updated',  # Title of the notification
+                        message=f'The Trip "{trip.title}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
+                    )
             return Response(trip_ser.data, status=status.HTTP_200_OK)
         
         return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -409,12 +443,28 @@ class tripDetails(APIView):
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
+        self.check_object_permissions(request, trip)  
 
         trip.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
 
         
    
+
+
+@api_view(['POST'])
+@permission_classes([TripPermission])
+def associate_hotel_to_trip(request,trip_id):
+    permission = TripPermission()
+    trip = get_object_or_404(Trip,id=trip_id)
+    permission.has_object_permission(request,None,trip)
+    hotel = get_object_or_404(Hotel,id=request.data.get('hotel_id'))
+    trip.hotel = hotel
+    trip.save()
+    return Response({'success':'the hotel has been associated successfully to this trip'},status=status.HTTP_202_ACCEPTED)
+
+
+
 
 @api_view(['POST'])
 @permission_classes([TripPermission])
@@ -725,6 +775,7 @@ def TripsFiltering(request):
         query &= Q(destination_type__in=destination_types)
     if transports:
         query &= Q(transport__in=transports)
+    query &= Q(status = 'coming')
     
     trips = Trip.objects.filter(query)
 
@@ -904,9 +955,17 @@ def recommendedTrips(request):
 
 
 
-
-
 #-------------- notifications -----------------------
+from .serializers import NotificationSerializer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_notifications(request):
+    notifications = request.user.notifications.all().order_by('-timestamp')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
+
+
+
 from .serializers import NotificationSerializer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -956,6 +1015,20 @@ def get_user_info(request):
         status=status.HTTP_200_OK
     )
 
+@api_view(['GET'])
+def get_trips_for_country(request,country):
+    trips = Trip.objects.filter(destination__icontains = country)
+    trips_ser = TripSerializer(trips,many=True)
+    return Response(trips_ser.data,status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_trips_for_country(request):
+    country = request.GET.get('country', ' ')
+    trips = Trip.objects.filter(destination__icontains = country)
+    trips_ser = TripSerializer(trips,many=True)
+    return Response(trips_ser.data,status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def get_trips_for_country(request):
@@ -981,4 +1054,16 @@ def path_not_found(request, path=None):
 
 
 
+
+#-------------------- background tasks-----------
+from .tasks import update_reservation_statuses,update_trip_status,expire_unpaid_reservations,free_occupied_rooms
+@permission_classes([IsAuthenticated])
+def run_scheduled_tasks(request):
+    if not hasattr(request.user,'admin'):
+        return Response({'error':'only admins are allowed to execute background tasks'},status=status.HTTP_403_FORBIDDEN)
+    update_reservation_statuses()
+    update_trip_status()
+    expire_unpaid_reservations()
+    free_occupied_rooms()
+    return Response({'success':'background tasks were executed successfully'},status=status.HTTP_200_OK)
 

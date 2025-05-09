@@ -7,6 +7,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from .trip_categories import TripTypeChoices, ExperienceTypeChoices, PriceTypeChoices, DestinationTypeChoices, TransportTypeChoices
+from .managers import UserManager
 
 # ------------------------- Users -------------------------
 import uuid
@@ -16,11 +17,13 @@ class User(AbstractUser):
     username = models.CharField(max_length=30, unique=True)  # Explicitly define username
     phone_number = models.CharField(max_length=15, unique=True)
 
+
     is_admin = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
+
     
 
-    #objects = 
+    objects = UserManager()
     USERNAME_FIELD = "email"  # Authenticate using email
     REQUIRED_FIELDS = ["username", "phone_number"]  # Only these are required when creating a user
 
@@ -42,7 +45,9 @@ class Customer(models.Model):
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
     birthdate = models.DateField(null=True,blank=True)
+
     profile_picture = models.ImageField(upload_to='profile_pictures/customers/', default='profile_pictures/profile.png')
+
 
     loyalty_points = models.PositiveIntegerField(default=0, validators=[validators.MaxValueValidator(500)])
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Wallet Balance
@@ -183,7 +188,7 @@ class Trip(models.Model):
         help_text="Number of people this trip can accommodate."
     )
     sold_tickets = models.IntegerField(default=0, db_default=0)
-    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True)  # only for packages
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True) 
     created_by = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='managed_trips')
     guide = models.ForeignKey(Admin, related_name='guiding', on_delete=models.SET_NULL, null=True, blank=True)  # only for group travels
     trip_type = models.CharField(max_length=50, choices=TripTypeChoices.CHOICES, null=True, blank=True)  # package type
@@ -294,30 +299,6 @@ class TripImage(models.Model):
     def __str__(self):
         return f"Image for {self.trip.title} (Uploaded at {self.uploaded_at})"
 
-# ---------------------- reservation -------------------#
-class Reservation(models.Model):
-    STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Confirmed', 'Confirmed'),
-        ('Canceled', 'Canceled'),
-    ]
-
-    user = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    departure_location = models.CharField(max_length=50)
-    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
-    rooms = models.JSONField(default=dict)  # Example: {"Single": 2, "Suite": 1}
-    tickets_number = models.PositiveBigIntegerField(default=1)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0)])
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    
-
-    def __str__(self):
-        return f"Reservation by {self.user.user.username} at {self.hotel.name} ({self.status})"
-
-    
 
 # notification
 class Notification(models.Model):
@@ -356,68 +337,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.username} - {self.type} - {self.status}"
-
-class DeletionRequest(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="deletion_request")
-    reason = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('cancelled', 'Cancelled'),('completed','completed')], default='pending')
-    request_date = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"Deletion Request for {self.user.username} - at {self.request_date} - {self.status}"
-
-class ConversationDM(models.Model):
-    staff = models.ForeignKey(Admin, on_delete=models.PROTECT)
-    cust = models.ForeignKey(Customer, on_delete=models.PROTECT)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # updated with each sent message
-    last_message = models.ForeignKey('MessageDM', on_delete=models.SET_NULL, blank=True, null=True)
-
-    class Meta:
-        ordering = ['-updated_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['staff', 'cust'],
-                name='conversation'
-            ),
-        ]
-
-class MessageDM(models.Model):
-    conversation = models.ForeignKey(ConversationDM, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.PROTECT,related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.PROTECT,related_name='received_messages')
-    content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['sent_at']
-
-class GroupChatConversation(models.Model):
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name='group_chat')  # One group chat per trip
-    participants = models.ManyToManyField(User, related_name='group_chats')  # Customers and admins in the chat
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # Updated with each message
-
-    class Meta:
-        verbose_name = "Group Chat Conversation"
-        verbose_name_plural = "Group Chat Conversations"
-        ordering = ['-updated_at']
-
-    def __str__(self):
-        return f"Group Chat for {self.trip.title}"
-
-class MessageGroup(models.Model):
-    conversation = models.ForeignKey(GroupChatConversation, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_messages_sent')
-    content = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Group Chat Message"
-        verbose_name_plural = "Group Chat Messages"
-        ordering = ['sent_at']
-
-    def __str__(self):
-        return f"Message by {self.sender.username} in {self.conversation.trip.title}"
-
