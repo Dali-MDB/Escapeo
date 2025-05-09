@@ -1032,3 +1032,15 @@ def path_not_found(request, path=None):
 
 
 
+#-------------------- background tasks-----------
+from .tasks import update_reservation_statuses,update_trip_status,expire_unpaid_reservations,free_occupied_rooms
+@permission_classes([IsAuthenticated])
+def run_scheduled_tasks(request):
+    if not hasattr(request.user,'admin'):
+        return Response({'error':'only admins are allowed to execute background tasks'},status=status.HTTP_403_FORBIDDEN)
+    update_reservation_statuses()
+    update_trip_status()
+    expire_unpaid_reservations()
+    free_occupied_rooms()
+    return Response({'success':'background tasks were executed successfully'},status=status.HTTP_200_OK)
+

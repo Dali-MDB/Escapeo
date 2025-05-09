@@ -34,6 +34,7 @@ def update_trip_status():
         is_one_way=True,
         departure_date__lte=now
     ).update(status='done')
+    
 
    
 
@@ -55,6 +56,7 @@ def expire_unpaid_reservations():
         is_paid=False,
         created_at__lte=expiry_time
     ).delete()
+    
 
    
     
@@ -82,6 +84,8 @@ def free_occupied_rooms():
         hotel.save()
         reservation.save()
 
+    
+
 
 
 @shared_task
@@ -100,3 +104,5 @@ def update_reservation_statuses():
         status='confirmed',
         date__lt=current_datetime
     ).update(status='over')
+
+    

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'drf_spectacular',    #swagger auto documentation
     'django_celery_beat',
     'channels', 
+    
 
     'corsheaders',   #to link the front
 ]
