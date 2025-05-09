@@ -16,6 +16,7 @@ from datetime import date
 from decimal import Decimal
 from main.models import Notification,Admin
 from .signals import handle_hotel_notification,handle_trip_notification,notify_failed_trip_payment,handle_cancelled_hotel_reservation,handle_cancelled_trip_reservation
+from django.utils import timezone
 
 
 
@@ -101,6 +102,10 @@ def hotel_reservation_payment_init(request, hotel_id):
 @permission_classes([IsAuthenticated])
 def getTripReservationPrice(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id)
+    
+    #add status check
+    if trip.status != 'coming' or trip.departure_date >= timezone.now().date():
+        return Response({'error':'you can not make a reservation for this trip since its departue date had already passed'},status=status.HTTP_400_BAD_REQUEST)
     departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get("departure_trip_id"))
     tickets = int(request.GET.get("tickets", 1))
     
@@ -124,7 +129,12 @@ def getTripReservationPrice(request, trip_id):
 def trip_reservation_payment_init(request, trip_id):
     # Get basic data
     trip = get_object_or_404(Trip, id=trip_id)
-    print(request.data.get('departure_trip_id'))
+
+    #add status check
+    if trip.status != 'coming' or trip.departure_date >= timezone.now().date():
+        return Response({'error':'you can not make a reservation for this trip since its departue date had already passed'},status=status.HTTP_400_BAD_REQUEST)
+    
+
     departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get('departure_trip_id'))
     tickets = int(request.data.get('tickets', 1))
     submitted_price = float(request.data.get('total_price'))
