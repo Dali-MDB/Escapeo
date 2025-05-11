@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'main',
     'reservation',
     'adminPanel',
+    'reviews',
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
@@ -66,6 +68,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'adminPanel.middleware.VisitorTrackingMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware', 
 ]
 
 ROOT_URLCONF = 'travel_agency.urls'
@@ -179,3 +183,4 @@ PAYPAL_CLIENT_ID =os.getenv('AXqsX6BCB13DlqcXmDniVq2xODCjIUH5ITFlamS0lMV1FsQri0A
 PAYPAL_SECRET = os.getenv('EJW48A52I21tJLXt_vHFR6elQk5lqaFNmDNRPlz281lIh0WJlEIOhtt3jqc1j7tB6pAjU8c8i1WGzsht')
 PAYPAL_ENVIRONMENT = 'sandbox'
 
+CORS_ALLOW_ALL_ORIGINS = True

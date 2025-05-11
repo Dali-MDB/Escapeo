@@ -6,7 +6,7 @@ urlpatterns = [
     path('track/', TrackVisitView.as_view(), name='track-visit'),
     path('visitors/monthly/', monthly_visitor_count, name='monthly-visitors'),
     path('visitors/daily/', daily_visitor_count, name='daily-visitors'),
-    path('visitors/yearlyy/', yearly_visitor_count, name='yearly-visitors'),
+    path('visitors/yearly/', yearly_visitor_count, name='yearly-visitors'),
     path('top_destinations/',top_destinations,name='top_destinations'), # si on veut faire un filtre du top destinations par mos ou last 7 days ou year on ajoute apres Top_destinations/?filter=last_7_days or last_month or last year
     path('top_5_destinations/',top_5_destinations,name='top_5_destinations'),
     path('most_visited_paths/', most_visited_paths, name='most_visited_paths'),
