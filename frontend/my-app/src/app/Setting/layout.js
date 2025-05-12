@@ -1,28 +1,27 @@
-// components/Layout.js
-import Navbar from '../components/NavBar'; // Assuming you have a Navbar component
+import Navbar from '../components/NavBar';
 import Sidebar from './components/Sidebar';
 import { TripProvider } from './context/tripContext';
+
 export default function Layout({ children }) {
   return (
-    <div style={{ display: 'flex', backgroundColor:'#EEDAC4',color:'black',flexDirection: 'column' ,padding:'0' , minHeight:'100vh'}}>
-      {/* Navbar at the top */}
+    <div className="flex flex-col min-h-screen bg-[#EEDAC4] text-black">
+      {/* Navbar */}
       <Navbar />
 
-      {/* Centered content */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'start' , marginTop:'100px' , paddingBottom:'25px' }}>
-        <div style={{ width: '88%', display: 'flex', flexDirection: 'column' }}>
-          {/* Title */}
-          <h1 className="settings-title">Settings</h1>
+      {/* Main Content */}
+      <div className="flex justify-center items-start mt-[100px] pb-6 flex-1">
+        <div className="w-[88%] flex flex-col">
+          {/* Page Title */}
+          <h1 className="text-left text-4xl font-bold">Settings</h1>
 
-          {/* Flex row for sidebar and content */}
-          <div className="settings-container">
+          {/* Layout: Sidebar + Main content */}
+          <div className="flex flex-col md:flex-row gap-10 mt-5">
             {/* Sidebar */}
-          <Sidebar />
+            <Sidebar />
 
-            {/* Main content */}
-            <div style={{ width:'100%' ,boxSizing:'border-box' }}>
-              <TripProvider>
-              {children}</TripProvider>
+            {/* Main content area */}
+            <div className="w-full box-border">
+              <TripProvider>{children}</TripProvider>
             </div>
           </div>
         </div>
