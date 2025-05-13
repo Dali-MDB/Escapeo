@@ -211,7 +211,7 @@ export default function NavBar() {
   const CenterSection = () => {
     return (
       <div className="w-full z-20 h-full p-0 flex justify-evenly items-center">
-        <div className="flex justify-center items-center w-3/4 sm:w-full h-full">
+        <div className="flex justify-center items-center w-3/4 h-full">
           <Link href="/" aria-label="Home" className="w-full sm:w-1/2">
             <Image
               src={"/logo.png"}
