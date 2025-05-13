@@ -15,7 +15,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-1/2 text-xl h-fit font-bold bg-[var(--bg-color)] px-2 py-4 gap-3  rounded-xl flex flex-col justify-center items-center text-left">
+    <div className="mb-8  md:w-1/2 w:full md:text-xl text-sm h-fit font-bold bg-[var(--bg-color)] px-2 py-4 md:gap-3 gap-1  rounded-xl flex md:flex-col flex-row justify-center items-center text-left">
       {tabs.map((el, index) => {
         
         
@@ -28,11 +28,11 @@ export default function Sidebar() {
         <Link
           key={index}
           href={el.path}
-          className={`w-full h-full px-4 py-4 rounded-xl flex gap-5 items-center ${
+          className={`md:w-full w-1/4 h-full md:px-4 md:py-4 px-1 py-1 rounded-xl flex md:gap-5 items-center ${
             tab === el.path ? "bg-[var(--primary)] shadow-[0_7px_10px_0px_rgba(0,0,0,0.2)] text-white" : "bg-transparent"
           } rounded-lg `}
         >
-          <span className="w-full flex flex-row justify-start gap-2 items-center">{el.icon} {el.name}</span> <span className={`w-full flex justify-end items-center ${
+          <span className="w-full flex flex-row justify-start md:gap-2 gap-1 items-center">{el.icon} {el.name}</span> <span className={`w-full flex justify-end items-center ${
             tab === el.path ? " text-white" : "text-black"
           }`}>{arrow}</span>
         </Link>

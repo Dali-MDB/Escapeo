@@ -18,8 +18,8 @@ export default function Packages() {
         <div className="w-[80%] mx-auto">
           <div className="text-black flex w-full justify-between items-center">
             <div>
-              <h2 className="text-5xl font-bold py-4">Packages</h2>
-              <p className="text-xl">
+              <h2 className="text-4xl sm:text-5xl font-bold py-4">Packages</h2>
+              <p className="text-lg sm:text-xl">
               explore Our Best Travel Packages</p>
             </div>
             <button className="text-xl border-2 border-[rgba(0,0,0,0.2)] rounded-lg py-3 px-3">

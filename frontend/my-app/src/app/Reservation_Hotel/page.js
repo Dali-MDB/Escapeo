@@ -183,7 +183,7 @@ export default function TripDetail() {
                         hotel_data={stayDetails}
                     />)}
 
-            <div className="w-[80%] min-h-[80vh] flex items-start gap-8 justify-between mx-auto">
+            <div className="w-[80%] min-h-[80vh] flex flex-col sm:flex-row items-start gap-8 justify-between mx-auto">
                 {stayDetails ? (
                     <>
                         <FirstSec

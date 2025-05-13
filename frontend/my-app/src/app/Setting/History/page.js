@@ -26,7 +26,7 @@ const HistoryBoxFlight = ({
   };
 
   return (
-    <div className="w-full flex justify-evenly gap-2 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div className="w-full flex flex-col lg:flex-row justify-evenly gap-2 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
       {[
         { label: "Trip", value: trip_title },
         { label: "Departure", value: departure_location },

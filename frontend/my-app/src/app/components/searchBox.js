@@ -89,7 +89,7 @@ export default function FlightSearch() {
         ))}
       </div>
 
-      <div className="flex flex-row justify-evenly gap-5 items-center justify-center w-full">
+      <div className="flex flex-col lg:flex-row justify-evenly gap-5 items-center justify-center w-full">
         {[
           { field: "departure_city", label: "From", placeholder: "City or Airport", icon: <FaPlaneDeparture size={30} /> },
           { field: "destination", label: "To", placeholder: "City or Airport", icon: <FaPlaneArrival size={30} /> },

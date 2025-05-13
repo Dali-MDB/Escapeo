@@ -114,7 +114,7 @@ export default function FiltersBar() {
   };
 
   return (
-    <div className="w-full md:w-1/4 px-4 py-6 border flex flex-col bg-gray-100 rounded-xl h-fit sticky mb-24 top-4">
+    <div className="w-full md:w-1/4 px-4 py-6 border-r flex flex-col bg-gray-100 rounded-lg h-fit sticky top-4">
       <div className="w-full flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">Filters</h2>
         <button 

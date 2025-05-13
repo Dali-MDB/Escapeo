@@ -25,30 +25,36 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
-
+  
     const payload = {
       username: loginData.email, // or email: loginData.email depending on your backend
       password: loginData.password,
     };
-
+  
     try {
       // 1. First attempt login
       const loginResponse = await login(payload.username, payload.password);
-
-
+      
+      if (!loginResponse.ok) {
+        const errorData = await loginResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || "Login failed");
+      }
+  
       // 2. If login successful, get profile
       const profileResponse = await getMyProfile();
-
+      
       if (!profileResponse.ok) {
+        
         console.log(profileResponse || "Failed to fetch profile");
       }
-
-
+  
+      
       setIsAuthenticated(true);
-         alert("Login successful!");
-        router.push('/')
-     
+      alert("Login successful!");
+      router.push('/')
+      
     } catch (error) {
+      console.error("Login error:", error);
       setErrorMessage(error.message || "An error occurred during login");
     } finally {
       setIsLoading(false);
@@ -72,7 +78,7 @@ export default function Login() {
           placeholder="Email"
           value={loginData.email}
           onChange={handleChange}
-          backgroundColor="var(--bg-color)"
+          backgroundColor="var(--bg-color)" 
         />
 
         {/* Password Input */}

@@ -27,11 +27,14 @@ import Image from "next/image";
 
 
 const Hero = () => (
-  <div className="w-full   mt-20  h-[88vh] relative   mx-auto  py-2 flex flex-col  justify-start  items-center  ">
-    <div className="bg-no-repeat h-3/4  w-[90%] bg-[url('/coverFlights.png')] bg-center bg-cover  rounded-3xl">
+  <div className="w-full  h-[60vh] sm:h-[80vh] mt-18 sm:mt-24  lg:h-screen relative   mx-auto  py-5 flex flex-col  justify-start lg:justify-center items-center flex-wrap sm:flex-nowrap  ">
+    <div className="bg-no-repeat h-1/3  lg:h-3/4 w-[90%] bg-[url('/coverFlights.png')] bg-center bg-cover  rounded-3xl">
       {/** */}
     </div>
-    <div className="absolute bottom-20 w-[80%]">
+    <div className="absolute w-[80%] mx-auto mt-36 sm:mt-72 lg:mt-auto lg:bottom-[-50px]">
+    {/*absolute bottom-[-120px] sm:bottom-[-50px] mt-96 pt-96 sm:mt-auto w-[80%]*/}
+    {/*absolute w-[80%] mx-auto mt-36 sm:mt-72 lg:mt-auto lg:bottom-[50px]*/ }
+
       <FlightSearch />
     </div>
   </div>
@@ -55,7 +58,7 @@ const FilterButton = ({ value, label, borderColor, onToggle, isInitiallySelected
       name={value}
       id={label}
       onClick={handleClick}
-      className={`px-4 w-full py-2 rounded-full  shadow-[2px_-3px_10px_rgba(0,0,0,0.4)] 
+      className={` sm:block px-4 w-fit sm:w-full py-2 rounded-full  shadow-[2px_-3px_10px_rgba(0,0,0,0.4)] 
         ${isSelected ? "bg-[#035280] text-white" : `bg-[var(--bg-color)] border-4 ${borderColor}`} 
         `}
     >
@@ -127,9 +130,10 @@ const FilterSection = ({ setFiltersSet, filtersSet }) => {
   ];
 
   return (
-    <div className="w-full mt-4 mx-auto flex flex-col items-center gap-4">
+    <div className="w-full mt-[450px] sm:mt-[350px] lg:mt-36 mx-auto flex flex-col items-center gap-4 ">
+      {/* w-full mt-48 sm:mt-36 mx-auto flex flex-col items-center gap-4*/}
       {/* First row - 8 buttons */}
-      <div className="flex w-[80%] mx-auto justify-center gap-2 flex-row ">
+      <div className="flex w-[80%] mx-auto justify-center gap-2 flex-row flex-wrap sm:flex-nowrap">
 
         {
 
@@ -143,11 +147,12 @@ const FilterSection = ({ setFiltersSet, filtersSet }) => {
               (f) => f.filter === filter.value && f.value === filter.label
             )}
             onToggle={handleFilterClick}
+            
           />))}
       </div>
 
       {/* Second row - 9 buttons */}
-      <div className="flex justify-center mx-auto gap-2 flex-row w-[90%]">
+      <div className="flex justify-center mx-auto gap-2 flex-row w-[90%] flex-wrap sm:flex-nowrap">
         {PRICE_CATEGORIES.map((filter, index) => (<FilterButton
           key={index}
           value={filter.value}
@@ -171,7 +176,7 @@ const FilterSection = ({ setFiltersSet, filtersSet }) => {
       </div>
 
       {/* Third row - 8 buttons */}
-      <div className="flex w-[80%] mx-auto px-20 justify-center gap-2 flex-row ">
+      <div className="flex w-[80%] mx-auto  justify-center gap-2 flex-row flex-wrap sm:flex-nowrap">
         {TRIP_TYPES.map((filter, index) => (<FilterButton
           key={index}
           value={filter.value}
@@ -186,6 +191,11 @@ const FilterSection = ({ setFiltersSet, filtersSet }) => {
     </div >
   );
 };
+
+
+
+
+
 
 const FlightsSection = ({ flights, valuesToShow, filters }) => {
   const matchFlightToFilters = (flight) => {
@@ -234,7 +244,7 @@ const FlightsSection = ({ flights, valuesToShow, filters }) => {
   };
 
   return (
-    <div className="w-[90%] mx-auto py-10 px-10 mt-20 gap-20 grid grid-cols-5">
+    <div className="w-[90%] mx-auto py-10 px-4 mt-20 grid gap-10 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 justify-items-center">
       {flights
         .slice(0, valuesToShow)
         .filter(matchFlightToFilters)
@@ -242,7 +252,7 @@ const FlightsSection = ({ flights, valuesToShow, filters }) => {
           <FlightBox
             key={index}
             link={"/TripDetail"}
-            backgroundImage={flight?.images[0]?.image}
+            backgroundImage={flight?.images[0]?.image }
             title={flight.title}
             description={flight.description}
             price={flight.departure_places[0]?.price}
@@ -264,25 +274,24 @@ const Flights = () => {
       try {
         const response = await fetch(`${API_URL}/all_trips/`, {
           method: "GET",
-
+          
         });
 
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to fetch related flights.");
-        } else {
+        }else{
           const data = await response.json();
-
-          setFlights(data)
+      setFlights(data)
         }
       } catch (err) {
         alert("error: " + err)
       }
-
+      
 
     }
     fetchRelatedFlights()
-
+     
 
 
 
@@ -291,7 +300,7 @@ const Flights = () => {
   const [valuesToShow, setValuesToShow] = useState(10)
 
   return (
-    <div className="bg-[#EEDAC4]  py-5">
+    <div className="bg-[#EEDAC4]   py-5">
       <NavBar />
       <Hero />
       <FilterSection setFiltersSet={setFiltersSet} filtersSet={filtersSet} />

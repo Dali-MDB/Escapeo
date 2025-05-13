@@ -69,13 +69,13 @@ const DepartureBox = (data) => {
   console.log(isAuthenticated)
   return (
   <div className={`w-full py-6 px-0   border-[var(--primary)] ${data.index !== data.length - 1 && "border-b-[0.5px]"}  flex justify-between items-center`}>
-    <div className="w-full flex justify-start items-center  gap-8">
+    <div className="w-full flex flex-col sm:flex-row justify-start items-center  gap-8">
       <p className="text-xl flex items-center gap-2">{<GrLocationPin size={20} />}<span className="font-bold">
         {data.location} - {data.destination}</span></p>
       <p className="text-xl font-bold">Capacity: <span className="font-medium">{data.capacity}</span></p>
       <p className="text-xl font-bold">Class: <span className="font-medium"> {data.price_category}</span></p>
     </div>
-    <div className="flex w-1/4 justify-end">
+    <div className="flex flex-col sm:flex-row w-1/4 justify-end">
       <div className="w-fit px-8 py-2 text-xl text-[var(--primary)] font-semibold  rounded-xl">$ {data.price}</div>
       <button className="w-fit px-8 py-2 text-xl  font-semibold bg-[var(--secondary)] rounded-xl" onClick={(e) => {
         e.preventDefault()

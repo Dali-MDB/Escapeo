@@ -17,7 +17,6 @@ const RealCard = ({ setClicked, departure_data, trip_data }) => {
 
         const getRealPrice = async () => {
             try {
-                console.log(localStorage.getItem('accessToken'))
                 const response = await fetch(
                     `${API_URL}/reservation/get_trip_reservation_price/${tripSelected}/?departure_trip_id=${storedDepartureId}&tickets=${number_of_tickets}`,
                     {
@@ -30,14 +29,11 @@ const RealCard = ({ setClicked, departure_data, trip_data }) => {
                 )
 
                 if (!response.ok) {
-                    const aler = await response.json()
-                    alert(aler.errors)
-                }else{
-                    const data = await response.json()
-                    setTotalPrice(data.total_trip_price)
-    
+                    throw new Error('Failed to fetch price')
                 }
 
+                const data = await response.json()
+                setTotalPrice(data.total_trip_price)
             } catch (error) {
                 console.error("Price calculation error:", error)
                 // You might want to set some error state here
@@ -92,7 +88,7 @@ const RealCard = ({ setClicked, departure_data, trip_data }) => {
     }
 
     return (
-        <form onSubmit={handleInitReservation} className="min-w-[400px] absolute top-1/4 left-1/3 z-10 mx-auto p-6 bg-white rounded-xl shadow-2xl">
+        <form onSubmit={handleInitReservation} className="min-w-[400px] absolute top-1/4 sm:left-1/3 z-10 mx-auto p-6 bg-white rounded-xl shadow-2xl">
             <div className="w-full pb-4 text-2xl font-semibold text-[var(--primary)]">
                 <h1 className="w-full flex justify-between items-center">
                     {trip_data.title}

@@ -39,7 +39,7 @@ const HotelSearch = ({ onSearch }) => {
 
     return (
         <div className="cursor-pointer text-center shadow-[10px_10px_35px_0_#a4b5c4] z-2 mt-[-15%] py-10 flex flex-col justify-between gap-5 items-start w-full text-lg text-[var(--primary)] px-10 pb-10 bg-[var(--bg-color)] rounded-2xl">
-            <div className="flex flex-row justify-evenly gap-5 items-center w-full">
+            <div className="flex flex-col lg:flex-row justify-evenly gap-5 items-center w-full">
                 {/* Location Field */}
 
                 <div className="w-full flex gap-2 flex-col justify-center items-start p-2">

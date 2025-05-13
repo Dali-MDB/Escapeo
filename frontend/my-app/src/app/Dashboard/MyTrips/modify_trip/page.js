@@ -109,7 +109,6 @@ export default function TripForm() {
         
         setFormData({
           title: data.title,
-          capacity: data.capacity,
           description: data.description,
           airlineCompany: data.airline_company,
           stars_rating: data.stars_rating,
@@ -146,21 +145,11 @@ export default function TripForm() {
   };
 
   const handleSubmit = async (e) => {
-
-    let totalCapacity = 0
-    for (const departure of departures) {
-      totalCapacity += departure.capacity;
-    }
-
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     const nid = localStorage.getItem("tripSelected")
-    setFormData(prev => ({
-      ...prev,
-      capacity: totalCapacity
-    }))
-    console.log(formData)
+    
     try {
       const token = localStorage.getItem("accessToken");
       const url =  `${API_URL}/trip_details/${nid}`
@@ -178,8 +167,12 @@ export default function TripForm() {
         body: JSON.stringify(formData)
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Operation failed");
+      }
       
-      
+      const result = await response.json();
       
       if (isEditing) {
         router.push(`/Dashboard/MyTrips`);
@@ -337,20 +330,6 @@ export default function TripForm() {
           }
         );
       }
-
-      //need to update the capacity of the trip
-      const totalCapacity = departures.reduce((acc, dep) => acc + dep.capacity, 0);
-      const nid = localStorage.getItem("tripSelected")
-      const response = await fetch(`${API_URL}/trip_details/${nid}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ capacity: totalCapacity })
-      
-      });
-
       alert("Trip updated successfully");
       router.push(`/Dashboard/MyTrips`);
     } catch (err) {
@@ -463,7 +442,7 @@ export default function TripForm() {
     <div className="w-full flex justify-center gap-6 mx-auto">
       <div className="bg-[var(--bg-color)] rounded-xl shadow-md p-6 w-full max-w-4xl">
         <h1 className="text-2xl font-bold mb-6">
-          {"Edit Trip"}
+          {isEditing ? "Edit Trip" : "Create New Trip"}
         </h1>
 
         {error && (

@@ -215,7 +215,7 @@ export default function TripDetail() {
                 <RealCard setClicked={setClicked} departure_data={selectedDeparture} trip_data={tripDetails}  />
             )}
 
-            <div className="w-[80%] min-h-[80vh] flex items-start gap-8 justify-between mx-auto">
+            <div className="w-[80%] min-h-[80vh] flex flex-col sm:flex-row items-start gap-8 justify-between mx-auto">
                 {tripDetails ? (
                     <>
                         <FirstSec

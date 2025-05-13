@@ -71,9 +71,9 @@ export default function ContactForm() {
   }
   //  || "" Auto-scroll effect
   return (
-    <div className="w-screen h-screen text-black bg-[#EEDAC4] flex flex-row-reverse justify-center items-center gap-0">
+    <div className="w-screen h-screen text-black bg-[#EEDAC4] flex flex-col lg:flex-row-reverse justify-center items-center gap-0 pt-20 sm:pt-O">
       {/* Login Form */}
-      <div className="w-2/5 h-[80%] gap-10 flex flex-col  justify-center items-center">
+      <div className="w-full lg:w-2/5 h-[80%] gap-10 flex flex-col  justify-center items-center">
         {/* Header Section */}
         <div className="w-3/4 flex flex-col justify-center items-start gap-4">
           <h1 className="text-black text-4xl font-bold">Get In Touch</h1>
@@ -130,7 +130,7 @@ export default function ContactForm() {
           {images.map((img, index) => (
             <div
               key={index}
-              className="w-full h-full flex-shrink-0 bg-cover bg-center rounded-3xl"
+              className="w-full hidden lg:block h-full flex-shrink-0 bg-cover bg-center rounded-3xl"
               style={{
                 backgroundImage: `url(${img})`,
               }}
