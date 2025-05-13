@@ -24,7 +24,9 @@ const Reviewcard = (props) => {
 
   return (
     <div
-      className={`w-full gap-4 p-8 opacity-85 rounded-3xl ${!isAuthenticated ? "bg-transparent" : "bg-white"} flex flex-col justify-center items-center hover:border-[1px] hover:border-black transition-all duration-200 ease-in shadow-2xl hover:shadow-none`}
+      className={`w-full gap-4 p-8 opacity-85 rounded-3xl ${!isAuthenticated ? "bg-transparent" : "bg-white"} flex flex-col justify-center items-center hover:border-[1px] hover:border-black transition-all duration-200 ease-in shadow-2xl hover:shadow-none ` } style={{
+        boxSizing:'border-box'
+      }}
     >
       <div className="w-full">
         <h1 className="w-full text-2xl font-bold text-black">{props.title}</h1>

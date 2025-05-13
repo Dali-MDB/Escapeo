@@ -404,14 +404,8 @@ class tripDetails(APIView):
         old_data = {
             field.name: getattr(trip, field.name)
             for field in trip._meta.get_fields()
-<<<<<<< HEAD
             if not field.is_relation  # Exclude related fields
         }
-=======
-            if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
-        }
-
->>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
         trip_ser = TripSerializer(trip, data=request.data, partial=True)
         if trip_ser.is_valid():
             trip_ser.save()

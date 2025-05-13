@@ -142,6 +142,7 @@ export async function signUp(formData) {
     birthdate: formData.birthdate,
     gender: formData.gender,
     favorite_currency: formData.favorite_currency,
+    is_admin: false
   }).forEach(([key, value]) => value && formDataToSend.append(key, value));
 
   // Append profile picture if exists
