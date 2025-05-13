@@ -11,7 +11,7 @@ const Topic = (props) => {
   return (
     <div className="w-full flex flex-col justify-center items-center">
       <div className="w-full flex flex-row justify-between items-center">
-        <span className="flex flex-row text-xl font-semibold justify-center items-center gap-2">
+        <span className="flex flex-row md:text-xl text-lg font-semibold justify-center items-center gap-2">
           {dotItcon} {props.topicTitle}
         </span>
         <span
@@ -31,7 +31,7 @@ const Topic = (props) => {
 
 const LilTopicDiv = (props) => {
   return (
-    <div className="w-[98%] bg-[#EFE8E5] txet-black flex flex-col justify-center items-center gap-4 p-16 rounded-b-xl">
+    <div className="w-[98%] bg-[#EFE8E5] txet-black flex flex-col justify-center items-center gap-4 md:p-16 p-30 rounded-b-xl">
       {props.topics.map((el, index) => (
         <div className="w-full p-5 " key={index}>
         <Topic  {...el} />
@@ -52,7 +52,7 @@ const BigTopicDiv = (props) => {
         <h1 className="text-xl font-bold">{props.topic}</h1>
         
           <button
-            className={` w-[12%] px-4 py-3 text-xl text-center flex justify-center items-center font-medium  rounded-lg ${opened ? "" : "border-[1px] border-black"}`}
+            className={` md:w-[12%] w-1/2 px-4 py-3 md:text-xl text-md text-center flex justify-center items-center font-medium  rounded-lg ${opened ? "" : "border-[1px] border-black"}`}
             onClick={() => {
               setOpened(!opened);
               props.setOneIsOpen((prev)=>!prev);
@@ -74,8 +74,8 @@ export default function HelpCentter() {
   return (
     <div className={`w-full  min-h-screen bg-[${bgColor}]`}>
       <NavBar />
-      <div className="w-full p-40 mx-auto flex  flex-col justify-center items-center gap-6 ">
-        <h1 className="w-full text-[45px] font-extrabold">Help Center</h1>
+      <div className="md:w-full md:p-40 w-2/3 p-30 mx-auto mt-20 flex  flex-col justify-center items-center gap-6 ">
+        <h1 className="w-full text-[45px] text-center font-extrabold">Help Center</h1>
         {helpCenter.map((el, index) => (
           <BigTopicDiv
             key={index}

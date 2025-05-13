@@ -153,7 +153,7 @@ export default function Account() {
           </div>
           <button
             onClick={triggerFileInput}
-            className="absolute bottom-[-120px] right-[42%] z-50 bg-white p-2 rounded-xl shadow-md"
+            className="absolute bottom-[-120px] right-[440px] z-50 bg-white p-2 rounded-xl shadow-md"
           >
             {<Edit size={15} />}
           </button>

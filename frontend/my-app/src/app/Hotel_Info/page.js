@@ -23,7 +23,7 @@ const HotelInfoSection = ({ data }) => {
     const router = useRouter()
     return (
         <section className="w-full py-10 px-0 md:px-20 ">
-            <div className=" mx-auto">
+            <div className="p-10 sm:p-0 mx-auto">
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-4xl mb-3 font-bold text-gray-800">{data.name}</h1>
@@ -139,7 +139,7 @@ const GallerySection = ({ data }) => {
     if (!data?.images) return null;
 
     return (
-        <section className="w-full py-10 px-0 md:px-20 bg-gray-50">
+        <section className="w-full py-10 px-10 sm:px-0 md:px-20 bg-gray-50">
             <div className=" mx-auto">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Gallery</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -24,10 +24,11 @@ export default function SignLayout({ children }) {
   return (
     <FormProvider> {/* Wrap the layout with FormProvider */}
       <div className="w-screen h-screen text-black bg-[#EEDAC4] flex flex-row-reverse justify-center items-center gap-10">
-        <div className="w-3/6 h-[80%] flex flex-col gap-10 justify-center items-center">
+        <div className="w-11/12 lg:w-3/6 h-[80%] flex flex-col gap-10 justify-center items-center">
           {children} {/* This will now have access to the FormContext */}
         </div>
-        <div className="w-1/2 h-[80%] flex justify-center items-center">
+        <div className="hidden lg:flex w-1/2 h-[80%] justify-center items-center">
+
           <div
             ref={scrollRef}
             className="w-3/4 h-full flex no-scrollbar overflow-x-scroll scroll-smooth snap-x snap-mandatory rounded-3xl"

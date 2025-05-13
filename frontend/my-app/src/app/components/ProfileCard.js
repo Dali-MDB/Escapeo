@@ -53,7 +53,7 @@ export default function ProfileCard({ isAdmin, profile }) {
               <Image width={150} height={150} alt="a" unoptimized src={`http://127.0.0.1:8000${profile.profile_picture}`}
               /></div>
             <div className="flex flex-col items-start">
-              <h1 className="font-bold text-xl text-white">{profile.user.username || "John Doe"}</h1>
+              <h1 className="font-bold text-xl text-white">{profile.username || "John Doe"}</h1>
               <h5 className="text-md text-gray-200">Online</h5>
             </div>
           </Link>

@@ -6,8 +6,8 @@ export default function SpecialOffers() {
       <div className="w-[80%] mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>
-            <h2 className="text-5xl font-bold py-4">Special Offer</h2>
-            <p className="text-xl">
+            <h2 className="text-4xl sm:text-5xl font-bold py-4">Special Offer</h2>
+            <p className="text-lg sm:text-xl">
               Search Flights & Places Hire to our most popular destinations
             </p>
           </div>

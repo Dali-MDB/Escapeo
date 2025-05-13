@@ -353,9 +353,9 @@ export default function Messages() {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div className="w-full min-h-[40vh] rounded-xl flex gap-6">
+        <div className="w-full min-h-[40vh] rounded-xl  flex lg:flex-row flex-col gap-6">
             {/* Sidebar */}
-            <div className="w-1/2 rounded-xl bg-[var(--bg-color)] dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
+            <div className="lg:w-1/2 md:w-1/2 w-full rounded-xl bg-[var(--bg-color)] dark:bg-zinc-900 p-4 space-y-4 border-r border-zinc-300 dark:border-zinc-700">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Conversations</h2>
                 </div>

@@ -132,7 +132,7 @@ export default function Notifications() {
                         notifications.map((notification, index) => {
 
                             return (
-                                <div key={notification.id} className={`w-full flex justify-between items-center p-4 text-lg ${notification.status === 'unread' ? "bg-white  border-b-[0.01px] border-[rgba(0,0,0,0.2)] " :"bg-transparent"}`}>
+                                <div key={notification.id} className={`w-full flex flex-col sm:flex-row justify-between items-center p-4 text-lg ${notification.status === 'unread' ? "bg-white  border-b-[0.01px] border-[rgba(0,0,0,0.2)] " :"bg-transparent"}`}>
                                     <div className="w-full flex justify-between items-center gap-2 pr-6">
                                         <div className="w-full">
                                              <h1 className={`  text-[var(--primary)] ${notification.status === 'unread' ? "text-xl font-bold":"text-lg " } `}>{notification.title}</h1>

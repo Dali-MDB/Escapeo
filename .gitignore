@@ -22,3 +22,6 @@ db.sqlite3  # This is for SQLite; you're using Postgres, so it's fine to ignore
 
 #ignore-docker
 .docker-compose.yml
+media/
+backend/db.sqlite3
+backend/.env.txt

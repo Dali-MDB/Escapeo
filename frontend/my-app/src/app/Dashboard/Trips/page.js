@@ -149,7 +149,7 @@ const DepartureInformationSection = ({
       <div className="grid grid-cols-2 gap-4">
 
         <InputLogin
-          type={"datetime-local"}
+          type={"date"}
           name={"departure_date"}
           value={formData?.departure_date}
           onChange={handleChange}
@@ -174,6 +174,7 @@ const DepartureInformationSection = ({
 
 const DestinationInformationSection = ({ formData, handleChange, DESTINATION_TYPES }) => {
   return (
+
     <div className="mb-6">
       <h2 className="text-xl font-semibold mb-4">Destination Information</h2>
       <div className="flex flex-col gap-4 align-items-center">
@@ -185,6 +186,9 @@ const DestinationInformationSection = ({ formData, handleChange, DESTINATION_TYP
           placeholder="Destination"
           required
         />
+
+
+
         <FlightOptionsSection
           formData={formData}
           handleChange={handleChange}
@@ -277,7 +281,6 @@ const ImageUploadSection = ({ tripImages, handleImageUpload, handleImageDelete, 
       accept="image/*"
       className="mb-4"
     />
-    {/* Preview images */}
     <div className="flex my-2 gap-2">
       {tripImages.length > 0 && tripImages.map((image, index) => (
         <div key={index} className="relative">
@@ -409,22 +412,15 @@ export default function Trips() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      // Calculate total capacity from departure places
-      
-      // Create a copy of formData with the total capacity
-      const formDataWithCapacity = {
-        ...formData,
-        capacity: 1
-      };
-
+      console.log(JSON.stringify(formData))
       const res = await fetch(`http://127.0.0.1:8000/add_trip/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
 
-        body: JSON.stringify(formDataWithCapacity)
+        body: JSON.stringify(formData)
       })
       if (res.ok) {
         const data = await res.json();
@@ -506,7 +502,7 @@ export default function Trips() {
 
       }, body: formData
 
-    })
+    }).catch(err => alert('Error' + err))
 
 
 
@@ -514,22 +510,6 @@ export default function Trips() {
   }
   const submitDepartures = async () => {
     try {
-      // Calculate total capacity first
-      const totalCapacity = departures.reduce((acc, curr) => acc + curr.capacity, 1);
-      console.log(localStorage.getItem("accessToken"))
-      console.log(totalCapacity)
-      // Update trip capacity
-      const updateResponse = await fetch(`${API_URL}/trip_details/${tripId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`
-        },
-        body: JSON.stringify({ capacity: totalCapacity })
-      });
-
-      
-      // Then add all departures
       const results = await Promise.all(
         departures.map(async departure => {
           const response = await fetch(`${API_URL}/add_trip_departure/${tripId}`, {

@@ -5,7 +5,7 @@ export default function PopularDest() {
 
   return (
     <section
-      className="relative h-screen w-full flex justify-center mt-16 items-center mx-auto"
+      className="relative h-screen w-full flex justify-center mt-32 sm:mt-16 items-center mx-auto"
       style={{
         backgroundImage: `url(${bg})`,
         backgroundSize: "cover", // Ensures the image covers the entire section
@@ -16,8 +16,8 @@ export default function PopularDest() {
       <div className="w-[80%] z-10 mx-auto">
         <div className="text-black flex w-full justify-between items-center">
           <div>
-            <h2 className="text-5xl font-bold py-4">Popular Destinations</h2>
-            <p className="text-xl">
+            <h2 className="text-4xl sm:text-5xl font-bold py-4">Popular Destinations</h2>
+            <p className="text-lg sm:text-xl">
               Search Flights & Places Hire to our most popular destinations
             </p>
           </div>

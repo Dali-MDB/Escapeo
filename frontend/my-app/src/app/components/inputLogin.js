@@ -3,7 +3,20 @@ import { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const InputLogin = ({ min, max, type, name, value, onChange, placeholder, error, className, required, backgroundColor, disabled = false }) => {
+const InputLogin = ({ 
+  min, 
+  max,
+  type = "text", 
+  name, 
+  value, 
+  onChange, 
+  placeholder, 
+  error,
+  className,
+  required = true,
+  backgroundColor,
+  disabled = false
+}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isFilled, setIsFilled] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -69,8 +82,8 @@ const InputLogin = ({ min, max, type, name, value, onChange, placeholder, error,
             aria-describedby={error ? `${name}-error` : undefined}
           />
         )}
-        <label
-          htmlFor={name}
+        <label 
+          htmlFor={name} 
           className={`label ${type === "text-area" ? "label-textarea" : ""} ${isFocused ? "focused" : ""}`}
         >
           {placeholder}

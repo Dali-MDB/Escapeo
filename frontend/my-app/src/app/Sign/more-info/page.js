@@ -16,12 +16,6 @@ export default function MoreInfo() {
     setFormData({ ...formData, [name]: files ? files[0] : value });
   };
 
-  const handleDropdownChange1 = ({ value   }) =>{
-    setFormData(prev=>({...prev , gender:value}))
-  } 
-  const handleDropdownChange2 = ({ value   }) =>{
-    setFormData(prev=>({...prev , favorite_currency:value}))
-  } 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -114,15 +108,15 @@ export default function MoreInfo() {
           <CustomDropdown
             options={[{label: "Male", value: "male"}, {label: "Female", value: "female"}]}
             value={formData.gender}
-            onChange={handleDropdownChange1}
+            onChange={handleChange}
             placeholder="Select Gender"
           />
 
           {/* Favorite Currency Select Dropdown */}
           <CustomDropdown
-            options={[{label: "USD", value: "USD"}, {label: "EUR", value: "EUR"}, {label: "GBP", value: "GBP"},  {label: "DZD", value: "DZD"}]}
+            options={[{label: "USD", value: "USD"}, {label: "EUR", value: "EUR"}, {label: "GBP", value: "GBP"}]}
             value={formData.favorite_currency}
-            onChange={handleDropdownChange2}
+            onChange={handleChange}
             placeholder="Select Favorite Currency"
           />  
         </div>

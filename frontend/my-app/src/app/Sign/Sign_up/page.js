@@ -83,7 +83,7 @@ export default function Sign_up() {
               required
             />
           </div>
-          <div className="w-full grid grid-cols-2 grid-rows-1 gap-4">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-2 grid-rows-1 gap-4">
             {[
               { type: "email", name: "email", placeholder: "Email" },
               {
