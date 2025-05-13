@@ -44,23 +44,14 @@ const FlightOptionsSection = ({ formData, handleChange }) => {
       {!formData.is_one_way && (
         <div className="flex flex-col gap-4">
           <InputLogin
-            type="date"
+            type="datetime-local"
             name="return_date"
             value={formData.return_date || new Date()}
             onChange={handleChange}
             placeholder="Return Date"
             required={!formData.is_one_way}
           />
-          <InputLogin
-            type="time"
-            name="return_time"
-            value={formData.return_time || new Date()}
-            onChange={handleChange}
-            placeholder="Return Date"
-            required={!formData.is_one_way}
-          />
-
-
+         
         </div>
       )}
     </div>
@@ -146,24 +137,17 @@ const DepartureInformationSection = ({
   return (
     <div className="mb-6">
       <h2 className="text-xl font-semibold mb-4">Departure Information</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1">
 
         <InputLogin
-          type={"date"}
+          type={"datetime-local"}
           name={"departure_date"}
           value={formData?.departure_date}
           onChange={handleChange}
           placeholder={"Departure Date"}
           required
-        />
-        <InputLogin
-          type="time"
-          name="departureTime"
-          placeholder="Departure Time"
-          value={formData.departureTime}
-          onChange={handleChange}
-          required
-        />
+        />  
+        
 
       </div>
     </div>

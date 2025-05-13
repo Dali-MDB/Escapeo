@@ -16,17 +16,10 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True)  # Explicitly define username
     phone_number = models.CharField(max_length=15, unique=True)
-
-
-<<<<<<< HEAD
-    #is_online = models.BooleanField(default=False)
-    #last_seen = models.DateTimeField(null=True, blank=True)
-=======
     is_admin = models.BooleanField(default=False)
+   
     is_online = models.BooleanField(default=False)
 
->>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
-    
 
     objects = UserManager()
     USERNAME_FIELD = "email"  # Authenticate using email
@@ -50,12 +43,7 @@ class Customer(models.Model):
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
     birthdate = models.DateField(null=True,blank=True)
-<<<<<<< HEAD
     profile_picture = models.ImageField(upload_to='profile_pictures/customers', default='profile_pictures/profile.png')
-=======
-
-    profile_picture = models.ImageField(upload_to='profile_pictures/customers/', default='profile_pictures/profile.png')
->>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
 
 
     loyalty_points = models.PositiveIntegerField(default=0, validators=[validators.MaxValueValidator(500)])
@@ -356,8 +344,4 @@ class Notification(models.Model):
         self.save()
 
     def __str__(self):
-<<<<<<< HEAD
         return f"{self.recipient.username} - {self.type} - {self.status}"
-=======
-        return f"{self.recipient.username} - {self.type} - {self.status}"
->>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead

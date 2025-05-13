@@ -35,14 +35,9 @@ class DirectConversation(Conversation):
 
 class GroupConversation(Conversation):
     """Group conversation related to a trip"""
-<<<<<<< HEAD
-    
+
     from main.models import Trip
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE,  related_name='group_conversation')
-=======
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE,blank=True, null=True, related_name='group_conversation')
-
->>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
     participants = models.ManyToManyField(User,related_name='my_chats')
     
     def save(self, *args, **kwargs):

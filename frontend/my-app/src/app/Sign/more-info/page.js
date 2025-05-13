@@ -15,7 +15,12 @@ export default function MoreInfo() {
     const { name, value, files } = e.target;
     setFormData({ ...formData, [name]: files ? files[0] : value });
   };
-
+  const handleDropChange1 = (value) => {
+    setFormData({ ...formData, gender: value });
+  };
+  const handleDropChange2 = (value) => {
+    setFormData({ ...formData, favorite_currency: value });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -108,7 +113,7 @@ export default function MoreInfo() {
           <CustomDropdown
             options={[{label: "Male", value: "male"}, {label: "Female", value: "female"}]}
             value={formData.gender}
-            onChange={handleChange}
+            onChange={handleDropChange1}
             placeholder="Select Gender"
           />
 
@@ -116,7 +121,7 @@ export default function MoreInfo() {
           <CustomDropdown
             options={[{label: "USD", value: "USD"}, {label: "EUR", value: "EUR"}, {label: "GBP", value: "GBP"}]}
             value={formData.favorite_currency}
-            onChange={handleChange}
+            onChange={handleDropChange2}
             placeholder="Select Favorite Currency"
           />  
         </div>
