@@ -1,3 +1,30 @@
+"""from rest_framework import serializers
+from .models import Conversation,GroupConversation,Message,SupportTicket, DirectConversation
+
+class DirectConversationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DirectConversation
+        fields = ['id', 'customer', 'admin', 'created_at', 'updated_at', 'is_active']
+
+class GroupConversationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GroupConversation
+        fields = ['id', 'trip', 'participants', 'created_at', 'updated_at']
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField()
+    
+    class Meta:
+        model = Message
+        fields = ['id', 'conversation', 'sender', 'content', 'timestamp', 'read']
+
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportTicket
+        fields=['id', 'subject', 'description', 'status', 'created_at', 'accepted_by']
+        read_only_fields = ['created_at']
+"""
 from rest_framework import serializers
 from .models import Conversation, GroupConversation, Message, SupportTicket, DirectConversation
 from main.models import User  
@@ -29,7 +56,7 @@ class UUIDSerializer(MsgPackSerializer):
 class UserBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_online']
+        fields = ['id', 'username', 'email']
 
 class DirectConversationSerializer(serializers.ModelSerializer):
     customer = UserBriefSerializer()

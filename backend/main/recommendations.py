@@ -110,4 +110,6 @@ def get_recommendations(customer_id, num_recommendations=10, alpha=0.5):
     trip_id_to_obj = {trip.id: trip for trip in recommended_trips}
     ordered_recommendations = [trip_id_to_obj[trip_id] for trip_id in trip_ids if trip_id in trip_id_to_obj]
     
+
     return ordered_recommendations
+

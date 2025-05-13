@@ -22,7 +22,7 @@ urlpatterns = [
     path('direct-conversations/<int:conversation_id>/messages/', 
          DirectMessageListView.as_view(), 
          name='direct-message-list'),
-    path('direct-conversations/create/', 
+    path('direct-conversations/create/<uuid:user_id>/', 
          CreateDirectConversationView.as_view(), 
          name='direct-conversation-create'),
 

@@ -69,6 +69,9 @@ class CustomerSerializer(serializers.ModelSerializer):
             'user', 'first_name', 'last_name', 'country', 'city', 'birthdate',
             'profile_picture', 'gender', 'favorite_currency'
         ]
+        extra_kwargs = {
+            'profile_picture': {'read_only': True},
+        }
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')

@@ -41,7 +41,6 @@ def register(request):
             title='Welcome to Our Travel Platform!',
             message='Your account has been successfully created. We are excited to have you onboard!',
         )
-
         context = {
             'details' : user_ser.data,
             'success' : 'user created successfully',
@@ -367,7 +366,12 @@ def addTrip(request):
                 title='New Trip Added',
                 message=f'A new Trip named "{trip.title}" has been added by {request.user.admin}.',
             )
-        return Response({'success : a new trip has been added successfully'},status=status.HTTP_201_CREATED)
+        return Response({
+"success" : "a new trip has been added successfully",
+"trip_id" : trip.id
+},status=status.HTTP_201_CREATED)
+
+
     return Response(trip_ser.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -381,29 +385,33 @@ def allTrips(request):
 
 #@api_view(['GET','PUT','DELETE'])
 
+
 class tripDetails(APIView):
     permission_classes = [TripPermission]
     def get_trip(self,pk):
         return get_object_or_404(Trip,id=pk)
     
-
-    def get(self, request, pk):
+    def get(self,request,pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
         trip_ser = TripSerializer(trip)
-        return Response(trip_ser.data, status=status.HTTP_200_OK)
-
+        return Response(trip_ser.data,status=status.HTTP_200_OK)
+    
     def put(self, request, pk):
         trip = self.get_trip(pk)
-        self.check_object_permissions(request, trip)  # ✅ Ensure permission check
+        
 
-        # Get all old data dynamically
+
         old_data = {
             field.name: getattr(trip, field.name)
             for field in trip._meta.get_fields()
+<<<<<<< HEAD
+            if not field.is_relation  # Exclude related fields
+        }
+=======
             if not field.is_relation or field.one_to_one or (field.many_to_one and field.related_model)
         }
 
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
         trip_ser = TripSerializer(trip, data=request.data, partial=True)
         if trip_ser.is_valid():
             trip_ser.save()
@@ -434,15 +442,19 @@ class tripDetails(APIView):
                         message=f'The Trip "{trip.title}" has been updated by {request.user.admin}.\nChanges:\n{changes}',
                     )
             return Response(trip_ser.data, status=status.HTTP_200_OK)
-
+        
         return Response(trip_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request, pk):
         trip = self.get_trip(pk)
         self.check_object_permissions(request, trip)  
+
         trip.delete()
         return Response({'success': 'Deletion was successful'}, status=status.HTTP_204_NO_CONTENT)
-    
+
+        
+   
 
 
 @api_view(['POST'])
@@ -622,12 +634,11 @@ class MyProfile(APIView):
             profile_ser = CustomerSerializer(profile)
 
         profile_data = profile_ser.data
-        profile_data.pop('user')
+        
         return profile_data
             
     def get(self,request):
         profile_data =  self.get_my_account(request.user)
-        profile_data['username'] = request.user.username
         return Response(profile_data)
 
    
@@ -736,10 +747,10 @@ def TripsFiltering(request):
     max_stars = request.GET.get('max_stars')
     departure_date = request.GET.get('departure_date')
     is_one_way = request.GET.get('is_one_way')
-    trip_types = request.GET.getlist('trip_type')
-    experiences = request.GET.getlist('experience')
-    destination_types = request.GET.getlist('destination_type')
-    transports = request.GET.getlist('transport')
+    trip_types = request.GET.get('trip_type')
+    experiences = request.GET.get('experience')
+    destination_types = request.GET.get('destination_type')
+    transports = request.GET.get('transport')
     sort = request.GET.get('sort', 'departure_date')  # Default sort by departure date
     ascending = request.GET.get('ascending', 'true').lower() == 'true'
 
@@ -949,9 +960,17 @@ def recommendedTrips(request):
 
 
 
-
-
 #-------------- notifications -----------------------
+from .serializers import NotificationSerializer
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_notifications(request):
+    notifications = request.user.notifications.all().order_by('-timestamp')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
+
+
+
 from .serializers import NotificationSerializer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1014,6 +1033,15 @@ def get_trips_for_country(request):
     trips = Trip.objects.filter(destination__icontains = country)
     trips_ser = TripSerializer(trips,many=True)
     return Response(trips_ser.data,status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_trips_for_country(request):
+    country = request.GET.get('country', ' ')
+    trips = Trip.objects.filter(destination__icontains = country)
+    trips_ser = TripSerializer(trips,many=True)
+    return Response(trips_ser.data,status=status.HTTP_200_OK)
+
 
 
 @api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])

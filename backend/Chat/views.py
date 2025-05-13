@@ -1,3 +1,197 @@
+"""
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import APIView
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+
+from main.models import (
+    Trip, Customer, Admin, MessageDM, ConversationDM,
+    GroupChatConversation, MessageGroup, SupportTicket
+)
+from main.serializers import (
+    MessagesDMSeriliazer, ConversationDMSerializer,
+    GroupChatConversationSerializer, MessageGroupSerializer,
+    SupportTicketSerializer
+)
+from rest_framework.exceptions import PermissionDenied
+# ----------------- Direct Messaging ------------------
+
+class ListMessages(generics.ListAPIView):
+    serializer_class = MessagesDMSeriliazer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        conversation_id = self.kwargs.get("conversation_id")
+        conversation = get_object_or_404(ConversationDM, id=conversation_id)
+
+        user = self.request.user
+        if user == conversation.staff.user or user == conversation.cust.user:
+            return MessageDM.objects.filter(conversation=conversation).order_by("timestamp")
+        return MessageDM.objects.none()
+
+
+class ListConversation(generics.ListAPIView):
+    serializer_class = ConversationDMSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'customer'):
+            return ConversationDM.objects.filter(cust__user=user)
+        elif hasattr(user, 'admin'):
+            return ConversationDM.objects.filter(staff__user=user)
+        return ConversationDM.objects.none()
+
+class CreatePrivateChatAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+       
+        try:
+            user = get_object_or_404(Customer, id=user_id)
+            other_user = user.user
+
+            if request.user == other_user:
+                return Response({"error": "You cannot start a chat with yourself."}, status=400)
+
+            conversation, created = ConversationDM.objects.get_or_create(
+                cust=user,
+                staff=request.user.admin if hasattr(request.user, 'admin') else None
+            )
+
+            serializer = ConversationDMSerializer(conversation)
+            return Response(serializer.data)
+
+        except Customer.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+
+# ----------------- Group Chat ------------------
+
+class ListGroupMessages(generics.ListAPIView):
+    serializer_class = MessageGroupSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        conversation_id = self.kwargs.get("conversation_id")
+        conversation = get_object_or_404(GroupChatConversation, id=conversation_id)
+
+        if conversation.participants.filter(id=self.request.user.id).exists():
+            return MessageGroup.objects.filter(conversation=conversation).order_by("sent_at")
+        return MessageGroup.objects.none()
+
+
+class ListGroupConversations(generics.ListAPIView):
+    serializer_class = GroupChatConversationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return GroupChatConversation.objects.filter(participants=self.request.user)
+
+
+class CreateGroupChatAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, trip_id):
+        
+        try:
+            trip = Trip.objects.get(id=trip_id)
+
+            if not hasattr(request.user, 'admin') or request.user.admin != trip.guide:
+                return Response({"error": "Only the trip's guide can create the group chat."}, status=403)
+
+            participants = [trip.guide.user] + [c.user for c in trip.purchasers.all()]
+            if len(participants) < 2:
+                return Response({"error": "Not enough participants to create a group chat."}, status=400)
+
+            group_chat, created = GroupChatConversation.objects.get_or_create(trip=trip)
+            group_chat.participants.set(participants)
+
+            if 'title' in request.data:
+                group_chat.title = request.data['title']
+            group_chat.save()
+
+            serializer = GroupChatConversationSerializer(group_chat)
+            return Response(serializer.data)
+
+        except Trip.DoesNotExist:
+            return Response({"error": "Trip not found"}, status=404)
+
+
+# ----------------- Support Tickets ------------------
+
+class SupportTicketView(generics.ListCreateAPIView):
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if hasattr(self.request.user, 'customer'):
+            return SupportTicket.objects.filter(customer=self.request.user.customer)
+        return SupportTicket.objects.none()
+
+    def perform_create(self, serializer):
+        if hasattr(self.request.user, 'customer'):
+            serializer.save(customer=self.request.user.customer)
+
+import logging
+class AcceptTicketView(generics.UpdateAPIView):
+    queryset = SupportTicket.objects.filter(status='pending')
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Performing update for ticket {serializer.instance.id}")
+
+        if not hasattr(self.request.user, 'admin'):
+            logger.debug("User is not an admin")
+            raise PermissionDenied("Only admins can accept tickets")
+
+        # Uncomment this if you want to restrict to customer_support department only
+        # if self.request.user.admin.department != 'customer_support':
+        #     logger.debug(f"Admin department {self.request.user.admin.department} not authorized")
+        #     raise PermissionDenied("Only customer support admins can accept tickets")
+
+        # Update the ticket
+        serializer.save(
+            status='accepted',
+            accepted_by=self.request.user.admin
+        )
+
+        # Create conversation if it's a support ticket
+        ConversationDM.objects.create(
+            staff=self.request.user.admin,
+            cust=serializer.instance.customer,
+            ticket=serializer.instance,
+            conversation_type='support'
+        )
+
+    def update(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(SupportTicketSerializer(serializer.instance).data)
+        except Exception as e:
+            logger.error(f"Error accepting ticket: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)    
+
+class LatestSupportTicketAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if hasattr(request.user, 'customer'):
+            ticket = SupportTicket.objects.filter(customer=request.user.customer).order_by('-created_at').first()
+            if ticket:
+                serializer = SupportTicketSerializer(ticket)
+                return Response(serializer.data)
+        return Response({})
+"""
+
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 from rest_framework import generics, status
@@ -8,7 +202,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 import logging
 
-from chat.models import DirectConversation, GroupConversation, Message, SupportTicket
+from Chat.models import DirectConversation, GroupConversation, Message, SupportTicket
 from main.models import Trip, User
 from .serializers import (
     DirectConversationSerializer, 
@@ -120,6 +314,43 @@ class CreateDirectConversationView(generics.CreateAPIView):
             raise NotFound(detail="User not found")
 
 # ==================== Group Chat ====================
+"""
+class GroupConversationListView(generics.ListAPIView):
+    serializer_class = GroupConversationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return GroupConversation.objects.filter(
+            participants=self.request.user
+        ).select_related('trip').prefetch_related(
+            'participants',
+            Prefetch('messages', queryset=Message.objects.order_by('-timestamp')[:10])
+        ).order_by('-updated_at')
+
+class GroupMessageListView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = MessagePagination
+
+    def get_queryset(self):
+        conversation_id = self.kwargs['conversation_id']
+        
+        conversation = get_object_or_404(
+            GroupConversation.objects.filter(
+                participants=self.request.user,
+                id=conversation_id
+            )
+        )
+        
+        return Message.objects.filter(
+            conversation=conversation
+        ).select_related('sender').order_by('timestamp')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    """
 
 class GroupConversationListView(generics.ListAPIView):
     serializer_class = GroupConversationSerializer
@@ -200,7 +431,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = SupportTicket.objects.select_related(
-            'customer', 'admin__user', 'directconversation'
+            'customer', 'admin', 'directconversation'
         ).order_by('-created_at')
         
         if status := self.request.query_params.get('status'):
@@ -210,7 +441,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
             return queryset.filter(customer=self.request.user)
         elif hasattr(self.request.user, 'admin'):
             return queryset.filter(
-                Q(status='open') | Q(admin=self.request.user.admin)
+                Q(status='open') 
             )
         return queryset.none()
 
@@ -238,9 +469,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateDestroyAPIView):
         if hasattr(self.request.user, 'customer'):
             return queryset.filter(customer=self.request.user)
         elif hasattr(self.request.user, 'admin'):
-            return queryset.filter(
-                Q(status='open') | Q(admin=self.request.user)
-            )
+            return queryset.filter(admin=self.request.user)
         return queryset.none()
 
     def destroy(self, request, *args, **kwargs):

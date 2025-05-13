@@ -50,9 +50,9 @@ urlpatterns = [
     path('notifications/read/<int:pk>/', view= views.mark_notification_as_read),
     path('notifications/delete/<int:pk>/', view= views.delete_notification),
 
-
     path('get_trips_for_country/',view=views.get_trips_for_country),
     path('run_tasks/', views.run_scheduled_tasks, name='run_scheduled_tasks'),     #background tasks triggered manually by admin
+
 
     
 ]

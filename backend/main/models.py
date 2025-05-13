@@ -18,8 +18,14 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, unique=True)
 
 
+<<<<<<< HEAD
+    #is_online = models.BooleanField(default=False)
+    #last_seen = models.DateTimeField(null=True, blank=True)
+=======
+    is_admin = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
-    last_seen = models.DateTimeField(null=True, blank=True)
+
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
     
 
     objects = UserManager()
@@ -44,7 +50,13 @@ class Customer(models.Model):
     city = models.CharField(max_length=100,default=" ",null=True,blank=True)
 
     birthdate = models.DateField(null=True,blank=True)
+<<<<<<< HEAD
     profile_picture = models.ImageField(upload_to='profile_pictures/customers', default='profile_pictures/profile.png')
+=======
+
+    profile_picture = models.ImageField(upload_to='profile_pictures/customers/', default='profile_pictures/profile.png')
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
+
 
     loyalty_points = models.PositiveIntegerField(default=0, validators=[validators.MaxValueValidator(500)])
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Wallet Balance
@@ -178,12 +190,12 @@ class HotelImages(models.Model):
 
 # -----------Trip-----------
 class Trip(models.Model):
-    title = models.CharField(max_length=200, unique=True)
-    description = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=200,unique=True)
+    description = models.TextField(null=True,blank=True)
     capacity = models.IntegerField(
         validators=[validators.MinValueValidator(1.0)],
         help_text="Number of people this trip can accommodate."
-    )
+    )  # how many ppl it can take
     sold_tickets = models.IntegerField(default=0, db_default=0)
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, blank=True, null=True) 
     created_by = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='managed_trips')
@@ -222,35 +234,67 @@ class Trip(models.Model):
     
     def __str__(self):
         return f"{self.title} ({self.trip_type}, {self.departure_date})"
-    
+
     class Meta:
         verbose_name = "Trip"
         verbose_name_plural = "Trips"
+
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'created_by'],
                 name='unique_trip_signature'
             ),
         ]
-        indexes = [
-            models.Index(fields=['is_one_way', 'departure_date']),
-            models.Index(fields=['is_one_way', 'return_date']),
-            models.Index(fields=['status']),
-        ]
 
     def clean(self):
         if self.return_date and self.departure_date >= self.return_date:
             raise ValidationError("Return date cannot be before the departure date.")
-        if self.trip_type == 'group' and not self.guide:
+        if self.trip_type == 'group' and not self.guide:  # if it's a group trip there must be a guide
             raise ValidationError("A guide must be assigned for group trips.")
-        if self.is_one_way and self.return_date:
-            raise ValidationError("A one way trip can't have a return date")
+
+
+
+    
+    def save(self, *args, **kwargs):
+        from Chat.models import GroupConversation
+
+        created = not self.pk  # Check if this is a new instance
+        super().save(*args, **kwargs)
+
+        # Ensure GroupConversation is created for group trips
+        if self.trip_type == 'group':
+            GroupConversation.objects.get_or_create(trip=self)
     
     def delete(self, *args, **kwargs):
+        # Construct folder path based on the first image's path (if exists)
         trip_folder = os.path.join(settings.MEDIA_ROOT, "trips_images", self.title)
+
+        # Delete the folder and its contents if it exists
         if os.path.exists(trip_folder):
             shutil.rmtree(trip_folder)
+
+        # Call parent delete method
         super().delete(*args, **kwargs)
+
+    @property
+    def group_chat_exists(self):
+        """Check if a group conversation exists for this trip."""
+        return hasattr(self, 'group_conversation') and self.group_conversation is not None
+
+    def get_group_chat_participants(self):
+
+        participants = list(self.purchasers.all().values_list('user', flat=True))
+        if self.guide:
+            participants.append(self.guide.user.id)
+        return User.objects.filter(id__in=participants)
+
+    def user_has_chat_access(self, user):
+       
+        if hasattr(user, 'customer'):
+            return self.purchasers.filter(id=user.customer.id).exists()
+        if hasattr(user, 'admin') and self.guide:
+            return user.admin.id == self.guide.id
+        return False
 
 
 class DepartureTrip(models.Model):
@@ -312,4 +356,8 @@ class Notification(models.Model):
         self.save()
 
     def __str__(self):
+<<<<<<< HEAD
         return f"{self.recipient.username} - {self.type} - {self.status}"
+=======
+        return f"{self.recipient.username} - {self.type} - {self.status}"
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead

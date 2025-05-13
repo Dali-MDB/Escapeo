@@ -48,23 +48,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'main',
     'chatbot',
     'reservation',
     'signals.apps.SignalsConfig',
-    'chat',
-    'profiles',
+    'Chat',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist', 
     'drf_spectacular',    #swagger auto documentation
     'django_celery_beat',
-    'channels', 
-    
-
-    'corsheaders',   #to link the front
+    'channels',
+    'channels_redis',
+    'adminPanel',
+    'corsheaders',
+    'profiles',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,16 +104,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'travel_agency.wsgi.application'
 
 
+'''   #sensitive data shouldn't be shared, put it in .env
+SECRET_KEY='hD2j3HfKgRT3xCmQ9z9YxWQKdNvwLZL5xJDwBYE2J7KQhzWQ2g'
+PASSWORD='merouane'
+'''
 
 ASGI_APPLICATION = "travel_agency.routing.application"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
+
+
 
 
 # Database
@@ -124,7 +122,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'travel_db',
         'USER': 'postgres',
-        'PASSWORD':  os.getenv('DB_PASSWORD'),
+        'PASSWORD':  os.getenv('DB_PASSWORD'),    #hide password
         'HOST': 'localhost',
         'PORT': '5432'
     }
@@ -264,4 +262,13 @@ SPECTACULAR_SETTINGS = {        #for auto documentation
     'TITLE': 'Your API',
     'DESCRIPTION': 'Auto-generated docs',
     'VERSION': '1.0.0',
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
