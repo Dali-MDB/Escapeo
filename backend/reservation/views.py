@@ -107,7 +107,11 @@ def getTripReservationPrice(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id)
     
     #add status check
+<<<<<<< HEAD
     if trip.status != 'coming' and time(trip.departure_date) < time(timezone.now().date()):
+=======
+    if trip.status != 'coming' or trip.departure_date >= timezone.now().date():
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
         return Response({'error':'you can not make a reservation for this trip since its departue date had already passed'},status=status.HTTP_400_BAD_REQUEST)
     departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get("departure_trip_id"))
     tickets = int(request.GET.get("tickets", 1))
@@ -136,10 +140,18 @@ def trip_reservation_payment_init(request, trip_id):
 
     print(request.data.get('departure_trip_id'))
 
+<<<<<<< HEAD
     #need to cast date to datetime
     #add status check
     if trip.status != 'coming' or time(trip.departure_date) < time(timezone.now().date()    ):
         return Response({'error':'you can not make a reservation for this trip since its departure date had already passed'},status=status.HTTP_400_BAD_REQUEST)
+=======
+
+    #add status check
+    if trip.status != 'coming' or trip.departure_date >= timezone.now().date():
+        return Response({'error':'you can not make a reservation for this trip since its departue date had already passed'},status=status.HTTP_400_BAD_REQUEST)
+    
+>>>>>>> 2a8ceb66188b81d509c5e73d4c9a2a58b618dead
 
     departure_trip = get_object_or_404(DepartureTrip, trip=trip, id=request.GET.get('departure_trip_id'))
     tickets = int(request.data.get('tickets', 1))
