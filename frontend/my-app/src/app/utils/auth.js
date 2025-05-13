@@ -111,19 +111,19 @@ export async function login(email, password) {
 
   const textResponse = await res.text(); // Log raw response
 
-  
-    const data = JSON.parse(textResponse); // Try parsing JSON
-    console.log("Parsed JSON Response:", data);
 
-    if (!res.ok) {
-      alert(data.error);
-    }
+  const data = JSON.parse(textResponse); // Try parsing JSON
+  console.log("Parsed JSON Response:", data);
 
-    localStorage.setItem("accessToken", data.access);
-    localStorage.setItem("refreshToken", data.refresh);
+  if (!res.ok) {
+    alert(data.error);
+  }
 
-    return res;
-  
+  localStorage.setItem("accessToken", data.access);
+  localStorage.setItem("refreshToken", data.refresh);
+
+  return res;
+
 }
 
 export async function signUp(formData) {
@@ -315,7 +315,7 @@ export const fetchFavourites = async () => {
       },
     });
 
-    
+
     const favourites = await response.json()
     const success = response.ok
     return {

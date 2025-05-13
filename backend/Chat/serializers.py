@@ -56,7 +56,7 @@ class UUIDSerializer(MsgPackSerializer):
 class UserBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_online']
+        fields = ['id', 'username', 'email']
 
 class DirectConversationSerializer(serializers.ModelSerializer):
     customer = UserBriefSerializer()

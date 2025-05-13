@@ -103,9 +103,7 @@ export default function Messages() {
                 }
             };
 
-            newSocket.onerror = (error) => {
-                setError("WebSocket connection error");
-            };
+            
 
             newSocket.onclose = (event) => {
                 

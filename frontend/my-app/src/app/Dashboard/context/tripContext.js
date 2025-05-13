@@ -1,9 +1,6 @@
 "use client"
 import { createContext, useState, useContext } from "react";
-
-// Create the context
 export const TripContext = createContext(null);
-
 export function useTrip() {
   return useContext(TripContext);
 }
@@ -77,17 +74,14 @@ export function TripProvider({ children }) {
   }
   const [formData, setFormData] = useState(INITIAM_FORM_STATE);
   const [tripImages, setTripImages] = useState([])
-  const [departures, setDepartures] = useState([ { location: "", capacity: 0, price: 0, sold_tickets: 0  }])
-
-
+  const [departures, setDepartures] = useState([{ location: "", capacity: 0, price: 0, sold_tickets: 0 }])
   const [tripSelected, setTripSelected] = useState(0);
-
   const guides = [{ name: 'John Doe', id: 1 }, { name: 'Jane Smith', id: 2 }, { name: 'Alice Johnson', id: 3 }]
   return (
-    <TripContext.Provider value={{
-      tripImages, setTripImages,
-      departures, setDepartures, formData, INITIAM_FORM_STATE, setFormData, setTripSelected, tripSelected, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES, guides
-    }}>
+    <TripContext.Provider
+      value={{
+        tripImages, setTripImages, departures, setDepartures, formData, INITIAM_FORM_STATE, setFormData, setTripSelected, tripSelected, PRICE_CATEGORIES, DESTINATION_TYPES, TRANSPORT_TYPES, EXPERIENCE_LEVELS, TRIP_TYPES, guides
+      }}>
       {children}
     </TripContext.Provider>
   );

@@ -1,11 +1,11 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from main.models import Trip
 
 User = get_user_model()
 
 class Conversation(models.Model):
+    from main.models import Trip
     """Base conversation model that can be either direct or group"""
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -35,7 +35,9 @@ class DirectConversation(Conversation):
 
 class GroupConversation(Conversation):
     """Group conversation related to a trip"""
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE,blank=True, null=True, related_name='group_conversation')
+    
+    from main.models import Trip
+    trip = models.OneToOneField(Trip, on_delete=models.CASCADE,  related_name='group_conversation')
     participants = models.ManyToManyField(User,related_name='my_chats')
     
     def save(self, *args, **kwargs):
@@ -49,8 +51,7 @@ class GroupConversation(Conversation):
         return True  
         
     def __str__(self):
-        return f"Group: {self.name} (Trip: {self.trip})"
-    
+        return f"Group Conversation for Trip: {self.trip.title if self.trip else 'No Trip'}"
 
 
 
@@ -78,7 +79,7 @@ class SupportTicket(models.Model):
         ('closed', 'Closed'),
     )
     
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='support_tickets')
     subject = models.CharField(max_length=200)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
